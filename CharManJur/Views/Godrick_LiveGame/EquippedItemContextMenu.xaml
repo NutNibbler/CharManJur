@@ -48,13 +48,36 @@
                          Margin="0,3" />
 
                 <!-- Two-Handed Indicator -->
-                <Label Text="⚔️ Two-Handed (occupies both slots)"
+                <Label Text="⚔️ Two-Handed (takes 2 slots)"
                        FontSize="9"
                        TextColor="#f39c12"
                        HorizontalOptions="Center"
                        IsVisible="{Binding IsTwoHanded}" />
 
-                <!-- Menu Items -->
+                <!-- ===== SWAP BUTTONS ===== -->
+                <Button Text="🔄 Swap to Belt"
+                        BackgroundColor="#8e44ad"
+                        TextColor="White"
+                        CornerRadius="4"
+                        HeightRequest="32"
+                        FontSize="11"
+                        IsEnabled="{Binding CanSwapToBelt}"
+                        Command="{Binding SwapToBeltCommand}" />
+
+                <Button Text="🔄 Swap to Hand"
+                        BackgroundColor="#8e44ad"
+                        TextColor="White"
+                        CornerRadius="4"
+                        HeightRequest="32"
+                        FontSize="11"
+                        IsEnabled="{Binding CanSwapToHand}"
+                        Command="{Binding SwapToHandCommand}" />
+
+                <BoxView HeightRequest="1"
+                         Color="#333333"
+                         Margin="0,3" />
+
+                <!-- Unequip -->
                 <Button Text="↩️ Unequip"
                         BackgroundColor="#e67e22"
                         TextColor="White"
@@ -63,6 +86,7 @@
                         FontSize="12"
                         Command="{Binding UnequipCommand}" />
 
+                <!-- Drop -->
                 <Button Text="🗑️ Drop"
                         BackgroundColor="#e74c3c"
                         TextColor="White"
@@ -71,6 +95,7 @@
                         FontSize="12"
                         Command="{Binding DropCommand}" />
 
+                <!-- Details -->
                 <Button Text="📋 Details"
                         BackgroundColor="#3498db"
                         TextColor="White"

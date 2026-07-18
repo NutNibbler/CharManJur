@@ -176,62 +176,62 @@
 
                         <!-- ===== BELT SLOTS ===== -->
                         <Label Text="🪢 Belt Slots"
-                            FontAttributes="Bold"
-                            FontSize="13"
-                            TextColor="#f39c12"
-                            Margin="0,5,0,0" />
+       FontAttributes="Bold"
+       FontSize="13"
+       TextColor="#f39c12"
+       Margin="0,5,0,0" />
 
                         <Grid ColumnDefinitions="*, *" RowDefinitions=" *,*" ColumnSpacing="5" RowSpacing="3">
                             <!-- Belt Slot 1 -->
                             <Border Grid.Row="0" Grid.Column="0" 
-                                Stroke="{Binding BeltSlot1Bulky, Converter={StaticResource BulkyBorderConverter}}"
-                                StrokeThickness="{Binding BeltSlot1Bulky, Converter={StaticResource BulkyBorderThicknessConverter}}"
-                                StrokeShape="RoundRectangle 4" 
-                                Padding="4"
-                                BackgroundColor="{Binding BeltSlot1Bulky, Converter={StaticResource BulkyBackgroundConverter}}">
+            Stroke="{Binding BeltSlot1Bulky, Converter={StaticResource BulkyBorderConverter}}"
+            StrokeThickness="{Binding BeltSlot1Bulky, Converter={StaticResource BulkyBorderThicknessConverter}}"
+            StrokeShape="RoundRectangle 4" 
+            Padding="4"
+            BackgroundColor="{Binding BeltSlot1Bulky, Converter={StaticResource BulkyBackgroundConverter}}">
                                 <Label Text="{Binding BeltSlot1}" 
-                                   FontSize="12" 
-                                   TextColor="White"
-                                   HorizontalOptions="Center" />
+               FontSize="12" 
+               TextColor="White"
+               HorizontalOptions="Center" />
                             </Border>
 
                             <!-- Belt Slot 2 -->
                             <Border Grid.Row="0" Grid.Column="1" 
-                                Stroke="{Binding BeltSlot2Bulky, Converter={StaticResource BulkyBorderConverter}}"
-                                StrokeThickness="{Binding BeltSlot2Bulky, Converter={StaticResource BulkyBorderThicknessConverter}}"
-                                StrokeShape="RoundRectangle 4" 
-                                Padding="4"
-                                BackgroundColor="{Binding BeltSlot2Bulky, Converter={StaticResource BulkyBackgroundConverter}}">
+            Stroke="{Binding BeltSlot2Bulky, Converter={StaticResource BulkyBorderConverter}}"
+            StrokeThickness="{Binding BeltSlot2Bulky, Converter={StaticResource BulkyBorderThicknessConverter}}"
+            StrokeShape="RoundRectangle 4" 
+            Padding="4"
+            BackgroundColor="{Binding BeltSlot2Bulky, Converter={StaticResource BulkyBackgroundConverter}}">
                                 <Label Text="{Binding BeltSlot2}" 
-                                   FontSize="12" 
-                                   TextColor="White"
-                                   HorizontalOptions="Center" />
+               FontSize="12" 
+               TextColor="White"
+               HorizontalOptions="Center" />
                             </Border>
 
                             <!-- Belt Slot 3 -->
                             <Border Grid.Row="1" Grid.Column="0" 
-                                Stroke="{Binding BeltSlot3Bulky, Converter={StaticResource BulkyBorderConverter}}"
-                                StrokeThickness="{Binding BeltSlot3Bulky, Converter={StaticResource BulkyBorderThicknessConverter}}"
-                                StrokeShape="RoundRectangle 4" 
-                                Padding="4"
-                                BackgroundColor="{Binding BeltSlot3Bulky, Converter={StaticResource BulkyBackgroundConverter}}">
+            Stroke="{Binding BeltSlot3Bulky, Converter={StaticResource BulkyBorderConverter}}"
+            StrokeThickness="{Binding BeltSlot3Bulky, Converter={StaticResource BulkyBorderThicknessConverter}}"
+            StrokeShape="RoundRectangle 4" 
+            Padding="4"
+            BackgroundColor="{Binding BeltSlot3Bulky, Converter={StaticResource BulkyBackgroundConverter}}">
                                 <Label Text="{Binding BeltSlot3}" 
-                                   FontSize="12" 
-                                   TextColor="White"
-                                   HorizontalOptions="Center" />
+               FontSize="12" 
+               TextColor="White"
+               HorizontalOptions="Center" />
                             </Border>
 
                             <!-- Belt Slot 4 -->
                             <Border Grid.Row="1" Grid.Column="1" 
-                                Stroke="{Binding BeltSlot4Bulky, Converter={StaticResource BulkyBorderConverter}}"
-                                StrokeThickness="{Binding BeltSlot4Bulky, Converter={StaticResource BulkyBorderThicknessConverter}}"
-                                StrokeShape="RoundRectangle 4" 
-                                Padding="4"
-                                BackgroundColor="{Binding BeltSlot4Bulky, Converter={StaticResource BulkyBackgroundConverter}}">
+            Stroke="{Binding BeltSlot4Bulky, Converter={StaticResource BulkyBorderConverter}}"
+            StrokeThickness="{Binding BeltSlot4Bulky, Converter={StaticResource BulkyBorderThicknessConverter}}"
+            StrokeShape="RoundRectangle 4" 
+            Padding="4"
+            BackgroundColor="{Binding BeltSlot4Bulky, Converter={StaticResource BulkyBackgroundConverter}}">
                                 <Label Text="{Binding BeltSlot4}" 
-                                   FontSize="12" 
-                                   TextColor="White"
-                                   HorizontalOptions="Center" />
+               FontSize="12" 
+               TextColor="White"
+               HorizontalOptions="Center" />
                             </Border>
                         </Grid>
 

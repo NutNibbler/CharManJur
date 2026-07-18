@@ -31,12 +31,20 @@ public class EquippedItemContextMenuViewModel : INotifyPropertyChanged
         UnequipCommand = new Command(OnUnequip);
         DropCommand = new Command(OnDrop);
         ViewDetailsCommand = new Command(OnViewDetails);
+        SwapToBeltCommand = new Command(OnSwapToBelt);
+        SwapToHandCommand = new Command(OnSwapToHand);
         CancelCommand = new Command(OnCancel);
+
+        // Update command can-execute states
+        (SwapToBeltCommand as Command)?.ChangeCanExecute();
+        (SwapToHandCommand as Command)?.ChangeCanExecute();
     }
 
     public string ItemName => _characterItem.DisplayName;
     public string SlotLocation => $"{_slotName} (Slot {_slotNumber})";
     public bool IsTwoHanded => _characterItem.SlotsRequired > 1;
+    public bool CanSwapToBelt => _charDataService.CanSwapToBelt(_characterItem.Id);
+    public bool CanSwapToHand => _charDataService.CanSwapToHand(_characterItem.Id);
 
     public bool IsProcessing
     {
@@ -48,17 +56,19 @@ public class EquippedItemContextMenuViewModel : INotifyPropertyChanged
         }
     }
 
+    // ===== COMMANDS =====
     public ICommand UnequipCommand { get; }
     public ICommand DropCommand { get; }
     public ICommand ViewDetailsCommand { get; }
+    public ICommand SwapToBeltCommand { get; }
+    public ICommand SwapToHandCommand { get; }
     public ICommand CancelCommand { get; }
+
+    // ===== COMMAND HANDLERS =====
 
     private async void OnUnequip()
     {
-        if (IsProcessing)
-        {
-            return;
-        }
+        if (IsProcessing) return;
         IsProcessing = true;
 
         try
@@ -82,10 +92,7 @@ public class EquippedItemContextMenuViewModel : INotifyPropertyChanged
 
     private async void OnDrop()
     {
-        if (IsProcessing)
-        {
-            return;
-        }
+        if (IsProcessing) return;
         IsProcessing = true;
 
         try
@@ -115,18 +122,13 @@ public class EquippedItemContextMenuViewModel : INotifyPropertyChanged
 
     private async void OnViewDetails()
     {
-        if (IsProcessing)
-        {
-            return;
-        }
+        if (IsProcessing) return;
         IsProcessing = true;
 
         try
         {
-            // Dismiss the context menu
             await Application.Current.MainPage.Navigation.PopModalAsync();
 
-            // Find the CharacterHomePage
             var currentPage = Application.Current.MainPage;
             var homePage = currentPage as Views.Godrick_LiveGame.CharacterHomePage;
 
@@ -142,23 +144,15 @@ public class EquippedItemContextMenuViewModel : INotifyPropertyChanged
                 var viewModel = homePage.BindingContext as CharacterHomeViewModel;
                 if (viewModel != null)
                 {
-                    // Find the inventory display item
                     var inventoryItem = viewModel.InventoryItems
                         .FirstOrDefault(i => i.Id == _characterItem.Id);
 
                     if (inventoryItem != null)
                     {
-                        // Set the selected item using the public property
                         viewModel.SelectedInventoryItem = inventoryItem;
-
-                        // Force refresh by raising PropertyChanged on the ViewModel
-                        // Since OnPropertyChanged is protected, we use the public setter which triggers it
-                        // The SelectedInventoryItem setter already calls OnPropertyChanged internally
                     }
                     else
                     {
-                        // If the item is equipped but not in the inventory display,
-                        // show details in an alert
                         await Application.Current.MainPage.DisplayAlertAsync(
                             "Item Details",
                             GetItemDetailsString(),
@@ -168,12 +162,63 @@ public class EquippedItemContextMenuViewModel : INotifyPropertyChanged
             }
             else
             {
-                // Fallback: show details in an alert
                 await Application.Current.MainPage.DisplayAlertAsync(
                     "Item Details",
                     GetItemDetailsString(),
                     "OK");
             }
+        }
+        finally
+        {
+            IsProcessing = false;
+        }
+    }
+
+    private async void OnSwapToBelt()
+    {
+        if (IsProcessing) return;
+        IsProcessing = true;
+
+        try
+        {
+            if (!_charDataService.CanSwapToBelt(_characterItem.Id))
+            {
+                await Application.Current.MainPage.DisplayAlertAsync(
+                    "Cannot Swap",
+                    "No available belt slots with enough space.",
+                    "OK");
+                return;
+            }
+
+            _charDataService.SwapToBelt(_characterItem.Id);
+            _onComplete?.Invoke();
+            await Application.Current.MainPage.Navigation.PopModalAsync();
+        }
+        finally
+        {
+            IsProcessing = false;
+        }
+    }
+
+    private async void OnSwapToHand()
+    {
+        if (IsProcessing) return;
+        IsProcessing = true;
+
+        try
+        {
+            if (!_charDataService.CanSwapToHand(_characterItem.Id))
+            {
+                await Application.Current.MainPage.DisplayAlertAsync(
+                    "Cannot Swap",
+                    "No available hand slots with enough space.",
+                    "OK");
+                return;
+            }
+
+            _charDataService.SwapToHand(_characterItem.Id);
+            _onComplete?.Invoke();
+            await Application.Current.MainPage.Navigation.PopModalAsync();
         }
         finally
         {
@@ -190,7 +235,7 @@ public class EquippedItemContextMenuViewModel : INotifyPropertyChanged
 
         if (_characterItem.SlotsRequired > 1)
         {
-            details += "⚔️ Two-Handed (occupies both slots)\n";
+            details += "⚔️ Two-Handed (occupies 2 slots)\n";
         }
 
         if (_characterItem.Template?.ValueInChips != null)
@@ -221,13 +266,9 @@ public class EquippedItemContextMenuViewModel : INotifyPropertyChanged
         return details;
     }
 
-
     private async void OnCancel()
     {
-        if (IsProcessing)
-        {
-            return;
-        }
+        if (IsProcessing) return;
         await Application.Current.MainPage.Navigation.PopModalAsync();
     }
 

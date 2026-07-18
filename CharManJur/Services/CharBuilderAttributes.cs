@@ -124,6 +124,14 @@ public interface ICharAttribDataService
     PrehensileLimbSet? GetLimbSetForTwoHandedItem(int characterItemId);
     bool IsLimbSetOccupiedByTwoHandedItem(int limbSetId);
 
+    // === HOT-SWAP METHODS ===
+    bool CanSwapToBelt(int characterItemId);
+    bool CanSwapToHand(int characterItemId);
+    void SwapToBelt(int characterItemId);
+    void SwapToHand(int characterItemId);
+    int? FindAvailableBeltSlot(int slotsNeeded = 1);
+    int? FindAvailableHandSlot(int slotsNeeded = 1);
+
     // === RACE BONUSES ===
     int RaceVigorBonus { get; set; }
     int RaceAgilityBonus { get; set; }
@@ -1457,6 +1465,258 @@ public class CharAttribDataService : ICharAttribDataService
             item.LastModified = DateTime.Now;
             item.SyncId = Guid.NewGuid().ToString();
         }
+    }
+
+    // ===== HOT-SWAP METHODS =====
+
+    public int? FindAvailableBeltSlot(int slotsNeeded = 1)
+    {
+        if (slotsNeeded < 1 || slotsNeeded > 2) return null;
+
+        // Count used belt slots and track occupied slots
+        bool[] occupied = new bool[5]; // 1-indexed, ignore index 0
+        for (int i = 1; i <= 4; i++)
+        {
+            var existing = GetEquippedBeltSlot(i);
+            if (existing != null)
+            {
+                // Mark this slot and any additional slots the item occupies
+                occupied[i] = true;
+                if (existing.SlotsRequired == 2 && i < 4)
+                {
+                    occupied[i + 1] = true;
+                }
+            }
+        }
+
+        // Count total used slots
+        int usedSlots = 0;
+        for (int i = 1; i <= 4; i++)
+        {
+            if (occupied[i]) usedSlots++;
+        }
+
+        // Check if there's room
+        if (usedSlots + slotsNeeded > 4) return null;
+
+        // Find first available slot(s)
+        if (slotsNeeded == 1)
+        {
+            for (int i = 1; i <= 4; i++)
+            {
+                if (!occupied[i]) return i;
+            }
+        }
+        else if (slotsNeeded == 2)
+        {
+            for (int i = 1; i <= 3; i++)
+            {
+                if (!occupied[i] && !occupied[i + 1]) return i;
+            }
+        }
+
+        return null;
+    }
+
+    public int? FindAvailableHandSlot(int slotsNeeded = 1)
+    {
+        int totalSlots = GetTotalLimbSlots();
+        if (slotsNeeded < 1 || slotsNeeded > 2 || totalSlots < slotsNeeded) return null;
+
+        // Track occupied slots
+        bool[] occupied = new bool[totalSlots + 1]; // 1-indexed
+        for (int i = 1; i <= totalSlots; i++)
+        {
+            if (GetEquippedHandSlot(i) != null)
+            {
+                occupied[i] = true;
+            }
+        }
+
+        if (slotsNeeded == 1)
+        {
+            for (int i = 1; i <= totalSlots; i++)
+            {
+                if (!occupied[i]) return i;
+            }
+        }
+        else if (slotsNeeded == 2)
+        {
+            for (int i = 1; i <= totalSlots - 1; i++)
+            {
+                if (!occupied[i] && !occupied[i + 1]) return i;
+            }
+        }
+
+        return null;
+    }
+
+    public bool CanSwapToBelt(int characterItemId)
+    {
+        var item = _inventory.FirstOrDefault(i => i.Id == characterItemId);
+        if (item == null) return false;
+        if (!item.IsEquipped) return false;
+
+        // Check if the item is already in a belt slot
+        if (item.EquipmentSlot == EquipmentSlotType.Belt) return false;
+
+        // Check if there's an available belt slot with enough space
+        int slotsNeeded = item.SlotsRequired;
+        var availableSlot = FindAvailableBeltSlot(slotsNeeded);
+        return availableSlot.HasValue;
+    }
+
+    public bool CanSwapToHand(int characterItemId)
+    {
+        var item = _inventory.FirstOrDefault(i => i.Id == characterItemId);
+        if (item == null) return false;
+        if (!item.IsEquipped) return false;
+
+        // Check if the item is already in a hand slot
+        if (item.EquipmentSlot == EquipmentSlotType.Hand) return false;
+
+        // Check if there's an available hand slot with enough space
+        int slotsNeeded = item.SlotsRequired;
+
+        // For two-handed items, we need a paired limb set with both slots free
+        if (slotsNeeded > 1)
+        {
+            // Check if any paired limb set has all slots free
+            foreach (var limbSet in _limbSets)
+            {
+                if (limbSet.PairType != LimbPairType.Paired) continue;
+                if (limbSet.IsOccupiedByTwoHandedItem) continue;
+
+                bool allSlotsFree = true;
+                foreach (var slotIndex in limbSet.SlotIndices)
+                {
+                    if (GetEquippedHandSlot(slotIndex + 1) != null)
+                    {
+                        allSlotsFree = false;
+                        break;
+                    }
+                }
+
+                if (allSlotsFree) return true;
+            }
+            return false;
+        }
+
+        var availableSlot = FindAvailableHandSlot(1);
+        return availableSlot.HasValue;
+    }
+
+    public void SwapToBelt(int characterItemId)
+    {
+        var item = _inventory.FirstOrDefault(i => i.Id == characterItemId);
+        if (item == null) return;
+        if (!item.IsEquipped) return;
+        if (item.EquipmentSlot == EquipmentSlotType.Belt) return;
+
+        int slotsNeeded = item.SlotsRequired;
+        var availableSlot = FindAvailableBeltSlot(slotsNeeded);
+        if (!availableSlot.HasValue) return;
+
+        // If it's a two-handed item in a hand slot, clean up the limb set
+        if (slotsNeeded > 1 && item.EquipmentSlot == EquipmentSlotType.Hand)
+        {
+            // Find and clear the limb set
+            foreach (var limbSet in _limbSets)
+            {
+                if (limbSet.TwoHandedItemId == characterItemId)
+                {
+                    limbSet.TwoHandedItemId = null;
+                    break;
+                }
+            }
+        }
+
+        // Unequip from current slot
+        int oldSlot = item.SlotIndex ?? 0;
+        UnequipItem(item.Id);
+
+        // Equip to belt
+        int beltSlotNumber = availableSlot.Value;
+
+        item.IsEquipped = true;
+        item.EquipmentSlot = EquipmentSlotType.Belt;
+        item.SlotIndex = beltSlotNumber;
+        item.LastModified = DateTime.Now;
+
+        System.Diagnostics.Debug.WriteLine($"Swapped '{item.DisplayName}' to Belt slot {beltSlotNumber} (takes {slotsNeeded} slots)");
+    }
+
+    public void SwapToHand(int characterItemId)
+    {
+        var item = _inventory.FirstOrDefault(i => i.Id == characterItemId);
+        if (item == null) return;
+        if (!item.IsEquipped) return;
+        if (item.EquipmentSlot == EquipmentSlotType.Hand) return;
+
+        int slotsNeeded = item.SlotsRequired;
+
+        if (slotsNeeded > 1)
+        {
+            // Find a free paired limb set
+            PrehensileLimbSet? targetLimbSet = null;
+            foreach (var limbSet in _limbSets)
+            {
+                if (limbSet.PairType != LimbPairType.Paired) continue;
+                if (limbSet.IsOccupiedByTwoHandedItem) continue;
+
+                bool allSlotsFree = true;
+                foreach (var slotIndex in limbSet.SlotIndices)
+                {
+                    if (GetEquippedHandSlot(slotIndex + 1) != null)
+                    {
+                        allSlotsFree = false;
+                        break;
+                    }
+                }
+
+                if (allSlotsFree)
+                {
+                    targetLimbSet = limbSet;
+                    break;
+                }
+            }
+
+            if (targetLimbSet == null) return;
+
+            // Unequip from belt
+            UnequipItem(item.Id);
+
+            // Equip to hand set
+            int firstSlot = targetLimbSet.SlotIndices.First() + 1;
+
+            item.IsEquipped = true;
+            item.EquipmentSlot = EquipmentSlotType.Hand;
+            item.SlotIndex = firstSlot;
+            item.LastModified = DateTime.Now;
+
+            targetLimbSet.TwoHandedItemId = characterItemId;
+
+            System.Diagnostics.Debug.WriteLine($"Swapped '{item.DisplayName}' to Hand set '{targetLimbSet.DisplayName}'");
+            return;
+        }
+
+        // Single-handed item
+        var availableSlot = FindAvailableHandSlot(1);
+        if (!availableSlot.HasValue) return;
+
+        // Unequip from current slot
+        int oldSlot = item.SlotIndex ?? 0;
+        UnequipItem(item.Id);
+
+        // Equip to hand
+        int handSlotNumber = availableSlot.Value;
+
+        item.IsEquipped = true;
+        item.EquipmentSlot = EquipmentSlotType.Hand;
+        item.SlotIndex = handSlotNumber;
+        item.LastModified = DateTime.Now;
+
+        System.Diagnostics.Debug.WriteLine($"Swapped '{item.DisplayName}' to Hand slot {handSlotNumber}");
     }
 
     // === TWO-HANDED ITEM MANAGEMENT ===

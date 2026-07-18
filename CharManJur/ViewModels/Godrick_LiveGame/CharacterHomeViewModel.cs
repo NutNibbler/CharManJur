@@ -20,7 +20,6 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
 
     // ===== EQUIPMENT BACKING FIELDS =====
     private List<string> _handSlots = new();
-    private List<string> _beltSlots = new();
     private string _equippedArmor = "None";
     private string _equippedHands = "0 / 0";
     private string _equippedBelt = "0 / 4";
@@ -328,14 +327,20 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
     }
 
     // ===== BELT SLOT PROPERTIES =====
+
+    private List<string> _beltSlots = new() { "Empty", "Empty", "Empty", "Empty" };
+
     public string BeltSlot1
     {
         get => _beltSlots.Count > 0 ? _beltSlots[0] : "Empty";
         set
         {
-            if (_beltSlots.Count == 0) _beltSlots.Add("Empty");
-            _beltSlots[0] = value;
-            OnPropertyChanged();
+            while (_beltSlots.Count < 1) _beltSlots.Add("Empty");
+            if (_beltSlots[0] != value)
+            {
+                _beltSlots[0] = value;
+                OnPropertyChanged();
+            }
         }
     }
 
@@ -345,8 +350,11 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
         set
         {
             while (_beltSlots.Count < 2) _beltSlots.Add("Empty");
-            _beltSlots[1] = value;
-            OnPropertyChanged();
+            if (_beltSlots[1] != value)
+            {
+                _beltSlots[1] = value;
+                OnPropertyChanged();
+            }
         }
     }
 
@@ -356,8 +364,11 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
         set
         {
             while (_beltSlots.Count < 3) _beltSlots.Add("Empty");
-            _beltSlots[2] = value;
-            OnPropertyChanged();
+            if (_beltSlots[2] != value)
+            {
+                _beltSlots[2] = value;
+                OnPropertyChanged();
+            }
         }
     }
 
@@ -367,8 +378,11 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
         set
         {
             while (_beltSlots.Count < 4) _beltSlots.Add("Empty");
-            _beltSlots[3] = value;
-            OnPropertyChanged();
+            if (_beltSlots[3] != value)
+            {
+                _beltSlots[3] = value;
+                OnPropertyChanged();
+            }
         }
     }
 
@@ -835,13 +849,20 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(HandSlot3));
         OnPropertyChanged(nameof(HandSlot4));
 
-        // Update belt slots
+        // ===== UPDATE BELT SLOTS =====
+        // Clear and repopulate belt slots
         _beltSlots.Clear();
         for (int i = 1; i <= 4; i++)
         {
             var item = _charDataService.GetEquippedBeltSlot(i);
             _beltSlots.Add(item?.DisplayName ?? "Empty");
         }
+
+        // Force refresh of belt slot bindings
+        OnPropertyChanged(nameof(BeltSlot1));
+        OnPropertyChanged(nameof(BeltSlot2));
+        OnPropertyChanged(nameof(BeltSlot3));
+        OnPropertyChanged(nameof(BeltSlot4));
 
         // Update armor
         var armor = _charDataService.GetEquippedArmor();
