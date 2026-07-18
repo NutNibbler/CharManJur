@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:CharManJur.Converters"
+             x:Class="CharManJur.Views.Godrick_LiveGame.BestowItemPage"
+             Title="Bestow Item"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="#1a1a2e">
+
+    <Grid RowDefinitions="Auto, *, Auto"
+          Padding="20"
+          RowSpacing="10">
+
+        <!-- Header -->
+        <VerticalStackLayout Grid.Row="0" Spacing="5">
+            <Label Text="📦 Bestow Item"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   TextColor="DeepSkyBlue"
+                   HorizontalOptions="Center" />
+            <Label Text="Select an item to grant to this character"
+                   FontSize="14"
+                   TextColor="#aaaaaa"
+                   HorizontalOptions="Center" />
+            <!-- DEBUG: Show item count -->
+            <Label x:Name="DebugItemCountLabel"
+                   Text="Items: 0"
+                   FontSize="12"
+                   TextColor="#f39c12"
+                   HorizontalOptions="Center" />
+            <BoxView HeightRequest="2" Color="#3498db" />
+        </VerticalStackLayout>
+
+        <!-- Search / Filter -->
+        <Grid Grid.Row="1" RowDefinitions="Auto, *" RowSpacing="10">
+
+            <!-- Filter Bar -->
+            <Grid Grid.Row="0" ColumnDefinitions="*, Auto" ColumnSpacing="10">
+                <Border Stroke="#444444"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 8"
+                        BackgroundColor="#2a2a3e">
+                    <Entry x:Name="SearchEntry"
+                           Placeholder="Search items..."
+                           TextColor="White"
+                           BackgroundColor="Transparent"
+                           PlaceholderColor="#888888"
+                           TextChanged="OnSearchTextChanged" />
+                </Border>
+
+                <Button Grid.Column="1"
+                        Text="🔍"
+                        BackgroundColor="#3498db"
+                        TextColor="White"
+                        CornerRadius="8"
+                        WidthRequest="50"
+                        HeightRequest="50"
+                        FontSize="18"
+                        Clicked="OnSearchClicked" />
+            </Grid>
+
+            <!-- Item List -->
+            <CollectionView Grid.Row="1"
+                            x:Name="ItemsCollectionView"
+                            ItemsSource="{Binding FilteredItems}"
+                            SelectionMode="Single"
+                            SelectedItem="{Binding SelectedItem}"
+                            SelectionChanged="OnItemSelectionChanged"
+                            HeightRequest="400">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border Stroke="#444444"
+                                StrokeThickness="0.5"
+                                StrokeShape="RoundRectangle 4"
+                                Padding="10"
+                                Margin="3">
+                            <VerticalStackLayout Spacing="3">
+                                <Label Text="{Binding Name}"
+                                       FontSize="14"
+                                       FontAttributes="Bold"
+                                       TextColor="White" />
+                                <Label Text="{Binding BaseDescription}"
+                                       FontSize="12"
+                                       TextColor="#aaaaaa"
+                                       LineBreakMode="TailTruncation" />
+                                <HorizontalStackLayout Spacing="10">
+                                    <Label Text="{Binding Category}"
+                                           FontSize="11"
+                                           TextColor="#888888" />
+                                    <Label Text="{Binding ValueInChips, StringFormat='🪙 {0}'}"
+                                           FontSize="11"
+                                           TextColor="#f39c12"
+                                           IsVisible="{Binding ValueInChips, Converter={StaticResource IsNotNullConverter}}" />
+                                    <Label Text="📦 Stackable"
+                                           FontSize="11"
+                                           TextColor="#2ecc71"
+                                           IsVisible="{Binding IsStackableItem}" />
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
+
+        <!-- Footer -->
+        <Grid Grid.Row="2" RowDefinitions="Auto, Auto" RowSpacing="10">
+
+            <!-- Quantity Controls -->
+            <Grid Grid.Row="0" ColumnDefinitions="Auto, *, Auto, Auto" ColumnSpacing="10">
+                <Label Grid.Row="0" Grid.Column="0" 
+               Text="Qty:"
+               FontSize="14"
+               FontAttributes="Bold"
+               TextColor="White"
+               VerticalOptions="Center" />
+
+                <Button Grid.Row="0" Grid.Column="1"
+                Text="−"
+                BackgroundColor="#e74c3c"
+                TextColor="White"
+                CornerRadius="6"
+                WidthRequest="40"
+                HeightRequest="35"
+                FontSize="18"
+                Clicked="OnQuantityDecrement" />
+
+                <Border Grid.Row="0" Grid.Column="2"
+                Stroke="#444444"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 6"
+                BackgroundColor="#2a2a3e"
+                WidthRequest="60"
+                HeightRequest="35">
+                    <Entry x:Name="QuantityEntry"
+                   Text="1"
+                   Keyboard="Numeric"
+                   TextColor="White"
+                   BackgroundColor="Transparent"
+                   HorizontalTextAlignment="Center"
+                   VerticalOptions="Center"
+                   TextChanged="OnQuantityTextChanged" />
+                </Border>
+
+                <Button Grid.Row="0" Grid.Column="3"
+                Text="+"
+                BackgroundColor="#2ecc71"
+                TextColor="White"
+                CornerRadius="6"
+                WidthRequest="40"
+                HeightRequest="35"
+                FontSize="18"
+                Clicked="OnQuantityIncrement" />
+            </Grid>
+
+            <!-- Action Buttons -->
+            <Grid Grid.Row="1" ColumnDefinitions="*, *, *" ColumnSpacing="10">
+                <Button Grid.Column="0"
+                Text="🛠️ Custom"
+                BackgroundColor="#9b59b6"
+                TextColor="White"
+                CornerRadius="8"
+                HeightRequest="45"
+                FontSize="12"
+                Clicked="OnCreateCustomItemClicked" />
+
+                <Button Grid.Column="1"
+                Text="✅ Bestow"
+                BackgroundColor="#2ecc71"
+                TextColor="White"
+                CornerRadius="8"
+                HeightRequest="45"
+                FontSize="14"
+                FontAttributes="Bold"
+                IsEnabled="{Binding HasSelectedItem}"
+                Clicked="OnBestowClicked" />
+
+                <Button Grid.Column="2"
+                Text="✖ Cancel"
+                BackgroundColor="#e74c3c"
+                TextColor="White"
+                CornerRadius="8"
+                HeightRequest="45"
+                FontSize="14"
+                Clicked="OnCancelClicked" />
+            </Grid>
+        </Grid>
+
+    </Grid>
+</ContentPage>

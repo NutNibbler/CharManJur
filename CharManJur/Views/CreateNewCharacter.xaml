@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CharManJur.Views.CreateNewCharacter"
+             Shell.NavBarIsVisible="False"
+             Title="Create Character">
+
+    <VerticalStackLayout Padding="20" Spacing="15" VerticalOptions="Center">
+        <Label Text="Create a New Character"
+               FontSize="24"
+               FontAttributes="Bold"
+               HorizontalOptions="Center"/>
+
+        <Entry x:Name="entryPlayerName"
+               Placeholder="Enter Player's Name"
+               FontSize="18"/>
+
+        <Entry x:Name="entryCharName"
+               Placeholder="Enter Character's Name"
+               Text=""
+               FontSize="18"/>
+
+        <Picker x:Name="pickerCampaignType"
+                Title="Select a campaign type">
+        </Picker>
+
+        <Grid ColumnDefinitions="*,*">
+            <Button Grid.Column="0"
+                Text="Next: Roll Stats"
+                BackgroundColor="DeepSkyBlue"
+                TextColor="White"
+                FontSize="18"
+                CornerRadius="10"
+                HeightRequest="50"
+                Clicked="OnCreateButtonClicked"/>
+
+            <Button Grid.Column="1"
+                Text="Cancel"
+                BackgroundColor="{AppThemeBinding Light=#95a5a6, Dark=#7f8c8d}"
+                TextColor="White"
+                FontSize="16"
+                CornerRadius="10"
+                HeightRequest="50"
+                Clicked="OnCancelClicked"/>
+        </Grid>
+
+    </VerticalStackLayout>
+</ContentPage>

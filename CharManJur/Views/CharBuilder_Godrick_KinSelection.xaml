@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:CharManJur.Converters"
+             x:Class="CharManJur.Views.CharBuilder_Godrick_KinSelection"
+             Shell.NavBarIsVisible="False"
+             Title="Character Builder: Kin Selection">
+
+    <ContentPage.Resources>
+        <converters:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+    </ContentPage.Resources>
+
+    <VerticalStackLayout>
+        <!--=====Builder Page Header=====-->
+        <Label Text="Character Build - Kin Selection"
+            FontSize="48"
+            FontAttributes="Bold"
+            HorizontalOptions="Center"/>
+
+        <!--=====Builder Kin Selection Body=====-->
+        <Grid ColumnDefinitions="250,*" RowDefinitions="*,50">
+            <Border Stroke="Tan" StrokeThickness="3">
+                <ScrollView>
+                    <CollectionView x:Name="RacesCollectionView" 
+                                    ItemsSource="{Binding Races}" 
+                                    SelectedItem="{Binding SelectedRace}" 
+                                    SelectionMode="Single">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="10,8" ColumnDefinitions="*">
+                                    <Border>
+                                        <Label Text="{Binding Name}"
+                                       FontSize="16"
+                                       FontAttributes="Bold" />
+                                    </Border>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </ScrollView>
+            </Border>
+
+            <Border Grid.Column="1" Stroke="Tan" StrokeThickness="3">
+                <Grid ColumnDefinitions="*,*,*,*" RowDefinitions="50,50,*,Auto" RowSpacing="5">
+                    <!-- Race Name -->
+                    <Border Grid.Row="0" Grid.ColumnSpan="2" Stroke="Blue" StrokeThickness="3" StrokeShape="RoundRectangle 8">
+                        <Label Margin="3" Text="{Binding SelectedRaceName}" FontSize="30" FontAttributes="Bold" TextColor="White" VerticalTextAlignment="Center"/>
+                    </Border>
+
+                    <!-- Race Description -->
+                    <Border Grid.Row="1" Grid.RowSpan="2" Grid.ColumnSpan="2" Stroke="Blue" StrokeThickness="3" StrokeShape="RoundRectangle 8">
+                        <ScrollView>
+                            <Label Margin="3" Text="{Binding SelectedRaceDescription}" FontSize="16" LineBreakMode="WordWrap" />
+                        </ScrollView>
+                    </Border>
+
+                    <!-- Feature Name -->
+                    <Border Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="2" Stroke="Red" StrokeThickness="3" StrokeShape="RoundRectangle 8">
+                        <Grid ColumnDefinitions="95,*">
+                            <Label Margin="3" Text="Feature: " FontAttributes="Bold" FontSize="20" VerticalTextAlignment="Center"/>
+                            <Label Margin="3" Grid.Row="0" Grid.Column="3" Text="{Binding SelectedRaceFeatureName}" FontSize="20" VerticalTextAlignment="Center"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Feature Description -->
+                    <Border Grid.Row="1" Grid.RowSpan="2" Grid.ColumnSpan="2" Grid.Column="2" Stroke="Red" StrokeThickness="3" StrokeShape="RoundRectangle 8">
+                        <ScrollView>
+                            <Label Margin="3" Text="{Binding SelectedRaceFeatureDescription}" FontSize="16" LineBreakMode="WordWrap"/>
+                        </ScrollView>
+                    </Border>
+
+                    <!-- ===== RACE BONUSES DISPLAY SECTION ===== -->
+                    <!-- The entire green border only shows when there are bonuses -->
+                    <Border Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="4" Stroke="Green" StrokeThickness="2" StrokeShape="RoundRectangle 8" Padding="8"
+                            IsVisible="{Binding HasAnyBonuses}">
+                        <VerticalStackLayout Spacing="4">
+                            <!-- Ability Score Bonuses (only shown if there are any) -->
+                            <Grid ColumnDefinitions="*, *, *, *" ColumnSpacing="8"
+                                  IsVisible="{Binding HasAbilityBonuses}">
+                                <Border Grid.Column="0" Stroke="#e74c3c" StrokeThickness="1" StrokeShape="RoundRectangle 4" Padding="4">
+                                    <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                                        <Label Text="Vigor" FontAttributes="Bold" FontSize="10" TextColor="#e74c3c" HorizontalOptions="Center"/>
+                                        <Label Text="{Binding SelectedRaceVigorBonus}" FontSize="14" TextColor="White" HorizontalOptions="Center"/>
+                                    </VerticalStackLayout>
+                                </Border>
+                                <Border Grid.Column="1" Stroke="#f39c12" StrokeThickness="1" StrokeShape="RoundRectangle 4" Padding="4">
+                                    <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                                        <Label Text="Agility" FontAttributes="Bold" FontSize="10" TextColor="#f39c12" HorizontalOptions="Center"/>
+                                        <Label Text="{Binding SelectedRaceAgilityBonus}" FontSize="14" TextColor="White" HorizontalOptions="Center"/>
+                                    </VerticalStackLayout>
+                                </Border>
+                                <Border Grid.Column="2" Stroke="#3498db" StrokeThickness="1" StrokeShape="RoundRectangle 4" Padding="4">
+                                    <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                                        <Label Text="Mind" FontAttributes="Bold" FontSize="10" TextColor="#3498db" HorizontalOptions="Center"/>
+                                        <Label Text="{Binding SelectedRaceMindBonus}" FontSize="14" TextColor="White" HorizontalOptions="Center"/>
+                                    </VerticalStackLayout>
+                                </Border>
+                                <Border Grid.Column="3" Stroke="#9b59b6" StrokeThickness="1" StrokeShape="RoundRectangle 4" Padding="4">
+                                    <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                                        <Label Text="Spirit" FontAttributes="Bold" FontSize="10" TextColor="#9b59b6" HorizontalOptions="Center"/>
+                                        <Label Text="{Binding SelectedRaceSpiritBonus}" FontSize="14" TextColor="White" HorizontalOptions="Center"/>
+                                    </VerticalStackLayout>
+                                </Border>
+                            </Grid>
+
+                            <!-- Skill Bonuses (only shown if there are any) -->
+                            <Border Stroke="#9b59b6" StrokeThickness="1" StrokeShape="RoundRectangle 4" Padding="4"
+                                    IsVisible="{Binding HasSkillBonuses}">
+                                <VerticalStackLayout Spacing="2">
+                                    <Label Text="Skill Bonuses" FontAttributes="Bold" FontSize="10" TextColor="#9b59b6"/>
+                                    <Label Text="{Binding SelectedRaceSkillBonuses}" FontSize="12" TextColor="White"/>
+                                </VerticalStackLayout>
+                            </Border>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Empty spacer row when no bonuses - takes up the same space as the bonus border would -->
+                    <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="4" HeightRequest="0"
+                          IsVisible="{Binding HasAnyBonuses, Converter={StaticResource InvertedBoolConverter}}" />
+
+                </Grid>
+            </Border>
+
+            <!-- =====Interface Transition Buttons=====-->
+            <Grid Grid.Row="1" Grid.ColumnSpan="2" ColumnDefinitions=".25*,.15*,.15*,.2*,.25*,.6*" Padding="10">
+                <Button Grid.Column="0"
+                    Text="Confirm"
+                    BackgroundColor="LimeGreen"
+                    TextColor="White"
+                    CornerRadius="10"
+                    HeightRequest="50"
+                    IsEnabled="{Binding HasSelectedRace}"
+                    Command="{Binding ConfirmRaceCommand}" />
+                <Button Grid.Column="1"
+                    Text="← Back"
+                    BackgroundColor="{AppThemeBinding Light=#95a5a6, Dark=#7f8c8d}"
+                    TextColor="White"
+                    FontSize="16"
+                    HeightRequest="50"
+                    CornerRadius="10"
+                    Clicked="OnBackClicked"/>
+                <Button Grid.Column="2" 
+                    Text="Cancel"
+                    BackgroundColor="IndianRed"
+                    TextColor="White"
+                    FontSize="16"
+                    HeightRequest="50"
+                    CornerRadius="10"
+                    Clicked="OnCancelClicked"/>
+                <Button Grid.Column="3"
+                    Text="📋 Summary"
+                    BackgroundColor="Aqua"
+                    TextColor="Black"
+                    CornerRadius="10"
+                    HeightRequest="50"
+                    Clicked="OnCharacterSummaryClicked" />
+                <Button Grid.Column="4"
+                    Text="💾 Save For Later"
+                    BackgroundColor="#f39c12"
+                    TextColor="White"
+                    FontSize="16"
+                    HeightRequest="50"
+                    CornerRadius="10"
+                    Clicked="OnSaveForLaterClicked"/>
+            </Grid>
+        </Grid>
+
+    </VerticalStackLayout>
+</ContentPage>

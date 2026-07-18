@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CharManJur.Views.Godrick_LiveGame.EquippedItemContextMenu"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="Transparent">
+
+    <Grid>
+        <!-- Transparent overlay - click to dismiss -->
+        <BoxView Grid.Row="0"
+                 Grid.Column="0"
+                 BackgroundColor="Transparent"
+                 InputTransparent="False">
+            <BoxView.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnDismissClicked" />
+            </BoxView.GestureRecognizers>
+        </BoxView>
+
+        <!-- Context Menu Flyout -->
+        <Border x:Name="MenuBorder"
+                Grid.Row="0"
+                Grid.Column="0"
+                BackgroundColor="#1a1a2e"
+                StrokeThickness="1"
+                Stroke="#f39c12"
+                StrokeShape="RoundRectangle 8"
+                Padding="8,5"
+                WidthRequest="200"
+                HorizontalOptions="Center"
+                VerticalOptions="Center">
+            <VerticalStackLayout Spacing="2">
+
+                <!-- Item Name Header -->
+                <Label Text="{Binding ItemName}"
+                       FontSize="13"
+                       FontAttributes="Bold"
+                       TextColor="White"
+                       HorizontalOptions="Center"
+                       Margin="0,0,0,2" />
+
+                <Label Text="{Binding SlotLocation}"
+                       FontSize="10"
+                       TextColor="#888888"
+                       HorizontalOptions="Center" />
+
+                <BoxView HeightRequest="1"
+                         Color="#333333"
+                         Margin="0,3" />
+
+                <!-- Two-Handed Indicator -->
+                <Label Text="⚔️ Two-Handed (occupies both slots)"
+                       FontSize="9"
+                       TextColor="#f39c12"
+                       HorizontalOptions="Center"
+                       IsVisible="{Binding IsTwoHanded}" />
+
+                <!-- Menu Items -->
+                <Button Text="↩️ Unequip"
+                        BackgroundColor="#e67e22"
+                        TextColor="White"
+                        CornerRadius="4"
+                        HeightRequest="32"
+                        FontSize="12"
+                        Command="{Binding UnequipCommand}" />
+
+                <Button Text="🗑️ Drop"
+                        BackgroundColor="#e74c3c"
+                        TextColor="White"
+                        CornerRadius="4"
+                        HeightRequest="32"
+                        FontSize="12"
+                        Command="{Binding DropCommand}" />
+
+                <Button Text="📋 Details"
+                        BackgroundColor="#3498db"
+                        TextColor="White"
+                        CornerRadius="4"
+                        HeightRequest="32"
+                        FontSize="12"
+                        Command="{Binding ViewDetailsCommand}" />
+
+                <BoxView HeightRequest="1"
+                         Color="#333333"
+                         Margin="0,3" />
+
+                <!-- Cancel -->
+                <Button Text="Cancel"
+                        BackgroundColor="#444444"
+                        TextColor="White"
+                        CornerRadius="4"
+                        HeightRequest="28"
+                        FontSize="11"
+                        Command="{Binding CancelCommand}" />
+
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
+</ContentPage>

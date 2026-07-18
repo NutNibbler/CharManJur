@@ -1,0 +1,70 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CharManJur.MainPage"
+             Shell.NavBarIsVisible="False"
+             Title="Character Manager">
+
+    <Grid RowDefinitions="Auto,*,Auto" 
+          Padding="20" 
+          BackgroundColor="{AppThemeBinding Light=#f0f0f0, Dark=#1a1a1a}">
+
+        <!-- Title -->
+        <Label Grid.Row="0" 
+               Text="⚔️ DnD Character Manager" 
+               FontSize="32" 
+               FontAttributes="Bold"
+               HorizontalOptions="Center" 
+               Margin="0,40,0,20"
+               TextColor="{AppThemeBinding Light=#2c3e50, Dark=#ecf0f1}"/>
+
+        <!-- Menu Buttons -->
+        <VerticalStackLayout Grid.Row="1" 
+                             Spacing="20" 
+                             VerticalOptions="Center">
+
+            <Button Text="Create New Character"
+                    BackgroundColor="#3498db"
+                    TextColor="White"
+                    FontSize="18"
+                    CornerRadius="10"
+                    HeightRequest="60"
+                    Clicked="OnCreateNewCharacterClicked"/>
+
+            <Button Text="📂 Resume Character"
+                    BackgroundColor="#f39c12"
+                    TextColor="White"
+                    FontSize="18"
+                    CornerRadius="10"
+                    HeightRequest="60"
+                    Clicked="OnResumeCharacterClicked"/>
+
+            <Button Text="Load Character"
+                    BackgroundColor="#2ecc71"
+                    TextColor="White"
+                    FontSize="18"
+                    CornerRadius="10"
+                    HeightRequest="60"
+                    Clicked="OnLoadCharacterClicked"/>
+
+            <Button Text="⚙️ Settings"
+                    BackgroundColor="{AppThemeBinding Light=#95a5a6, Dark=#7f8c8d}"
+                    TextColor="White"
+                    FontSize="16"
+                    CornerRadius="10"
+                    HeightRequest="50"
+                    Clicked="OnSettingsClicked"
+                    Margin="0,40,0,0"/>
+
+        </VerticalStackLayout>
+
+        <!-- Version Footer -->
+        <Label Grid.Row="2" 
+               Text="v0.1.0" 
+               FontSize="14"
+               TextColor="{AppThemeBinding Light=#7f8c8d, Dark=#bdc3c7}"
+               HorizontalOptions="Center"
+               Margin="0,0,0,20"/>
+
+    </Grid>
+</ContentPage>

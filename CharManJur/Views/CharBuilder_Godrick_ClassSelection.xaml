@@ -1,0 +1,444 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:CharManJur.Converters"
+             x:Class="CharManJur.Views.CharBuilder_Godrick_ClassSelection"
+             Shell.NavBarIsVisible="False"
+             Title="ClassAndFeatureSelection">
+    <VerticalStackLayout>
+        <!--=====Builder Page Header=====-->
+        <Label Text="Character Build - Class Selection"
+            FontSize="48"
+            FontAttributes="Bold"
+            HorizontalOptions="Center"/>
+
+        <!--=====Builder Class Selection Body=====-->
+        <Grid RowDefinitions="Auto, *"
+          ColumnDefinitions="0.35*, 0.65*"
+          ColumnSpacing="10"
+          Padding="5">
+
+            <!-- LEFT PANEL: Class List -->
+            <VerticalStackLayout Grid.Row="1" Grid.Column="0" Spacing="10">
+                <ScrollView HeightRequest="329">
+                    <CollectionView x:Name="ClassesCollectionView"
+                                    ItemsSource="{Binding Classes}"
+                                    SelectedItem="{Binding SelectedClass}"
+                                    SelectionMode="Single">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="2,1">
+                                    <Border Stroke="DeepSkyBlue"
+                                            StrokeThickness="1"
+                                            StrokeShape="RoundRectangle 8"
+                                            Padding="15">
+                                        <Label Text="{Binding ClassName}"
+                                            FontSize="16"
+                                            FontAttributes="Bold" 
+                                            TextColor="White"/>
+                                    </Border>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </ScrollView>
+
+                <Button Text="📋 Character So far..."
+                        BackgroundColor="Aqua"
+                        TextColor="Black"
+                        CornerRadius="10"
+                        HeightRequest="40"
+                        Clicked="OnCharacterSummaryClicked" />
+
+                <Button Grid.Row="0" Grid.Column="2"
+                        Text="💾 Save For Later"
+                        BackgroundColor="#f39c12"
+                        TextColor="White"
+                        CornerRadius="8"
+                        HeightRequest="40"
+                        FontSize="16"
+                        Clicked="OnSaveForLaterClicked" />
+
+                <Button Text="← Back"
+                        BackgroundColor="{AppThemeBinding Light=#95a5a6, Dark=#7f8c8d}"
+                        TextColor="White"
+                        FontSize="16"
+                        HeightRequest="40"
+                        CornerRadius="10"
+                        Clicked="OnBackClicked"/>
+
+                <Button Text="Cancel"
+                        BackgroundColor="IndianRed"
+                        TextColor="White"
+                        FontSize="16"
+                        HeightRequest="40"
+                        CornerRadius="10"
+                        Clicked="OnCancelClicked"/>
+            </VerticalStackLayout>
+
+            <!-- RIGHT PANEL: Class Details -->
+            <ScrollView Grid.Row="1" Grid.Column="1" HeightRequest="550">
+                <VerticalStackLayout Spacing="8" Padding="5">
+
+                    <!-- Class Header -->
+                    <Grid ColumnDefinitions="0.45*,0.35*,0.20*">
+                        <Label Grid.Row="0" Grid.Column="0" Text="{Binding SelectedClassName}"
+                               FontSize="22"
+                               FontAttributes="Bold"
+                               TextColor="DeepSkyBlue"/>
+                        <Label Grid.Row="0" Grid.Column="1" Text="Level-Up Allocation Requirement:"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               HorizontalOptions="Center"
+                               VerticalTextAlignment="Center"
+                               TextColor="DeepSkyBlue"  
+                               ToolTipProperties.Text="The Ability Score points you must receive on level-up to get a feature from this class."/>
+                        <Label Grid.Row="0" Grid.Column="2" Text="{Binding SelectedClassLevelingSkillBonus}"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               HorizontalOptions="Start"
+                               VerticalTextAlignment="Center"
+                               TextColor="White" />
+                    </Grid>
+
+                    <BoxView HeightRequest="2" Color="#3498db" />
+
+                    <!-- Recurring Benefit-->
+                    <Grid RowDefinitions="Auto,*" Padding="3">
+                        <Label Grid.Row="0" Grid.Column="0" Text="Recurring Benefit"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="DeepSkyBlue" />
+                        <Label Grid.Row="1" Grid.Column="0" Text="{Binding SelectedClassRecurringBenefit}"
+                               FontSize="13"
+                               TextColor="White" />
+                    </Grid>
+
+                    <BoxView HeightRequest="2" Color="#3498db" />
+
+                    <!-- Class Description -->
+                    <Label Text="{Binding SelectedClassDescription}"
+                           FontSize="13"
+                           LineBreakMode="WordWrap" />
+
+                    <BoxView HeightRequest="2" Color="#3498db" />
+                    
+                    <!-- Class Detail Table -->
+                    <Grid RowDefinitions="Auto, *"
+                        Padding="15"
+                        RowSpacing="10"
+                        IsVisible="{Binding IsShifter}"  >
+
+                        <!-- Header -->
+                        <VerticalStackLayout Grid.Row="0" Spacing="5">
+                            <Label Text="Trait List"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   TextColor="DeepSkyBlue"
+                   HorizontalOptions="Center" />
+                            <Label Text="Select traits based on your Polymorph Dice (PD) investment"
+                   FontSize="14"
+                   TextColor="#aaaaaa"
+                   HorizontalOptions="Center" />
+                            <BoxView HeightRequest="2" Color="#3498db" />
+                        </VerticalStackLayout>
+
+                        <!-- Table Header -->
+                        <Border Grid.Row="1"
+                Stroke="#3498db"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 8"
+                Padding="0"
+                BackgroundColor="#16213e">
+                            <Grid RowDefinitions="Auto, *">
+
+                                <!-- Header Row -->
+                                <Border Grid.Row="0"
+                        BackgroundColor="#2a2a3e"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 8"
+                        Padding="10,8">
+                                    <Grid ColumnDefinitions="0.15*, 0.25*, 0.60*"
+                          ColumnSpacing="5">
+                                        <Label Grid.Column="0"
+                               Text="PD"
+                               FontAttributes="Bold"
+                               FontSize="14"
+                               TextColor="#f39c12"
+                               HorizontalOptions="Center" />
+                                        <Label Grid.Column="1"
+                               Text="Trait"
+                               FontAttributes="Bold"
+                               FontSize="14"
+                               TextColor="#f39c12"
+                               HorizontalOptions="Start" />
+                                        <Label Grid.Column="2"
+                               Text="Effect"
+                               FontAttributes="Bold"
+                               FontSize="14"
+                               TextColor="#f39c12"
+                               HorizontalOptions="Start" />
+                                    </Grid>
+                                </Border>
+
+                                <!-- Scrollable Table Body -->
+                                <ScrollView Grid.Row="1">
+                                    <CollectionView x:Name="TraitsCollectionView"
+                                    ItemsSource="{Binding Traits}"
+                                    SelectionMode="None">
+                                        <CollectionView.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Stroke="#444444"
+                                        StrokeThickness="0.5"
+                                        StrokeShape="RoundRectangle 4"
+                                        Padding="8,6"
+                                        Margin="4,2">
+                                                    <Grid ColumnDefinitions="0.15*, 0.25*, 0.60*"
+                                          ColumnSpacing="5">
+
+                                                        <!-- PD -->
+                                                        <Label Grid.Column="0"
+                                               Text="{Binding PD}"
+                                               FontSize="13"
+                                               FontAttributes="Bold"
+                                               TextColor="{Binding PD, Converter={StaticResource PDColorConverter}}"
+                                               HorizontalOptions="Center"
+                                               VerticalOptions="Center" />
+
+                                                        <!-- Trait Name -->
+                                                        <Label Grid.Column="1"
+                                               Text="{Binding TraitName}"
+                                               FontSize="13"
+                                               FontAttributes="Bold"
+                                               TextColor="White"
+                                               HorizontalOptions="Start"
+                                               VerticalOptions="Center" />
+
+                                                        <!-- Effect -->
+                                                        <Label Grid.Column="2"
+                                               Text="{Binding Effect}"
+                                               FontSize="12"
+                                               TextColor="#cccccc"
+                                               LineBreakMode="WordWrap"
+                                               HorizontalOptions="Start"
+                                               VerticalOptions="Center" />
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </CollectionView.ItemTemplate>
+                                    </CollectionView>
+                                </ScrollView>
+
+                            </Grid>
+                        </Border>
+
+                    </Grid>
+
+                    <!-- Features List (Sub-selection) -->
+                    <Label Text="Class Features"
+                           FontAttributes="Bold"
+                           FontSize="14"
+                           IsVisible="{Binding HasFeatures}" />
+
+                    <CollectionView x:Name="FeaturesCollectionView"
+                                    ItemsSource="{Binding SelectedClassFeatures}"
+                                    SelectedItem="{Binding SelectedFeature}"
+                                    SelectionMode="Single"
+                                    HeightRequest="150"
+                                    IsVisible="{Binding HasFeatures}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="3,2">
+                                    <Border Stroke="#95a5a6"
+                                            StrokeThickness="1"
+                                            StrokeShape="RoundRectangle 5"
+                                            Padding="8">
+                                        <VisualStateManager.VisualStateGroups>
+                                            <VisualStateGroup x:Name="CommonStates">
+                                                <VisualState x:Name="Normal">
+                                                    <VisualState.Setters>
+                                                        <Setter Property="BackgroundColor" Value="Transparent" />
+                                                    </VisualState.Setters>
+                                                </VisualState>
+                                                <VisualState x:Name="Selected">
+                                                    <VisualState.Setters>
+                                                        <Setter Property="BackgroundColor" Value="#4fc3f7" />
+                                                        <Setter Property="Stroke" Value="#4fc3f7" />
+                                                    </VisualState.Setters>
+                                                </VisualState>
+                                            </VisualStateGroup>
+                                        </VisualStateManager.VisualStateGroups>
+                                        <Label Text="{Binding Name}"
+                                               FontSize="12" />
+                                    </Border>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <!-- Selected Feature Description -->
+                    <Border Stroke="#2ecc71"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 8"
+                            Padding="8"
+                            IsVisible="{Binding HasSelectedFeature}">
+                        <VerticalStackLayout Spacing="3">
+                            <Label Text="{Binding SelectedFeatureName}"
+                                   FontAttributes="Bold"
+                                   FontSize="13" />
+                            <Label Text="{Binding SelectedFeatureDescription}"
+                                   FontSize="12"
+                                   LineBreakMode="WordWrap" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- ===== SUB-FEATURE UNLOCK SECTION ===== -->
+                    <BoxView HeightRequest="2" 
+                             Color="#3498db" 
+                             IsVisible="{Binding HasAnyUnlockableTypes}" />
+
+                    <Label Text="Unlock Sub-Features"
+                           FontAttributes="Bold"
+                           FontSize="13"
+                           IsVisible="{Binding HasAnyUnlockableTypes}" />
+
+                    <Grid RowDefinitions="Auto"
+                          ColumnDefinitions="*, *"
+                          ColumnSpacing="8"
+                          RowSpacing="5"
+                          IsVisible="{Binding HasAnyUnlockableTypes}">
+
+                        <!-- Column 0 -->
+                        <VerticalStackLayout Grid.Row="0" Grid.Column="0" Spacing="2">
+                            <Label Text="{Binding SelectedBlueprintNames}" 
+                                   FontSize="11" 
+                                   TextColor="#27ae60"
+                                   LineBreakMode="WordWrap" />
+                            <Button Text="📜 Unlock Blueprint"
+                                    BackgroundColor="#27ae60"
+                                    TextColor="White"
+                                    CornerRadius="8"
+                                    FontSize="12"
+                                    IsEnabled="{Binding CanUnlockBlueprints}"
+                                    Command="{Binding UnlockBlueprintsCommand}">
+                                    <Button.Triggers>
+                                        <DataTrigger TargetType="Button"
+                                             Binding="{Binding CanUnlockBlueprints}"
+                                             Value="False">
+                                            <Setter Property="BackgroundColor" Value="#555555" />
+                                        </DataTrigger>
+                                    </Button.Triggers>
+                            </Button>
+                            <Label Text="{Binding SelectedQuipNames}" 
+                                    FontSize="11" 
+                                    TextColor="#9b59b6"
+                                    LineBreakMode="WordWrap" />
+                            <Button Text="⚡ Unlock Quip"
+                                    BackgroundColor="#9b59b6"
+                                    TextColor="White"
+                                    CornerRadius="8"
+                                    FontSize="12"
+                                    IsEnabled="{Binding CanUnlockQuips}"
+                                    Command="{Binding UnlockQuipsCommand}">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button"
+                                        Binding="{Binding CanUnlockQuips}"
+                                        Value="False">
+                                        <Setter Property="BackgroundColor" Value="#555555" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                        </VerticalStackLayout>
+
+                        <!-- Column 1 -->
+
+                        <VerticalStackLayout Grid.Row="0" Grid.Column="1" Spacing="2">
+                            <Label Text="{Binding SelectedSpellNames}" 
+                                    FontSize="11" 
+                                    TextColor="#3498db"
+                                    LineBreakMode="WordWrap" />
+                            <Button Text="🔮 Unlock Spell"
+                                    BackgroundColor="#3498db"
+                                    TextColor="White"
+                                    CornerRadius="8"
+                                    HeightRequest="35"
+                                    FontSize="12"
+                                    IsEnabled="{Binding CanUnlockSpells}"
+                                    Command="{Binding UnlockSpellsCommand}" >
+                                    <Button.Triggers>
+                                        <DataTrigger TargetType="Button"
+                                        Binding="{Binding CanUnlockSpells}"
+                                        Value="False">
+                                            <Setter Property="BackgroundColor" Value="#555555" />
+                                        </DataTrigger>
+                                    </Button.Triggers>
+                            </Button>
+                            <Label  Text="{Binding SelectedTechniqueNames}" 
+                                    FontSize="11" 
+                                    TextColor="#e67e22"
+                                    LineBreakMode="WordWrap" />
+                            <Button Text="⚔️ Unlock Technique"
+                                    BackgroundColor="#e67e22"
+                                    TextColor="White"
+                                    CornerRadius="8"
+                                    HeightRequest="35"
+                                    FontSize="12"
+                                    IsEnabled="{Binding CanUnlockTechniques}"
+                                    Command="{Binding UnlockTechniquesCommand}" >
+                                    <Button.Triggers>
+                                        <DataTrigger TargetType="Button"
+                                            Binding="{Binding CanUnlockTechniques}"
+                                            Value="False">
+                                            <Setter Property="BackgroundColor" Value="#555555" />
+                                        </DataTrigger>
+                                    </Button.Triggers>
+                            </Button>
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <BoxView HeightRequest="2" 
+                             Color="#3498db" 
+                             IsVisible="{Binding HasAnyUnlockableTypes}" />
+
+                    <!-- ===== BUTTON ROW: Select This Class + Clear All ===== -->
+                    <Grid ColumnDefinitions="*, *" 
+                          ColumnSpacing="8"
+                          IsVisible="{Binding HasSelectedClass}">
+
+                        <Button Grid.Row="0" Grid.Column="0"
+                                Text="{Binding SelectClassButtonText}"
+                                BackgroundColor="LimeGreen"
+                                TextColor="White"
+                                CornerRadius="8"
+                                HeightRequest="40"
+                                IsEnabled="{Binding CanSelectClass}"
+                                Command="{Binding ConfirmClassSelectionCommand}" />
+
+                        <Button Grid.Row="0" Grid.Column="1"
+                                Text="🗑️ Clear Sub-Features"
+                                BackgroundColor="#e74c3c"
+                                TextColor="White"
+                                CornerRadius="8"
+                                HeightRequest="40"
+                                FontSize="12"
+                                IsVisible="{Binding HasAnyUnlockableTypes}"
+                                IsEnabled="{Binding HasAnyUnlockableTypes}"
+                                Command="{Binding ClearAllSubFeaturesCommand}" />
+                    </Grid>
+
+                    <!-- Fallback for when no class is selected -->
+                    <Button Grid.Row="0" Grid.Column="0"
+                            Text="Select a Class to Continue"
+                            BackgroundColor="#95a5a6"
+                            TextColor="White"
+                            CornerRadius="8"
+                            HeightRequest="40"
+                            IsEnabled="False"
+                            IsVisible="{Binding HasSelectedClass, Converter={StaticResource InvertedBoolConverter}}" />
+
+                </VerticalStackLayout>
+            </ScrollView>
+
+        </Grid>
+    </VerticalStackLayout>
+</ContentPage>

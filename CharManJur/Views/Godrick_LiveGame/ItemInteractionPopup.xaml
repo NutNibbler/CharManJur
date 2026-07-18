@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CharManJur.Views.Godrick_LiveGame.ItemInteractionPopup"
+             Title="Item Actions"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="#1a1a2e">
+
+    <Grid Padding="20" RowDefinitions="Auto, *, Auto">
+
+        <!-- Header -->
+        <VerticalStackLayout Grid.Row="0" Spacing="5">
+            <Label Text="Item Actions"
+                   FontSize="24"
+                   FontAttributes="Bold"
+                   TextColor="DeepSkyBlue"
+                   HorizontalOptions="Center" />
+            <Label Text="{Binding ItemName}"
+                   FontSize="18"
+                   TextColor="White"
+                   HorizontalOptions="Center" />
+            <BoxView HeightRequest="2" Color="#3498db" />
+        </VerticalStackLayout>
+
+        <!-- Action Buttons -->
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Spacing="10">
+
+                <!-- Equip to Hand -->
+                <Button Text="🖐️ Equip to Hand"
+                        BackgroundColor="#3498db"
+                        TextColor="White"
+                        CornerRadius="8"
+                        HeightRequest="45"
+                        IsVisible="{Binding CanEquipHand}"
+                        Command="{Binding EquipHandCommand}" />
+
+                <!-- Equip to Belt -->
+                <Button Text="🪢 Equip to Belt"
+                        BackgroundColor="#f39c12"
+                        TextColor="White"
+                        CornerRadius="8"
+                        HeightRequest="45"
+                        IsVisible="{Binding CanEquipBelt}"
+                        Command="{Binding EquipBeltCommand}" />
+
+                <!-- Equip as Armor -->
+                <Button Text="🛡️ Equip as Armor"
+                        BackgroundColor="#2ecc71"
+                        TextColor="White"
+                        CornerRadius="8"
+                        HeightRequest="45"
+                        IsVisible="{Binding CanEquipArmor}"
+                        Command="{Binding EquipArmorCommand}" />
+
+                <!-- Unequip -->
+                <Button Text="↩️ Unequip"
+                        BackgroundColor="#e67e22"
+                        TextColor="White"
+                        CornerRadius="8"
+                        HeightRequest="45"
+                        IsVisible="{Binding IsEquipped}"
+                        Command="{Binding UnequipCommand}" />
+
+                <!-- Drop -->
+                <Button Text="🗑️ Drop Item"
+                        BackgroundColor="#e74c3c"
+                        TextColor="White"
+                        CornerRadius="8"
+                        HeightRequest="45"
+                        Command="{Binding DropCommand}" />
+
+                <!-- Transfer (Future) -->
+                <Button Text="📤 Transfer to Player"
+                        BackgroundColor="#9b59b6"
+                        TextColor="White"
+                        CornerRadius="8"
+                        HeightRequest="45"
+                        Command="{Binding TransferCommand}" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Cancel Button -->
+        <Button Grid.Row="2"
+                Text="Cancel"
+                BackgroundColor="#95a5a6"
+                TextColor="White"
+                CornerRadius="8"
+                HeightRequest="45"
+                Command="{Binding CancelCommand}" />
+
+    </Grid>
+</ContentPage>
