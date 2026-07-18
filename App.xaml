@@ -1,0 +1,46 @@
+﻿<?xml version = "1.0" encoding = "UTF-8" ?>
+<Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:CharManJur.Converters"
+             xmlns:local="clr-namespace:CharManJur"
+             x:Class="CharManJur.App">
+    <Application.Resources>
+        <ResourceDictionary>
+            
+            <!--==Destroy Item Button Converters==-->
+            <converters:DestroyModeBorderColorConverter x:Key="DestroyModeBorderColorConverter" />
+            <converters:DestroyModeBorderThicknessConverter x:Key="DestroyModeBorderThicknessConverter" />
+            <converters:DestroyModeBackgroundConverter x:Key="DestroyModeBackgroundConverter" />
+            <converters:DestroyModeTextColorConverter x:Key="DestroyModeTextColorConverter" />
+            <converters:DestroyModeButtonColorConverter x:Key="DestroyModeButtonColorConverter" />
+            <converters:DestroyModeButtonTextConverter x:Key="DestroyModeButtonTextConverter" />
+            <converters:DestroyModeItemBorderConverter x:Key="DestroyModeItemBorderConverter" />
+            <converters:DestroyModeItemBorderThicknessConverter x:Key="DestroyModeItemBorderThicknessConverter" />
+
+            <!--==Background Creator Converters==-->
+            <converters:ConfirmButtonTextConverter x:Key="ConfirmButtonTextConverter" />
+            <converters:ConfirmButtonColorConverter x:Key="ConfirmButtonColorConverter" />
+
+            <converters:LanguageBorderConverter x:Key="LanguageBorderConverter" />
+            <converters:LanguageBorderThicknessConverter x:Key="LanguageBorderThicknessConverter" />
+            <converters:LanguageBackgroundConverter x:Key="LanguageBackgroundConverter" />
+            <converters:EquipmentStateColorConverter x:Key="EquipmentStateColorConverter" />
+            <converters:BulkyBorderConverter x:Key="BulkyBorderConverter" />
+            <converters:BulkyBorderThicknessConverter x:Key="BulkyBorderThicknessConverter" />
+            <converters:BulkyBackgroundConverter x:Key="BulkyBackgroundConverter" />
+            <converters:SelectedBackgroundConverter x:Key="SelectedBackgroundConverter" />
+            <converters:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+            <converters:CompleteStatusConverter x:Key="CompleteStatusConverter" />
+            <converters:FilterColorConverter x:Key="FilterColorConverter" />
+            <converters:StatusColorConverter x:Key="StatusColorConverter" />
+            <converters:IsNotNullConverter x:Key="IsNotNullConverter" />
+            <converters:IsWeaponCategoryConverter x:Key="IsWeaponCategoryConverter" />
+            <converters:IsArmorCategoryConverter x:Key="IsArmorCategoryConverter" />
+            <converters:ItemChoiceOptionsConverter x:Key="ItemChoiceOptionsConverter" />
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
+                <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

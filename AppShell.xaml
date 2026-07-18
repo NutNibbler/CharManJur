@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="CharManJur.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:CharManJur"
+    xmlns:views="clr-namespace:CharManJur.Views"
+    xmlns:livegame="clr-namespace:CharManJur.Views.Godrick_LiveGame"
+    Title="CharManJur">
+
+    <ShellContent
+        Title="Main Menu"
+        ContentTemplate="{DataTemplate local:MainPage}"
+        Route="MainPage"/>
+
+    <ShellContent 
+        Title="Create Character" 
+        ContentTemplate="{DataTemplate views:CreateNewCharacter}" 
+        Route="CreateNewCharacter"/>
+
+    <ShellContent 
+        Title="Load Character" 
+        ContentTemplate="{DataTemplate views:LoadCharacter}" 
+        Route="LoadCharacter"/>
+
+    <ShellContent 
+        Title="Character Builder Home" 
+        ContentTemplate="{DataTemplate views:CharacterBuilderHome}" 
+        Route="CharacterBuilderHome"
+        FlyoutItemIsVisible="False"/>
+
+    <ShellContent 
+        Title="Character Build: Kin Selection" 
+        ContentTemplate="{DataTemplate views:CharBuilder_Godrick_KinSelection}" 
+        Route="CharBuilder_Godrick_KinSelection"
+        FlyoutItemIsVisible="False"/>
+
+    <ShellContent 
+        Title="Character Build: Class and Feature Selection" 
+        ContentTemplate="{DataTemplate views:CharBuilder_Godrick_ClassSelection}" 
+        Route="CharBuilder_Godrick_ClassSelection"
+        FlyoutItemIsVisible="False"/>
+
+    <ShellContent 
+        Title="Character Build: Sub Feature Selection" 
+        ContentTemplate="{DataTemplate views:CharBuilder_Godrick_SubFeatureSelectionPopup}" 
+        Route="CharBuilder_Godrick_SubFeatureSelectionPopup"
+        FlyoutItemIsVisible="False"/>
+
+    <ShellContent 
+        Title="Character Build: Background Selection" 
+        ContentTemplate="{DataTemplate views:CharBuilder_Godrick_BackgroundSelection}" 
+        Route="CharBuilder_Godrick_BackgroundSelection"
+        FlyoutItemIsVisible="False"/>
+
+    <ShellContent 
+        Title="Custom Item Creator" 
+        ContentTemplate="{DataTemplate views:CustomItemCreatorPage}" 
+        Route="CustomItemCreatorPage"
+        FlyoutItemIsVisible="False"/>
+
+    <ShellContent 
+        Title="Godrick_Training_Popup" 
+        ContentTemplate="{DataTemplate views:Godrick_Training_Popup}" 
+        Route="Godrick_Training_Popup"
+        FlyoutItemIsVisible="False"/>
+
+    <ShellContent 
+        Title="CharBuilder_Godrick_HinderanceSelection" 
+        ContentTemplate="{DataTemplate views:CharBuilder_Godrick_HinderanceSelection}" 
+        Route="CharBuilder_Godrick_HinderanceSelection" />
+
+    <!-- Live Game Routes -->
+    <ShellContent 
+        Title="CharacterHomePage" 
+        ContentTemplate="{DataTemplate livegame:CharacterHomePage}" 
+        Route="CharacterHomePage" />
+    <ShellContent 
+        Title="BestowItemPage" 
+        ContentTemplate="{DataTemplate livegame:BestowItemPage}" 
+        Route="BestowItemPage" />
+</Shell>
