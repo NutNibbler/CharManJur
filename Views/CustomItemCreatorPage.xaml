@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:CharManJur.Converters"
+             x:Class="CharManJur.Views.CustomItemCreatorPage"
+             Title="Create Custom Item"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{AppThemeBinding Light=#1a1a2e, Dark=#0d0d1a}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="10">
+
+            <!-- Header -->
+            <Label Text="🛠️ Create Custom Item"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   TextColor="DeepSkyBlue"
+                   HorizontalOptions="Center" />
+
+            <BoxView HeightRequest="2" Color="DeepSkyBlue" />
+
+            <!-- ===== BASIC INFO ===== -->
+            <Label Text="Basic Information"
+                   FontAttributes="Bold"
+                   FontSize="16"
+                   TextColor="DeepSkyBlue" />
+
+            <Border Stroke="#3498db" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10">
+                <VerticalStackLayout Spacing="8">
+
+                    <!-- Name (Required) -->
+                    <Label Text="Name *" FontAttributes="Bold" FontSize="14" TextColor="White" />
+                    <Entry x:Name="entryName"
+                       Text="{Binding Name, Mode=TwoWay}"
+                       Placeholder="Enter item name"
+                       TextColor="White"
+                       BackgroundColor="#2a2a3e" />
+
+                    <!-- Category -->
+                    <Label Text="Category" FontAttributes="Bold" FontSize="14" TextColor="White" />
+                    <Picker x:Name="pickerCategory"
+                            Title="Select Category"
+                            TextColor="White"
+                            TitleColor="#888888" />
+
+                    <!-- Description -->
+                    <Label Text="Description" FontAttributes="Bold" FontSize="14" TextColor="White" />
+                    <Editor x:Name="editorDescription"
+                            Placeholder="Enter description"
+                            TextColor="White"
+                            BackgroundColor="#2a2a3e"
+                            HeightRequest="60"
+                            AutoSize="TextChanges" />
+
+                    <!-- Size -->
+                    <Label Text="Size" FontAttributes="Bold" FontSize="14" TextColor="White" />
+                    <Picker x:Name="pickerSize"
+                            Title="Select Size"
+                            TextColor="White"
+                            TitleColor="#888888" />
+
+                    <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
+                        <!-- Value -->
+                        <VerticalStackLayout>
+                            <Label Text="Value (Chips)" FontAttributes="Bold" FontSize="14" TextColor="White" />
+                            <Entry x:Name="entryValue"
+                                   Placeholder="0"
+                                   Keyboard="Numeric"
+                                   TextColor="White"
+                                   BackgroundColor="#2a2a3e" />
+                        </VerticalStackLayout>
+
+                        <!-- Rarity -->
+                        <VerticalStackLayout Grid.Column="1">
+                            <Label Text="Rarity (1-3)" FontAttributes="Bold" FontSize="14" TextColor="White" />
+                            <Picker x:Name="pickerRarity"
+                                    Title="Select Rarity"
+                                    TextColor="White"
+                                    TitleColor="#888888" />
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
+                        <!-- QtyLimit -->
+                        <VerticalStackLayout>
+                            <Label Text="Qty Limit" FontAttributes="Bold" FontSize="14" TextColor="White" />
+                            <Entry x:Name="entryQtyLimit"
+                                   Placeholder="Stack threshold"
+                                   Keyboard="Numeric"
+                                   TextColor="White"
+                                   BackgroundColor="#2a2a3e" />
+                        </VerticalStackLayout>
+
+                        <!-- Uses -->
+                        <VerticalStackLayout Grid.Column="1">
+                            <Label Text="Uses" FontAttributes="Bold" FontSize="14" TextColor="White" />
+                            <Entry x:Name="entryUses"
+                                   Placeholder="Max uses"
+                                   Keyboard="Numeric"
+                                   TextColor="White"
+                                   BackgroundColor="#2a2a3e" />
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <!-- Stackable -->
+                    <Label Text="Stackable?" FontAttributes="Bold" FontSize="14" TextColor="White" />
+                    <CheckBox x:Name="chkStackable" Color="DeepSkyBlue" />
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ===== WEAPON INFO ===== -->
+            <Label Text="⚔️ Weapon Information"
+                   FontAttributes="Bold"
+                   FontSize="16"
+                   TextColor="#e67e22"
+                   IsVisible="{Binding Source={x:Reference pickerCategory}, Path=SelectedItem, Converter={StaticResource IsWeaponCategoryConverter}}" />
+
+            <Border Stroke="#e67e22" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10"
+                    IsVisible="{Binding Source={x:Reference pickerCategory}, Path=SelectedItem, Converter={StaticResource IsWeaponCategoryConverter}}">
+                <VerticalStackLayout Spacing="8">
+
+                    <Label Text="Weapon Category" FontAttributes="Bold" FontSize="14" TextColor="White" />
+                    <Picker x:Name="pickerWeaponCategory"
+                            Title="Select Weapon Category"
+                            TextColor="White"
+                            TitleColor="#888888" />
+
+                    <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
+                        <!-- Damage Die -->
+                        <VerticalStackLayout>
+                            <Label Text="Damage Die" FontAttributes="Bold" FontSize="14" TextColor="White" />
+                            <Picker x:Name="pickerWeaponDamage"
+                                    Title="Select Damage Die"
+                                    TextColor="White"
+                                    TitleColor="#888888" />
+                        </VerticalStackLayout>
+
+                        <!-- Weapon Speed -->
+                        <VerticalStackLayout Grid.Column="1">
+                            <Label Text="Weapon Speed" FontAttributes="Bold" FontSize="14" TextColor="White" />
+                            <Picker x:Name="pickerWeaponSpeed"
+                                    Title="Select Weapon Speed"
+                                    TextColor="White"
+                                    TitleColor="#888888" />
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <!-- Weapon Effects -->
+                    <Label Text="Weapon Effects" FontAttributes="Bold" FontSize="14" TextColor="White" />
+                    <CollectionView x:Name="cvWeaponEffects"
+                                    ItemsSource="{Binding WeaponEffects}"
+                                    SelectionMode="None"
+                                    HeightRequest="120">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="3">
+                                    <CheckBox IsChecked="{Binding IsSelected}"
+                                              Color="#e67e22" />
+                                    <Label Text="{Binding DisplayName}"
+                                           FontSize="13"
+                                           TextColor="White"
+                                           Margin="30,0,0,0" />
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ===== ARMOR INFO ===== -->
+            <Label Text="🛡️ Armor Information"
+                   FontAttributes="Bold"
+                   FontSize="16"
+                   TextColor="#2ecc71"
+                   IsVisible="{Binding Source={x:Reference pickerCategory}, Path=SelectedItem, Converter={StaticResource IsArmorCategoryConverter}}" />
+
+            <Border Stroke="#2ecc71" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10"
+                    IsVisible="{Binding Source={x:Reference pickerCategory}, Path=SelectedItem, Converter={StaticResource IsArmorCategoryConverter}}">
+                <VerticalStackLayout Spacing="8">
+
+                    <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
+                        <!-- Armor Type -->
+                        <VerticalStackLayout>
+                            <Label Text="Armor Type" FontAttributes="Bold" FontSize="14" TextColor="White" />
+                            <Picker x:Name="pickerArmorType"
+                                    Title="Select Armor Type"
+                                    TextColor="White"
+                                    TitleColor="#888888" />
+                        </VerticalStackLayout>
+
+                        <!-- Armor Value -->
+                        <VerticalStackLayout Grid.Column="1">
+                            <Label Text="Armor Value" FontAttributes="Bold" FontSize="14" TextColor="White" />
+                            <Entry x:Name="entryArmorValue"
+                                   Placeholder="AC bonus"
+                                   Keyboard="Numeric"
+                                   TextColor="White"
+                                   BackgroundColor="#2a2a3e" />
+                        </VerticalStackLayout>
+                    </Grid>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <BoxView HeightRequest="2" Color="DeepSkyBlue" />
+
+            <!-- ===== FOOTER BUTTONS ===== -->
+            <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
+                <Button Grid.Column="0"
+                        Text="Cancel"
+                        BackgroundColor="#95a5a6"
+                        TextColor="White"
+                        CornerRadius="8"
+                        HeightRequest="50"
+                        Clicked="OnCancelClicked" />
+
+                <Button Grid.Column="1"
+                        Text="Create Item"
+                        BackgroundColor="#2ecc71"
+                        TextColor="White"
+                        CornerRadius="8"
+                        HeightRequest="50"
+                        FontAttributes="Bold"
+                        Clicked="OnCreateClicked" />
+            </Grid>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

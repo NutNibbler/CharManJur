@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CharManJur.Views.CharacterBuilderHome"
+             Shell.NavBarIsVisible="False"
+             Title="CharacterBuilderHome">
+    <VerticalStackLayout>
+        <!--=====Builder Page Header=====-->
+        <Label Text="Character Build - Stat Rolling"
+            FontSize="48"
+            FontAttributes="Bold"
+            HorizontalOptions="Center"/>
+        
+        <!--=====Builder Page Main Body=====-->
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="40" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="50"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!--=====Campaign Information Header=====-->
+            <Border Grid.Row="0" Grid.ColumnSpan="3" Stroke="Tan" StrokeThickness="3">
+                <Grid ColumnDefinitions="*,*,*">
+                    <Border Grid.Row="0" Grid.Column="0">
+                        <Label x:Name="lblCampaignType" Margin="5" Text="[Not Set]" FontSize="22" HorizontalOptions="Start" VerticalTextAlignment="Center"/>
+                    </Border>
+                    <Border Grid.Row="0" Grid.Column="1">
+                        <Label x:Name="lblCharacterName" Margin="5" Text="[Not Set]" FontSize="20" HorizontalOptions="Start" VerticalTextAlignment="Center"/>
+                    </Border>
+                    <Border Grid.Row="0" Grid.Column="2">
+                        <Label x:Name="lblPlayerName" Margin="5" Text="[Not Set]" FontSize="20" HorizontalOptions="Start" VerticalTextAlignment="Center"/>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!--=====Character Stats=====-->
+            <Border Grid.Row="1" Grid.Column="0" Stroke="Tan" StrokeThickness="3">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="75"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Row="0" Grid.Column="0">
+                        <Label Text="Character Stats" FontSize="26" HorizontalOptions="Center" VerticalTextAlignment="Center"/>
+                    </Border>
+                    <Border Grid.Row="1" Grid.Column="0" Stroke="Red" StrokeThickness="3">
+                        <Grid RowDefinitions="Auto" ColumnDefinitions="60,*,70">
+                            <Label Grid.Column="0" Text="💪" FontSize="36" HorizontalOptions="Center" VerticalTextAlignment="Center" HeightRequest="40"/>
+                            <Label Grid.Column="1" Text="Vigor" FontSize="24" HorizontalOptions="Center" VerticalTextAlignment="Center" HeightRequest="40" ToolTipProperties.Text="Vigor influences the following skills: Athletics, Constitution, Grapple, Presence, and Ride, more on this later."/>
+                            <Entry Grid.Column="2" TextColor="Black" BackgroundColor="Red" FontSize="36" HorizontalTextAlignment="Center" x:Name="entryStatVigor" Keyboard="Numeric" TextChanged="OnVigorChanged"/>
+                        </Grid>
+                    </Border>
+                    <Border Grid.Row="2" Grid.Column="0" Stroke="Green" StrokeThickness="3">
+                        <Grid RowDefinitions="Auto" ColumnDefinitions="60,*,70">
+                            <Label Grid.Column="0" Text="💨" FontSize="36" HorizontalOptions="Center" VerticalTextAlignment="Center" HeightRequest="40"/>
+                            <Label Grid.Column="1" Text="Agility" FontSize="24" HorizontalOptions="Center" VerticalTextAlignment="Center" HeightRequest="40" ToolTipProperties.Text="Agility influences the following skills: Acrobatics, Aim, Drive, Stealth, and Thief, more on this later."/>
+                            <Entry Grid.Column="2" TextColor="Black" BackgroundColor="Green" FontSize="36" HorizontalTextAlignment="Center" x:Name="entryStatAgility" Keyboard="Numeric" TextChanged="OnAgilityChanged"/>
+                        </Grid>
+                    </Border>
+                    <Border Grid.Row="3" Grid.Column="0" Stroke="Orange" StrokeThickness="3">
+                        <Grid RowDefinitions="Auto" ColumnDefinitions="60,*,70">
+                            <Label Grid.Column="0" Text="🧠" FontSize="36" HorizontalOptions="Center" VerticalTextAlignment="Center" HeightRequest="40"/>
+                            <Label Grid.Column="1" Text="Mind" FontSize="24" HorizontalOptions="Center" VerticalTextAlignment="Center" HeightRequest="40" ToolTipProperties.Text="Mind influences the following skills: Arcana, Artifice, Heal, Investigate, and Lore, more on this later."/>
+                            <Entry Grid.Column="2" TextColor="Black" BackgroundColor="Orange" FontSize="36" HorizontalTextAlignment="Center" x:Name="entryStatMind" Keyboard="Numeric" TextChanged="OnMindChanged"/>
+                        </Grid>
+                    </Border>
+                    <Border Grid.Row="4" Grid.Column="0" Stroke="Aqua" StrokeThickness="3">
+                        <Grid RowDefinitions="Auto" ColumnDefinitions="60,*,70">
+                            <Label Grid.Column="0" Text="👻" FontSize="36" HorizontalOptions="Center" VerticalTextAlignment="Center" HeightRequest="40"/>
+                            <Label Grid.Column="1" Text="Spirit" FontSize="24" HorizontalOptions="Center" VerticalTextAlignment="Center" HeightRequest="40" ToolTipProperties.Text="Spirit influences the following skills: Commune, Deception, Diplomacy, Sight, and Survival, more on this later."/>
+                            <Entry Grid.Column="2" TextColor="Black" BackgroundColor="Aqua" FontSize="36" HorizontalTextAlignment="Center" x:Name="entryStatSpirit" Keyboard="Numeric" TextChanged="OnSpiritChanged"/>
+                        </Grid>
+                    </Border>
+                    <Border Grid.Row="5" Grid.Column="0" Stroke="Silver" StrokeThickness="3">
+                        <Grid RowDefinitions="Auto" ColumnDefinitions="60,*,70">
+                            <Label Grid.Column="0" Text="🛡️" FontSize="36" HorizontalOptions="Center" VerticalTextAlignment="Center" HeightRequest="40"/>
+                            <Label Grid.Column="1" Text="Hit Protection" FontSize="16" HorizontalOptions="Center" VerticalTextAlignment="Center" HeightRequest="40" ToolTipProperties.Text="Hit Protection is the barrier between your Vigor health and incoming damage, more on this later."/>
+                            <Entry Grid.Column="2" TextColor="Black" BackgroundColor="Silver" FontSize="36" HorizontalTextAlignment="Center" x:Name="entryStatHp" Keyboard="Numeric" TextChanged="OnHpChanged"/>
+                        </Grid>
+                    </Border>
+                    <Border Grid.Row="0" Grid.Column="1">
+                        <Label Text="ASM" FontSize="24" HorizontalOptions="Center" VerticalTextAlignment="Center"/>
+                    </Border>
+                    <Border Grid.Row="1" Grid.Column="1" Stroke="Red" StrokeThickness="3">
+                        <Label x:Name="lblVigorModifier" Text="0" FontSize="32" HorizontalTextAlignment="Center" VerticalTextAlignment="Center"/>
+                    </Border>
+                    <Border Grid.Row="2" Grid.Column="1" Stroke="Green" StrokeThickness="3">
+                        <Label x:Name="lblAgilityModifier" Text="0" FontSize="32" HorizontalTextAlignment="Center" VerticalTextAlignment="Center"/>
+                    </Border>
+                    <Border Grid.Row="3" Grid.Column="1" Stroke="Orange" StrokeThickness="3">
+                        <Label x:Name="lblMindModifier" Text="0" FontSize="32" HorizontalTextAlignment="Center" VerticalTextAlignment="Center"/>
+                    </Border>
+                    <Border Grid.Row="4" Grid.Column="1" Stroke="Aqua" StrokeThickness="3">
+                        <Label x:Name="lblSpiritModifier" Text="0" FontSize="32" HorizontalTextAlignment="Center" VerticalTextAlignment="Center"/>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- =====Character Stats Guildeines=====-->
+            <Grid Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2">
+                <Border Stroke="Tan" StrokeThickness="3">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="335"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Row="0">
+                            <Label Margin="5" HorizontalTextAlignment="Center" Text="Character Stats Guidelines" FontSize="24"/>
+                        </Border>
+                        <Border Grid.Row="1">
+                            <ScrollView>
+                                <Label x:Name="lblGuidelinesBody" Margin="5" HorizontalTextAlignment="Start" FontSize="14" LineHeight="2"/>
+                            </ScrollView>
+                        </Border>
+                    </Grid>
+                </Border>
+            </Grid>
+            
+            <!-- =====ASM MODIFIER TABLE===== -->
+            <Grid Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3">
+                <Border Stroke="Tan" StrokeThickness="3">
+                    <Grid RowDefinitions="*,*,*" ColumnDefinitions="100,*,*,*,*,*,*,*,*,*,*,*">
+                        <Border Grid.ColumnSpan="12">
+                            <Label Text="Ability Score Modifier Table" FontSize="20" HorizontalTextAlignment="Center"/>
+                        </Border>
+                        <Border Grid.Row="1">
+                            <Label Text="Ability Score" FontSize="12" HorizontalTextAlignment="Center"/>
+                        </Border>
+                        <Border Grid.Row="1" Grid.Column="1">
+                            <Label Text="1" FontSize="14" HorizontalTextAlignment="Center"/>
+                        </Border>
+                        <Border Grid.Row="1" Grid.Column="2">
+                            <Label Text="2-3" FontSize="14" HorizontalTextAlignment="Center"/>
+                        </Border>
+                        <Border Grid.Row="1" Grid.Column="3">
+                            <Label Text="4-5" FontSize="14" HorizontalTextAlignment="Center"/>
+                        </Border>
+                        <Border Grid.Row="1" Grid.Column="4">
+                            <Label Text="6-7" FontSize="14" HorizontalTextAlignment="Center"/>
+                        </Border>
+                        <Border Grid.Row="1" Grid.Column="5">
+                            <Label Text="8-9" FontSize="14" HorizontalTextAlignment="Center"/>
+                        </Border>
+                        <Border Grid.Row="1" Grid.Column="6">
+                            <Label Text="10-11" FontSize="14" HorizontalTextAlignment="Center"/>
+                        </Border>
+                        <Border Grid.Row="1" Grid.Column="7">
+                            <Label Text="12-13" FontSize="14" HorizontalTextAlignment="Center"/>
+                        </Border>
+                        <Border Grid.Row="1" Grid.Column="8">
+                            <Label Text="14-15" FontSize="14" HorizontalTextAlignment="Center"/>
+                        </Border>
+                        <Border Grid.Row="1" Grid.Column="9">
+                            <Label Text="16-17" FontSize="14" HorizontalTextAlignment="Center"/>
+                        </Border>
+                        <Border Grid.Row="1" Grid.Column="10">
+                            <Label Text="18-19" FontSize="14" HorizontalTextAlignment="Center"/>
+                        </Border>
+                        <Border Grid.Row="1" Grid.Column="11">
+                            <Label Text="20" FontSize="14" HorizontalTextAlignment="Center"/>
+                        </Border>
+                        <Border Grid.Row="2">
+                            <Label Text="Modifier Result" FontSize="12" HorizontalTextAlignment="Center"/>
+                        </Border>
+                        <Border Grid.Row="2" Grid.Column="1">
+                            <Label Text="-5" FontSize="14" HorizontalTextAlignment="Center"/>
+                        </Border>
+                        <Border Grid.Row="2" Grid.Column="2">
+                            <Label Text="-4" FontSize="14" HorizontalTextAlignment="Center"/>
+                        </Border>
+                        <Border Grid.Row="2" Grid.Column="3">
+                            <Label Text="-3" FontSize="14" HorizontalTextAlignment="Center"/>
+                        </Border>
+                        <Border Grid.Row="2" Grid.Column="4">
+                            <Label Text="-2" FontSize="14" HorizontalTextAlignment="Center"/>
+                        </Border>
+                        <Border Grid.Row="2" Grid.Column="5">
+                            <Label Text="-1" FontSize="14" HorizontalTextAlignment="Center"/>
+                        </Border>
+                        <Border Grid.Row="2" Grid.Column="6">
+                            <Label Text="0" FontSize="14" HorizontalTextAlignment="Center"/>
+                        </Border>
+                        <Border Grid.Row="2" Grid.Column="7">
+                            <Label Text="1" FontSize="14" HorizontalTextAlignment="Center"/>
+                        </Border>
+                        <Border Grid.Row="2" Grid.Column="8">
+                            <Label Text="2" FontSize="14" HorizontalTextAlignment="Center"/>
+                        </Border>
+                        <Border Grid.Row="2" Grid.Column="9">
+                            <Label Text="3" FontSize="14" HorizontalTextAlignment="Center"/>
+                        </Border>
+                        <Border Grid.Row="2" Grid.Column="10">
+                            <Label Text="4" FontSize="14" HorizontalTextAlignment="Center"/>
+                        </Border>
+                        <Border Grid.Row="2" Grid.Column="11">
+                            <Label Text="5" FontSize="14" HorizontalTextAlignment="Center"/>
+                        </Border>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- =====Interface Transition Buttons=====-->
+            <Grid Grid.Row="3" ColumnDefinitions="*,80,80,*" Grid.ColumnSpan="2">
+                <Button Grid.Column="0"
+                    Text="Next: Select Kin"
+                    BackgroundColor="DeepSkyBlue"
+                    TextColor="White"
+                    FontSize="16"
+                    HeightRequest="50"
+                    CornerRadius="10"
+                    Clicked="OnKinClicked"/>
+                <Button Grid.Column="1"
+                    Text="← Back"
+                    BackgroundColor="{AppThemeBinding Light=#95a5a6, Dark=#7f8c8d}"
+                    TextColor="White"
+                    FontSize="16"
+                    HeightRequest="50"
+                    CornerRadius="10"
+                    Clicked="OnBackClicked"/>
+                <Button Grid.Column="2" 
+                    Text="Cancel"
+                    BackgroundColor="{AppThemeBinding Light=#95a5a6, Dark=#7f8c8d}"
+                    TextColor="White"
+                    FontSize="16"
+                    HeightRequest="50"
+                    CornerRadius="10"
+                    Clicked="OnCancelClicked"/>
+                <Button Grid.Column="3"
+                    Text="💾 Save For Later"
+                    BackgroundColor="#f39c12"
+                    TextColor="White"
+                    FontSize="16"
+                    HeightRequest="50"
+                    CornerRadius="10"
+                    Clicked="OnSaveForLaterClicked"/>
+            </Grid>
+        </Grid>
+    </VerticalStackLayout>
+</ContentPage>

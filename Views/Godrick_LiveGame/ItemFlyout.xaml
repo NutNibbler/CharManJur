@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CharManJur.Views.Godrick_LiveGame.ItemFlyout"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="Transparent">
+
+    <Grid>
+        <!-- Transparent overlay -->
+        <BoxView Grid.Row="0" Grid.Column="0"
+                 BackgroundColor="Transparent"
+                 InputTransparent="False">
+            <BoxView.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnDismissClicked" />
+            </BoxView.GestureRecognizers>
+        </BoxView>
+
+        <!-- Flyout Content -->
+        <Border x:Name="FlyoutBorder"
+                Grid.Row="0" Grid.Column="0"
+                BackgroundColor="#1a1a2e"
+                StrokeThickness="1"
+                Stroke="#3498db"
+                StrokeShape="RoundRectangle 8"
+                Padding="10"
+                WidthRequest="240"
+                HorizontalOptions="Center"
+                VerticalOptions="Center">
+            <VerticalStackLayout Spacing="3">
+
+                <!-- Header -->
+                <Label Text="{Binding ItemName}"
+                       FontSize="15"
+                       FontAttributes="Bold"
+                       TextColor="White"
+                       HorizontalOptions="Center"
+                       Margin="0,0,0,2" />
+                <BoxView HeightRequest="1" Color="#333333" />
+
+                <!-- Slot Info Display -->
+                <Label Text="{Binding SlotInfoDisplay}"
+                       FontSize="11"
+                       TextColor="#f39c12"
+                       HorizontalOptions="Center"
+                       IsVisible="{Binding HasSlotInfo}" />
+
+                <!-- Equip to Hand -->
+                <Button Text="🖐️ Equip to Hand"
+                        BackgroundColor="{Binding CanEquipHand, Converter={StaticResource EnabledButtonColorConverter}}"
+                        TextColor="White"
+                        CornerRadius="6"
+                        HeightRequest="30"
+                        FontSize="11"
+                        IsEnabled="{Binding CanEquipHand}"
+                        Command="{Binding EquipHandCommand}" />
+
+                <!-- Equip to Belt -->
+                <Button Text="🪢 Equip to Belt"
+                        BackgroundColor="{Binding CanEquipBelt, Converter={StaticResource EnabledButtonColorConverter}}"
+                        TextColor="White"
+                        CornerRadius="6"
+                        HeightRequest="30"
+                        FontSize="11"
+                        IsEnabled="{Binding CanEquipBelt}"
+                        Command="{Binding EquipBeltCommand}" />
+
+                <!-- Equip as Armor -->
+                <Button Text="🛡️ Equip as Armor"
+                        BackgroundColor="{Binding CanEquipArmor, Converter={StaticResource EnabledButtonColorConverter}}"
+                        TextColor="White"
+                        CornerRadius="6"
+                        HeightRequest="30"
+                        FontSize="11"
+                        IsEnabled="{Binding CanEquipArmor}"
+                        Command="{Binding EquipArmorCommand}" />
+
+                <!-- Unequip -->
+                <Button Text="↩️ Unequip"
+                        BackgroundColor="#e67e22"
+                        TextColor="White"
+                        CornerRadius="6"
+                        HeightRequest="30"
+                        FontSize="11"
+                        IsVisible="{Binding IsEquipped}"
+                        Command="{Binding UnequipCommand}" />
+
+                <!-- Divider -->
+                <BoxView HeightRequest="1"
+                         Color="#333333"
+                         IsVisible="{Binding IsEquipped}" />
+
+                <!-- Drop -->
+                <Button Text="🗑️ Drop"
+                        BackgroundColor="#e74c3c"
+                        TextColor="White"
+                        CornerRadius="6"
+                        HeightRequest="30"
+                        FontSize="11"
+                        Command="{Binding DropCommand}" />
+
+                <!-- Transfer -->
+                <Button Text="📤 Transfer"
+                        BackgroundColor="#9b59b6"
+                        TextColor="White"
+                        CornerRadius="6"
+                        HeightRequest="30"
+                        FontSize="11"
+                        Command="{Binding TransferCommand}" />
+
+                <!-- Divider -->
+                <BoxView HeightRequest="1" Color="#333333" />
+
+                <!-- Cancel -->
+                <Button Text="Cancel"
+                        BackgroundColor="#444444"
+                        TextColor="White"
+                        CornerRadius="6"
+                        HeightRequest="30"
+                        FontSize="11"
+                        Command="{Binding CancelCommand}" />
+
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
+</ContentPage>

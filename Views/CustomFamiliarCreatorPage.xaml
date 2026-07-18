@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CharManJur.Views.Godrick_LiveGame.CustomFamiliarCreatorPage"
+             Title="Create Custom Familiar"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="#1a1a2e">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="10">
+
+            <!-- Header -->
+            <Label Text="🐾 Create Custom Familiar"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   TextColor="#9b59b6"
+                   HorizontalOptions="Center" />
+
+            <BoxView HeightRequest="2" Color="#9b59b6" />
+
+            <!-- ===== BASIC INFO ===== -->
+            <Label Text="Basic Information"
+                   FontAttributes="Bold"
+                   FontSize="16"
+                   TextColor="#9b59b6" />
+
+            <Border Stroke="#9b59b6" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10">
+                <VerticalStackLayout Spacing="8">
+
+                    <!-- Name (Required) -->
+                    <Label Text="Name *" FontAttributes="Bold" FontSize="14" TextColor="White" />
+                    <Entry x:Name="entryName"
+                           Placeholder="Enter familiar name"
+                           TextColor="White"
+                           BackgroundColor="#2a2a3e" />
+
+                    <!-- Description -->
+                    <Label Text="Description" FontAttributes="Bold" FontSize="14" TextColor="White" />
+                    <Editor x:Name="editorDescription"
+                            Placeholder="Enter description"
+                            TextColor="White"
+                            BackgroundColor="#2a2a3e"
+                            HeightRequest="60"
+                            AutoSize="TextChanges" />
+
+                    <!-- Class/Species -->
+                    <Label Text="Class/Species" FontAttributes="Bold" FontSize="14" TextColor="White" />
+                    <Picker x:Name="pickerClass"
+                            Title="Select Class"
+                            TextColor="White"
+                            TitleColor="#888888" />
+
+                    <!-- Size -->
+                    <Label Text="Size" FontAttributes="Bold" FontSize="14" TextColor="White" />
+                    <Picker x:Name="pickerSize"
+                            Title="Select Size"
+                            TextColor="White"
+                            TitleColor="#888888" />
+
+                    <!-- Intelligence -->
+                    <Label Text="Intelligence" FontAttributes="Bold" FontSize="14" TextColor="White" />
+                    <Picker x:Name="pickerIntelligence"
+                            Title="Select Intelligence"
+                            TextColor="White"
+                            TitleColor="#888888" />
+
+                    <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
+                        <!-- HP -->
+                        <VerticalStackLayout>
+                            <Label Text="HP" FontAttributes="Bold" FontSize="14" TextColor="White" />
+                            <Entry x:Name="entryHP"
+                                   Placeholder="0"
+                                   Keyboard="Numeric"
+                                   TextColor="White"
+                                   BackgroundColor="#2a2a3e" />
+                        </VerticalStackLayout>
+
+                        <!-- Stats -->
+                        <VerticalStackLayout Grid.Column="1">
+                            <Label Text="Vigor" FontAttributes="Bold" FontSize="14" TextColor="White" />
+                            <Entry x:Name="entryVigor"
+                                   Placeholder="0"
+                                   Keyboard="Numeric"
+                                   TextColor="White"
+                                   BackgroundColor="#2a2a3e" />
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
+                        <VerticalStackLayout>
+                            <Label Text="Agility" FontAttributes="Bold" FontSize="14" TextColor="White" />
+                            <Entry x:Name="entryAgility"
+                                   Placeholder="0"
+                                   Keyboard="Numeric"
+                                   TextColor="White"
+                                   BackgroundColor="#2a2a3e" />
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="1">
+                            <Label Text="Mind" FontAttributes="Bold" FontSize="14" TextColor="White" />
+                            <Entry x:Name="entryMind"
+                                   Placeholder="0"
+                                   Keyboard="Numeric"
+                                   TextColor="White"
+                                   BackgroundColor="#2a2a3e" />
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <Label Text="Spirit" FontAttributes="Bold" FontSize="14" TextColor="White" />
+                    <Entry x:Name="entrySpirit"
+                           Placeholder="0"
+                           Keyboard="Numeric"
+                           TextColor="White"
+                           BackgroundColor="#2a2a3e" />
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ===== WEAPON INFO ===== -->
+            <Label Text="⚔️ Weapon Information"
+                   FontAttributes="Bold"
+                   FontSize="16"
+                   TextColor="#e67e22" />
+
+            <Border Stroke="#e67e22" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10">
+                <VerticalStackLayout Spacing="8">
+
+                    <!-- Weapon Name -->
+                    <Label Text="Weapon Name" FontAttributes="Bold" FontSize="14" TextColor="White" />
+                    <Entry x:Name="entryWeaponName"
+                           Placeholder="Enter weapon name (e.g., Claw, Bite)"
+                           TextColor="White"
+                           BackgroundColor="#2a2a3e" />
+
+                    <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
+                        <!-- Weapon Speed -->
+                        <VerticalStackLayout>
+                            <Label Text="Weapon Speed" FontAttributes="Bold" FontSize="14" TextColor="White" />
+                            <Picker x:Name="pickerWeaponSpeed"
+                                    Title="Select Speed"
+                                    TextColor="White"
+                                    TitleColor="#888888" />
+                        </VerticalStackLayout>
+
+                        <!-- Weapon Damage Die -->
+                        <VerticalStackLayout Grid.Column="1">
+                            <Label Text="Damage Die" FontAttributes="Bold" FontSize="14" TextColor="White" />
+                            <Picker x:Name="pickerWeaponDamageDie"
+                                    Title="Select Die"
+                                    TextColor="White"
+                                    TitleColor="#888888" />
+                        </VerticalStackLayout>
+                    </Grid>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ===== ABILITIES ===== -->
+            <Label Text="✨ Abilities"
+                   FontAttributes="Bold"
+                   FontSize="16"
+                   TextColor="#4fc3f7" />
+
+            <Border Stroke="#4fc3f7" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Enter abilities (one per line)" FontSize="12" TextColor="#aaaaaa" />
+                    <Editor x:Name="editorAbilities"
+                            Placeholder="e.g., Can speak Common&#10;Darkvision 60ft&#10;Keen Smell"
+                            TextColor="White"
+                            BackgroundColor="#2a2a3e"
+                            HeightRequest="80"
+                            AutoSize="TextChanges" />
+                </VerticalStackLayout>
+            </Border>
+
+            <BoxView HeightRequest="2" Color="#9b59b6" />
+
+            <!-- ===== FOOTER BUTTONS ===== -->
+            <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
+                <Button Grid.Column="0"
+                        Text="Cancel"
+                        BackgroundColor="#95a5a6"
+                        TextColor="White"
+                        CornerRadius="8"
+                        HeightRequest="50"
+                        Clicked="OnCancelClicked" />
+
+                <Button Grid.Column="1"
+                        Text="Create Familiar"
+                        BackgroundColor="#2ecc71"
+                        TextColor="White"
+                        CornerRadius="8"
+                        HeightRequest="50"
+                        FontAttributes="Bold"
+                        Clicked="OnCreateClicked" />
+            </Grid>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

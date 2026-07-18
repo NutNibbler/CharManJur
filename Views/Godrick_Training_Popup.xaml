@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:CharManJur.Converters"
+             xmlns:viewmodels="clr-namespace:CharManJur.ViewModels"
+             x:Class="CharManJur.Views.Godrick_Training_Popup"
+             Title="Skill Training"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="#1a1a2e">
+
+    <Grid RowDefinitions="Auto, *, Auto"
+          Padding="20"
+          RowSpacing="10">
+
+        <!-- Header -->
+        <VerticalStackLayout Grid.Row="0" Spacing="5">
+            <Label Text="🎯 Skill Training"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   TextColor="DeepSkyBlue"
+                   HorizontalOptions="Center" />
+
+            <Label Text="Assign your training points to your chosen skills."
+                   FontSize="14"
+                   TextColor="#aaaaaa"
+                   HorizontalOptions="Center" />
+
+            <BoxView HeightRequest="2" Color="#3498db" />
+
+            <Label x:Name="lblAvailablePoints"
+                   Text="{Binding AvailablePoints, StringFormat='Available Points: {0}'}"
+                   FontAttributes="Bold"
+                   FontSize="16"
+                   TextColor="White"
+                   HorizontalOptions="Center" />
+        </VerticalStackLayout>
+
+        <!-- Skills List -->
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Spacing="8">
+
+                <!-- ========================================= -->
+                <!-- === VIGOR SKILLS === -->
+                <!-- ========================================= -->
+                <Border Stroke="#e74c3c" 
+                        StrokeThickness="1" 
+                        StrokeShape="RoundRectangle 8" 
+                        Padding="10"
+                        BackgroundColor="#1a1a2e">
+                    <VerticalStackLayout Spacing="5">
+
+                        <!-- Header with Stat Breakdown -->
+                        <Label FontAttributes="Bold" FontSize="14" TextColor="#e74c3c">
+                            <Label.Text>
+                                <MultiBinding StringFormat="VIGOR SKILLS ({0})">
+                                    <Binding Path="VigorDisplay" />
+                                </MultiBinding>
+                            </Label.Text>
+                        </Label>
+
+                        <BoxView HeightRequest="1" Color="#e74c3c" />
+
+                        <!-- Column Headers -->
+                            <Grid ColumnDefinitions="0.20*, 0.10*, 0.12*, 0.12*, 0.12*, 0.10*, 0.14*" 
+                                ColumnSpacing="3">
+                                <Label Grid.Row="0" Grid.Column="0" Text="Skill" FontSize="11" FontAttributes="Bold" TextColor="#888888" />
+                                <Label Grid.Row="0" Grid.Column="1" Text="Base" FontSize="11" FontAttributes="Bold" TextColor="#888888" HorizontalOptions="Center" />
+                                <Label Grid.Row="0" Grid.Column="2" Text="ASM" FontSize="11" FontAttributes="Bold" TextColor="#888888" HorizontalOptions="Center" />
+                                <Label Grid.Row="0" Grid.Column="3" Text="Creation Bonuses" FontSize="11" FontAttributes="Bold" TextColor="#888888" HorizontalOptions="Center" />
+                                <Label Grid.Row="0" Grid.Column="4" Text="Training" FontSize="11" FontAttributes="Bold" TextColor="#888888" HorizontalOptions="Center" />
+                                <Label Grid.Row="0" Grid.Column="5" Text="Used" FontSize="11" FontAttributes="Bold" TextColor="#888888" HorizontalOptions="Center" />
+                                <Label Grid.Row="0" Grid.Column="6" Text="Total" FontSize="11" FontAttributes="Bold" TextColor="#888888" HorizontalOptions="Center" />
+                            </Grid>
+
+                            <BoxView HeightRequest="1" Color="#333333" />
+
+                        <!-- Vigor Skills Container -->
+                        <VerticalStackLayout x:Name="VigorSkillsContainer" Spacing="3" />
+
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- ========================================= -->
+                <!-- === AGILITY SKILLS === -->
+                <!-- ========================================= -->
+                <Border Stroke="#f39c12" 
+                        StrokeThickness="1" 
+                        StrokeShape="RoundRectangle 8" 
+                        Padding="10"
+                        BackgroundColor="#1a1a2e">
+                    <VerticalStackLayout Spacing="5">
+
+                        <!-- Header with Stat Breakdown -->
+                        <Label FontAttributes="Bold" FontSize="14" TextColor="#f39c12">
+                            <Label.Text>
+                                <MultiBinding StringFormat="AGILITY SKILLS ({0})">
+                                    <Binding Path="AgilityDisplay" />
+                                </MultiBinding>
+                            </Label.Text>
+                        </Label>
+
+                        <BoxView HeightRequest="1" Color="#f39c12" />
+
+                        <!-- Column Headers -->
+                        <Grid ColumnDefinitions="0.20*, 0.10*, 0.12*, 0.12*, 0.12*, 0.10*, 0.14*" 
+                              ColumnSpacing="3">
+                            <Label Grid.Row="0" Grid.Column="0" Text="Skill" FontSize="11" FontAttributes="Bold" TextColor="#888888" />
+                            <Label Grid.Row="0" Grid.Column="1" Text="Base" FontSize="11" FontAttributes="Bold" TextColor="#888888" HorizontalOptions="Center" />
+                            <Label Grid.Row="0" Grid.Column="2" Text="ASM" FontSize="11" FontAttributes="Bold" TextColor="#888888" HorizontalOptions="Center" />
+                            <Label Grid.Row="0" Grid.Column="3" Text="Creation Bonuses" FontSize="11" FontAttributes="Bold" TextColor="#888888" HorizontalOptions="Center" />
+                            <Label Grid.Row="0" Grid.Column="4" Text="Training" FontSize="11" FontAttributes="Bold" TextColor="#888888" HorizontalOptions="Center" />
+                            <Label Grid.Row="0" Grid.Column="5" Text="Used" FontSize="11" FontAttributes="Bold" TextColor="#888888" HorizontalOptions="Center" />
+                            <Label Grid.Row="0" Grid.Column="6" Text="Total" FontSize="11" FontAttributes="Bold" TextColor="#888888" HorizontalOptions="Center" />
+                        </Grid>
+
+                        <BoxView HeightRequest="1" Color="#333333" />
+
+                        <!-- Agility Skills Container -->
+                        <VerticalStackLayout x:Name="AgilitySkillsContainer" Spacing="3" />
+
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- ========================================= -->
+                <!-- === MIND SKILLS === -->
+                <!-- ========================================= -->
+                <Border Stroke="#3498db" 
+                        StrokeThickness="1" 
+                        StrokeShape="RoundRectangle 8" 
+                        Padding="10"
+                        BackgroundColor="#1a1a2e">
+                    <VerticalStackLayout Spacing="5">
+
+                        <!-- Header with Stat Breakdown -->
+                        <Label FontAttributes="Bold" FontSize="14" TextColor="#3498db">
+                            <Label.Text>
+                                <MultiBinding StringFormat="MIND SKILLS ({0})">
+                                    <Binding Path="MindDisplay" />
+                                </MultiBinding>
+                            </Label.Text>
+                        </Label>
+
+                        <BoxView HeightRequest="1" Color="#3498db" />
+
+                        <!-- Column Headers -->
+                        <Grid ColumnDefinitions="0.20*, 0.10*, 0.12*, 0.12*, 0.12*, 0.10*, 0.14*" 
+                              ColumnSpacing="3">
+                            <Label Grid.Row="0" Grid.Column="0" Text="Skill" FontSize="11" FontAttributes="Bold" TextColor="#888888" />
+                            <Label Grid.Row="0" Grid.Column="1" Text="Base" FontSize="11" FontAttributes="Bold" TextColor="#888888" HorizontalOptions="Center" />
+                            <Label Grid.Row="0" Grid.Column="2" Text="ASM" FontSize="11" FontAttributes="Bold" TextColor="#888888" HorizontalOptions="Center" />
+                            <Label Grid.Row="0" Grid.Column="3" Text="Creation Bonuses" FontSize="11" FontAttributes="Bold" TextColor="#888888" HorizontalOptions="Center" />
+                            <Label Grid.Row="0" Grid.Column="4" Text="Training" FontSize="11" FontAttributes="Bold" TextColor="#888888" HorizontalOptions="Center" />
+                            <Label Grid.Row="0" Grid.Column="5" Text="Used" FontSize="11" FontAttributes="Bold" TextColor="#888888" HorizontalOptions="Center" />
+                            <Label Grid.Row="0" Grid.Column="6" Text="Total" FontSize="11" FontAttributes="Bold" TextColor="#888888" HorizontalOptions="Center" />
+                        </Grid>
+
+                        <BoxView HeightRequest="1" Color="#333333" />
+
+                        <!-- Mind Skills Container -->
+                        <VerticalStackLayout x:Name="MindSkillsContainer" Spacing="3" />
+
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- ========================================= -->
+                <!-- === SPIRIT SKILLS === -->
+                <!-- ========================================= -->
+                <Border Stroke="#9b59b6" 
+                        StrokeThickness="1" 
+                        StrokeShape="RoundRectangle 8" 
+                        Padding="10"
+                        BackgroundColor="#1a1a2e">
+                    <VerticalStackLayout Spacing="5">
+
+                        <!-- Header with Stat Breakdown -->
+                        <Label FontAttributes="Bold" FontSize="14" TextColor="#9b59b6">
+                            <Label.Text>
+                                <MultiBinding StringFormat="SPIRIT SKILLS ({0})">
+                                    <Binding Path="SpiritDisplay" />
+                                </MultiBinding>
+                            </Label.Text>
+                        </Label>
+
+                        <BoxView HeightRequest="1" Color="#9b59b6" />
+
+                        <!-- Column Headers -->
+                        <Grid ColumnDefinitions="0.20*, 0.10*, 0.12*, 0.12*, 0.12*, 0.10*, 0.14*" 
+                              ColumnSpacing="3">
+                            <Label Grid.Row="0" Grid.Column="0" Text="Skill" FontSize="11" FontAttributes="Bold" TextColor="#888888" />
+                            <Label Grid.Row="0" Grid.Column="1" Text="Base" FontSize="11" FontAttributes="Bold" TextColor="#888888" HorizontalOptions="Center" />
+                            <Label Grid.Row="0" Grid.Column="2" Text="ASM" FontSize="11" FontAttributes="Bold" TextColor="#888888" HorizontalOptions="Center" />
+                            <Label Grid.Row="0" Grid.Column="3" Text="Creation Bonuses" FontSize="11" FontAttributes="Bold" TextColor="#888888" HorizontalOptions="Center" />
+                            <Label Grid.Row="0" Grid.Column="4" Text="Training" FontSize="11" FontAttributes="Bold" TextColor="#888888" HorizontalOptions="Center" />
+                            <Label Grid.Row="0" Grid.Column="5" Text="Used" FontSize="11" FontAttributes="Bold" TextColor="#888888" HorizontalOptions="Center" />
+                            <Label Grid.Row="0" Grid.Column="6" Text="Total" FontSize="11" FontAttributes="Bold" TextColor="#888888" HorizontalOptions="Center" />
+                        </Grid>
+
+                        <BoxView HeightRequest="1" Color="#333333" />
+
+                        <!-- Spirit Skills Container -->
+                        <VerticalStackLayout x:Name="SpiritSkillsContainer" Spacing="3" />
+
+                    </VerticalStackLayout>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Footer Buttons -->
+        <Grid Grid.Row="2" 
+              ColumnDefinitions="*, *" 
+              ColumnSpacing="10">
+
+            <!-- Live Game Mode Buttons -->
+            <Grid x:Name="LiveGameModeButtons"
+                  Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                  IsVisible="{Binding IsInCharacterCreation, Converter={StaticResource InvertedBoolConverter}}"
+                  ColumnDefinitions="*, *"
+                  ColumnSpacing="10">
+
+                <Button Grid.Row="0" Grid.Column="0"
+                        Text="Award Training Point"
+                        BackgroundColor="#2ecc71"
+                        TextColor="White"
+                        FontSize="14"
+                        CornerRadius="8"
+                        HeightRequest="45"
+                        Clicked="OnAwardTrainingPointClicked" />
+
+                <Button Grid.Row="0" Grid.Column="1"
+                        Text="Return"
+                        BackgroundColor="#3498db"
+                        TextColor="White"
+                        FontSize="16"
+                        CornerRadius="8"
+                        HeightRequest="45"
+                        Clicked="OnReturnClicked" />
+            </Grid>
+
+            <!-- Character Creation Mode Buttons -->
+            <Grid x:Name="CreationModeButtons"
+                  Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                  IsVisible="{Binding IsInCharacterCreation}"
+                  ColumnDefinitions="*, *"
+                  ColumnSpacing="10">
+
+                <Button Grid.Row="0" Grid.Column="0"
+                        Text="← Back"
+                        BackgroundColor="{AppThemeBinding Light=#95a5a6, Dark=#7f8c8d}"
+                        TextColor="White"
+                        FontSize="16"
+                        CornerRadius="8"
+                        HeightRequest="45"
+                        Clicked="OnBackClicked" />
+
+                <Button Grid.Row="0" Grid.Column="1"
+                        Text="✅ Confirm"
+                        BackgroundColor="#2ecc71"
+                        TextColor="White"
+                        FontSize="16"
+                        CornerRadius="8"
+                        HeightRequest="45"
+                        FontAttributes="Bold"
+                        Clicked="OnConfirmClicked" />
+            </Grid>
+
+        </Grid>
+
+    </Grid>
+</ContentPage>

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:CharManJur.Converters"
+             x:Class="CharManJur.Views.LoadCharacter"
+             Shell.NavBarIsVisible="False"
+             Title="Load Character"
+             BackgroundColor="{AppThemeBinding Light=#f0f0f0, Dark=#1a1a1a}">
+
+    <VerticalStackLayout Padding="20" Spacing="15">
+
+        <Label Text="📂 Load Character"
+               FontSize="28"
+               FontAttributes="Bold"
+               HorizontalOptions="Center"
+               TextColor="{AppThemeBinding Light=#2c3e50, Dark=#ecf0f1}" />
+        <!-- Add a subtitle to clarify -->
+        <Label Text="Complete characters will open in the Live Game view."
+               FontSize="12"
+               TextColor="#888888"
+               HorizontalOptions="Center" />
+
+        <!-- Filter Options -->
+        <Grid ColumnDefinitions="*, *, *" ColumnSpacing="10">
+            <Button Grid.Column="0"
+                    Text="All Characters"
+                    BackgroundColor="{Binding IsAllFilter, Converter={StaticResource FilterColorConverter}}"
+                    TextColor="White"
+                    CornerRadius="8"
+                    HeightRequest="40"
+                    Command="{Binding SetAllFilterCommand}" />
+            <Button Grid.Column="1"
+                    Text="⏳ Incomplete"
+                    BackgroundColor="{Binding IsIncompleteFilter, Converter={StaticResource FilterColorConverter}}"
+                    TextColor="White"
+                    CornerRadius="8"
+                    HeightRequest="40"
+                    Command="{Binding SetIncompleteFilterCommand}" />
+            <Button Grid.Column="2"
+                    Text="✅ Complete"
+                    BackgroundColor="{Binding IsCompleteFilter, Converter={StaticResource FilterColorConverter}}"
+                    TextColor="White"
+                    CornerRadius="8"
+                    HeightRequest="40"
+                    Command="{Binding SetCompleteFilterCommand}" />
+        </Grid>
+
+        <!-- Character List -->
+        <CollectionView x:Name="CharactersCollectionView"
+                        ItemsSource="{Binding FilteredCharacters}"
+                        SelectionMode="Single"
+                        SelectedItem="{Binding SelectedCharacter}"
+                        HeightRequest="400">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Grid Padding="5">
+                        <Border Stroke="#3498db"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 8"
+                                Padding="10">
+                            <VerticalStackLayout Spacing="5">
+                                <!-- Character Name -->
+                                <Label Text="{Binding CharacterName}" 
+                                       FontSize="18" 
+                                       FontAttributes="Bold"
+                                       TextColor="White" />
+
+                                <!-- Player Name - Fixed -->
+                                <Label Text="{Binding PlayerName, StringFormat='Player: {0}'}" 
+                                       FontSize="14" 
+                                       TextColor="#aaaaaa" />
+
+                                <HorizontalStackLayout Spacing="10">
+                                    <!-- Complete Status -->
+                                    <Label Text="{Binding IsComplete, Converter={StaticResource CompleteStatusConverter}}" 
+                                           FontSize="12" 
+                                           TextColor="{Binding IsComplete, Converter={StaticResource StatusColorConverter}}" />
+
+                                    <!-- Last Saved - Fixed -->
+                                    <Label Text="{Binding LastSaved, StringFormat='Last Saved: {0:MMM dd, yyyy HH:mm}'}" 
+                                           FontSize="12" 
+                                           TextColor="#666666" />
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+                        </Border>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Action Buttons -->
+        <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
+            <Button Grid.Column="0"
+                    Text="Load Selected"
+                    BackgroundColor="#2ecc71"
+                    TextColor="White"
+                    CornerRadius="8"
+                    HeightRequest="50"
+                    IsEnabled="{Binding HasSelectedCharacter}"
+                    Command="{Binding LoadSelectedCommand}" />
+
+            <Button Grid.Column="1"
+                    Text="Delete Selected"
+                    BackgroundColor="#e74c3c"
+                    TextColor="White"
+                    CornerRadius="8"
+                    HeightRequest="50"
+                    IsEnabled="{Binding HasSelectedCharacter}"
+                    Command="{Binding DeleteSelectedCommand}" />
+        </Grid>
+
+        <Button Text="← Back to Menu"
+                BackgroundColor="{AppThemeBinding Light=#95a5a6, Dark=#7f8c8d}"
+                TextColor="White"
+                FontSize="16"
+                CornerRadius="8"
+                HeightRequest="50"
+                Clicked="OnBackClicked"/>
+
+    </VerticalStackLayout>
+</ContentPage>

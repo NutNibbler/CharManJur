@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:CharManJur.Converters"
+             x:Class="CharManJur.Views.CharBuilder_Godrick_SubFeatureSelectionPopup"
+             Title="Select Sub-Features"
+             Shell.NavBarIsVisible="False">
+
+    <Grid RowDefinitions="Auto, *, Auto"
+          Padding="20"
+          RowSpacing="15"
+          BackgroundColor="{AppThemeBinding Light=#1a1a2e, Dark=#0d0d1a}">
+
+        <!-- Header -->
+        <VerticalStackLayout Grid.Row="0" Spacing="5">
+            <Label Text="{Binding SubFeatureTypeName}"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   TextColor="#4fc3f7"
+                   HorizontalOptions="Center" />
+            <Label Text="Select one or more options to add to your character"
+                   FontSize="14"
+                   TextColor="{AppThemeBinding Light=#aaaaaa, Dark=#888888}"
+                   HorizontalOptions="Center" />
+            <BoxView HeightRequest="2" 
+                     Color="#4fc3f7" 
+                     HorizontalOptions="Fill" />
+        </VerticalStackLayout>
+
+        <!-- Main Content: Scrollable List with Checkboxes -->
+        <ScrollView Grid.Row="1">
+            <CollectionView x:Name="ItemsCollectionView"
+                            ItemsSource="{Binding AvailableItems}"
+                            SelectionMode="None"
+                            Margin="0,0,0,10">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Padding="5,3">
+                            <Border Stroke="#4fc3f7"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 8"
+                                    Padding="10"
+                                    BackgroundColor="{Binding IsSelected, Converter={StaticResource SelectedBackgroundConverter}}">
+                                <Grid ColumnDefinitions="Auto, *">
+                                    <!-- Checkbox -->
+                                    <CheckBox Grid.Column="0"
+                                              IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                              VerticalOptions="Center"
+                                              Color="#4fc3f7" />
+                                    <!-- Item Name -->
+                                    <Label Grid.Column="1"
+                                           Text="{Binding DisplayName}"
+                                           FontSize="14"
+                                           FontAttributes="Bold"
+                                           TextColor="White"
+                                           VerticalOptions="Center"
+                                           Margin="10,0,0,0" />
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </ScrollView>
+
+        <!-- Footer: Action Buttons -->
+        <Grid Grid.Row="2" 
+              ColumnDefinitions="*, *" 
+              ColumnSpacing="10"
+              Margin="0,10,0,0">
+
+            <!-- Debug Label to show HasAnySelected state -->
+            <Label Grid.Column="0" Grid.ColumnSpan="2" 
+                   Text="{Binding HasAnySelected}" 
+                   TextColor="Yellow" 
+                   IsVisible="False" />
+
+            <Button Grid.Column="0"
+                    Text="Cancel"
+                    BackgroundColor="#444444"
+                    TextColor="White"
+                    CornerRadius="10"
+                    HeightRequest="50"
+                    Command="{Binding CancelCommand}" />
+
+            <Button Grid.Column="1"
+                    Text="Confirm Selection"
+                    BackgroundColor="#4fc3f7"
+                    TextColor="Black"
+                    CornerRadius="10"
+                    HeightRequest="50"
+                    FontAttributes="Bold"
+                    IsEnabled="{Binding HasAnySelected}"
+                    Command="{Binding ConfirmSelectionCommand}" />
+
+        </Grid>
+
+    </Grid>
+</ContentPage>
