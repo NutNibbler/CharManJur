@@ -37,6 +37,8 @@
             <converters:IsWeaponCategoryConverter x:Key="IsWeaponCategoryConverter" />
             <converters:IsArmorCategoryConverter x:Key="IsArmorCategoryConverter" />
             <converters:ItemChoiceOptionsConverter x:Key="ItemChoiceOptionsConverter" />
+            <converters:IsPairedTypeConverter x:Key="IsPairedTypeConverter" />
+            <converters:IsCustomRaceConverter x:Key="IsCustomRaceConverter" />
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
                 <ResourceDictionary Source="Resources/Styles/Styles.xaml" />

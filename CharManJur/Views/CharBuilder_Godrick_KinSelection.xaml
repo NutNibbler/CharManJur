@@ -18,7 +18,7 @@
             HorizontalOptions="Center"/>
 
         <!--=====Builder Kin Selection Body=====-->
-        <Grid ColumnDefinitions="250,*" RowDefinitions="*,50">
+        <Grid ColumnDefinitions="250,*" RowDefinitions="*,120">
             <Border Stroke="Tan" StrokeThickness="3">
                 <ScrollView>
                     <CollectionView x:Name="RacesCollectionView" 
@@ -27,12 +27,34 @@
                                     SelectionMode="Single">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
-                                <Grid Padding="10,8" ColumnDefinitions="*">
-                                    <Border>
-                                        <Label Text="{Binding Name}"
-                                       FontSize="16"
-                                       FontAttributes="Bold" />
-                                    </Border>
+                                <Grid Padding="10,8" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="5">
+                                    <Label Grid.Column="0" Text="{Binding Name}" FontSize="16" FontAttributes="Bold" VerticalTextAlignment="Center"/>
+
+                                    <!-- Edit Button - Only visible for custom races (ID >= 90001) -->
+                                    <Button Grid.Column="1" 
+                                            Text="✏️" 
+                                            BackgroundColor="#3498db" 
+                                            TextColor="White" 
+                                            CornerRadius="15" 
+                                            WidthRequest="35" 
+                                            HeightRequest="35"
+                                            FontSize="12"
+                                            IsVisible="{Binding Id, Converter={StaticResource IsCustomRaceConverter}}"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditCustomRaceCommand}"
+                                            CommandParameter="{Binding .}"/>
+
+                                    <!-- Delete Button - Only visible for custom races (ID >= 90001) -->
+                                    <Button Grid.Column="2" 
+                                            Text="🗑️" 
+                                            BackgroundColor="#e74c3c" 
+                                            TextColor="White" 
+                                            CornerRadius="15" 
+                                            WidthRequest="35" 
+                                            HeightRequest="35"
+                                            FontSize="12"
+                                            IsVisible="{Binding Id, Converter={StaticResource IsCustomRaceConverter}}"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteCustomRaceCommand}"
+                                            CommandParameter="{Binding .}"/>
                                 </Grid>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
@@ -121,9 +143,17 @@
                 </Grid>
             </Border>
 
-            <!-- =====Interface Transition Buttons=====-->
-            <Grid Grid.Row="1" Grid.ColumnSpan="2" ColumnDefinitions=".25*,.15*,.15*,.2*,.25*,.6*" Padding="10">
+            <!-- =====Custom Race Interfaces=====-->
+            <Grid Grid.Row="1" Grid.ColumnSpan="3" ColumnDefinitions=".25*,.25*,.15*,.15*,.2*,.25*,.35*" RowDefinitions="50" Padding="10" ColumnSpacing="3">
                 <Button Grid.Column="0"
+                    Text="➕ Create Custom Kin"
+                    BackgroundColor="purple"
+                    TextColor="White"
+                    CornerRadius="10"
+                    HeightRequest="50"
+                    Command="{Binding CreateCustomRaceCommand}"/>
+                <!-- =====Interface Transition Buttons=====-->
+                <Button Grid.Column="1"
                     Text="Confirm"
                     BackgroundColor="LimeGreen"
                     TextColor="White"
@@ -131,7 +161,7 @@
                     HeightRequest="50"
                     IsEnabled="{Binding HasSelectedRace}"
                     Command="{Binding ConfirmRaceCommand}" />
-                <Button Grid.Column="1"
+                <Button Grid.Column="2"
                     Text="← Back"
                     BackgroundColor="{AppThemeBinding Light=#95a5a6, Dark=#7f8c8d}"
                     TextColor="White"
@@ -139,7 +169,7 @@
                     HeightRequest="50"
                     CornerRadius="10"
                     Clicked="OnBackClicked"/>
-                <Button Grid.Column="2" 
+                <Button Grid.Column="3" 
                     Text="Cancel"
                     BackgroundColor="IndianRed"
                     TextColor="White"
@@ -147,14 +177,14 @@
                     HeightRequest="50"
                     CornerRadius="10"
                     Clicked="OnCancelClicked"/>
-                <Button Grid.Column="3"
+                <Button Grid.Column="4"
                     Text="📋 Summary"
                     BackgroundColor="Aqua"
                     TextColor="Black"
                     CornerRadius="10"
                     HeightRequest="50"
                     Clicked="OnCharacterSummaryClicked" />
-                <Button Grid.Column="4"
+                <Button Grid.Column="5"
                     Text="💾 Save For Later"
                     BackgroundColor="#f39c12"
                     TextColor="White"

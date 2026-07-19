@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:CharManJur.Converters"
+             x:Class="CharManJur.Views.Godrick_CustomRaceCreator"
+             Shell.NavBarIsVisible="False"
+             Title="Custom Kin Creator">
+
+    <ContentPage.Resources>
+        <converters:IsPairedTypeConverter x:Key="IsPairedTypeConverter" />
+
+        <Style x:Key="SectionHeaderStyle" TargetType="Label">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontAttributes" Value="Bold"/>
+            <Setter Property="TextColor" Value="#3498db"/>
+            <Setter Property="Margin" Value="0,10,0,5"/>
+        </Style>
+        <Style x:Key="FieldLabelStyle" TargetType="Label">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="TextColor" Value="#ecf0f1"/>
+            <Setter Property="Margin" Value="0,5"/>
+        </Style>
+        <Style x:Key="EntryStyle" TargetType="Entry">
+            <Setter Property="BackgroundColor" Value="#2c3e50"/>
+            <Setter Property="TextColor" Value="#ecf0f1"/>
+            <Setter Property="PlaceholderColor" Value="#7f8c8d"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        <Style x:Key="EditorStyle" TargetType="Editor">
+            <Setter Property="BackgroundColor" Value="#2c3e50"/>
+            <Setter Property="TextColor" Value="#ecf0f1"/>
+            <Setter Property="PlaceholderColor" Value="#7f8c8d"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="HeightRequest" Value="80"/>
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*">
+        <!-- Header -->
+        <Border Grid.Row="0" BackgroundColor="#1a1a2e" Padding="10,5">
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+                <Label Text="{Binding PageTitle}" FontSize="28" FontAttributes="Bold" TextColor="#ecf0f1" VerticalTextAlignment="Center"/>
+                <Button Grid.Column="1" Text="Cancel" BackgroundColor="#e74c3c" TextColor="White" CornerRadius="8" HeightRequest="40" WidthRequest="100" Command="{Binding CancelCommand}"/>
+                <Button Grid.Column="2" Text="{Binding SaveButtonText}" BackgroundColor="#27ae60" TextColor="White" CornerRadius="8" HeightRequest="40" WidthRequest="120" IsEnabled="{Binding CanSave}" Command="{Binding SaveRaceCommand}"/>
+            </Grid>
+        </Border>
+
+        <!-- Main Content -->
+        <ScrollView Grid.Row="1" Padding="10">
+            <VerticalStackLayout Spacing="5">
+
+                <!-- Basic Information -->
+                <Label Text="Basic Information" Style="{StaticResource SectionHeaderStyle}"/>
+                <Label Text="Kin Name*" Style="{StaticResource FieldLabelStyle}"/>
+                <Entry Text="{Binding RaceName}" Placeholder="Enter kin name..." Style="{StaticResource EntryStyle}"/>
+
+                <Label Text="Description" Style="{StaticResource FieldLabelStyle}"/>
+                <Editor Text="{Binding Description}" Placeholder="Describe this kin..." Style="{StaticResource EditorStyle}" HeightRequest="80"/>
+
+                <Label Text="Feature Name" Style="{StaticResource FieldLabelStyle}"/>
+                <Entry Text="{Binding FeatureName}" Placeholder="Enter feature name..." Style="{StaticResource EntryStyle}"/>
+
+                <Label Text="Feature Description" Style="{StaticResource FieldLabelStyle}"/>
+                <Editor Text="{Binding FeatureDescription}" Placeholder="Describe the feature..." Style="{StaticResource EditorStyle}" HeightRequest="80"/>
+
+                <!-- Stat Modifiers -->
+                <Label Text="Ability Score Modifiers" Style="{StaticResource SectionHeaderStyle}"/>
+                <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="10">
+                    <Border Grid.Column="0" BackgroundColor="#2c3e50" Padding="8" Stroke="#e74c3c" StrokeThickness="1" StrokeShape="RoundRectangle 4">
+                        <VerticalStackLayout>
+                            <Label Text="Vigor" FontAttributes="Bold" TextColor="#e74c3c" HorizontalOptions="Center"/>
+                            <Entry Text="{Binding VigorModifier}" Keyboard="Numeric" HorizontalOptions="Center" WidthRequest="60" Style="{StaticResource EntryStyle}"/>
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Column="1" BackgroundColor="#2c3e50" Padding="8" Stroke="#f39c12" StrokeThickness="1" StrokeShape="RoundRectangle 4">
+                        <VerticalStackLayout>
+                            <Label Text="Agility" FontAttributes="Bold" TextColor="#f39c12" HorizontalOptions="Center"/>
+                            <Entry Text="{Binding AgilityModifier}" Keyboard="Numeric" HorizontalOptions="Center" WidthRequest="60" Style="{StaticResource EntryStyle}"/>
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Column="2" BackgroundColor="#2c3e50" Padding="8" Stroke="#3498db" StrokeThickness="1" StrokeShape="RoundRectangle 4">
+                        <VerticalStackLayout>
+                            <Label Text="Mind" FontAttributes="Bold" TextColor="#3498db" HorizontalOptions="Center"/>
+                            <Entry Text="{Binding MindModifier}" Keyboard="Numeric" HorizontalOptions="Center" WidthRequest="60" Style="{StaticResource EntryStyle}"/>
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Column="3" BackgroundColor="#2c3e50" Padding="8" Stroke="#9b59b6" StrokeThickness="1" StrokeShape="RoundRectangle 4">
+                        <VerticalStackLayout>
+                            <Label Text="Spirit" FontAttributes="Bold" TextColor="#9b59b6" HorizontalOptions="Center"/>
+                            <Entry Text="{Binding SpiritModifier}" Keyboard="Numeric" HorizontalOptions="Center" WidthRequest="60" Style="{StaticResource EntryStyle}"/>
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+
+                <!-- Skill Bonuses -->
+                <Label Text="Skill Bonuses" Style="{StaticResource SectionHeaderStyle}"/>
+                <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="5">
+                    <Picker Grid.Column="0" ItemsSource="{Binding PredefinedSkills}" SelectedItem="{Binding SelectedSkillName}" Title="Select Skill..." BackgroundColor="#2c3e50" TextColor="#ecf0f1"/>
+                    <Entry Grid.Column="1" Text="{Binding SelectedSkillBonus}" Keyboard="Numeric" Placeholder="Bonus" WidthRequest="60" Style="{StaticResource EntryStyle}"/>
+                    <Button Grid.Column="2" Text="Add" Command="{Binding AddSkillCommand}" IsEnabled="{Binding CanAddSkill}" BackgroundColor="#3498db" TextColor="White" CornerRadius="8" HeightRequest="40"/>
+                </Grid>
+
+                <CollectionView ItemsSource="{Binding SkillBonuses}" HeightRequest="120">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid ColumnDefinitions="*,Auto" Padding="5" BackgroundColor="#2c3e50" Margin="0,2">
+                                <Label Grid.Column="0" TextColor="#ecf0f1" VerticalTextAlignment="Center">
+                                    <Label.Text>
+                                        <MultiBinding StringFormat="{}{0} +{1}">
+                                            <Binding Path="SkillName"/>
+                                            <Binding Path="Bonus"/>
+                                        </MultiBinding>
+                                    </Label.Text>
+                                </Label>
+                                <Button Grid.Column="1" Text="✕" BackgroundColor="#e74c3c" TextColor="White" CornerRadius="15" WidthRequest="30" HeightRequest="30" Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.RemoveSkillCommand}" CommandParameter="{Binding}"/>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <!-- Limb Sets -->
+                <Label Text="Limb Sets" Style="{StaticResource SectionHeaderStyle}"/>
+                <Label Text="Add Limb Set" Style="{StaticResource FieldLabelStyle}" TextColor="#2ecc71"/>
+                <Grid ColumnDefinitions="*,*,*,*,Auto" ColumnSpacing="5">
+                    <Entry Grid.Column="0" Text="{Binding LimbSetName}" Placeholder="Name" Style="{StaticResource EntryStyle}"/>
+                    <Picker Grid.Column="1" ItemsSource="{Binding LimbPairTypes}" SelectedItem="{Binding SelectedLimbPairType}" Title="Type" BackgroundColor="#2c3e50" TextColor="#ecf0f1"/>
+                    <Entry Grid.Column="2" Text="{Binding LimbSetIcon}" Placeholder="Icon" Style="{StaticResource EntryStyle}" WidthRequest="50"/>
+                    <Entry Grid.Column="3" Text="{Binding LeftSlotName}" Placeholder="Left name" Style="{StaticResource EntryStyle}" 
+                           IsVisible="{Binding SelectedLimbPairType, Converter={StaticResource IsPairedTypeConverter}}"/>
+                    <Button Grid.Column="4" Text="+" Command="{Binding AddLimbSetCommand}" IsEnabled="{Binding CanAddLimbSet}" BackgroundColor="#2ecc71" TextColor="White" CornerRadius="8" HeightRequest="40" WidthRequest="40"/>
+                </Grid>
+
+                <Grid ColumnDefinitions="*,*,*,*,Auto" ColumnSpacing="5" Margin="0,2,0,0">
+                    <Grid Grid.Column="0" Grid.ColumnSpan="4" IsVisible="{Binding SelectedLimbPairType, Converter={StaticResource IsPairedTypeConverter}}">
+                        <Entry Text="{Binding RightSlotName}" Placeholder="Right name" Style="{StaticResource EntryStyle}"/>
+                    </Grid>
+                </Grid>
+
+                <CollectionView ItemsSource="{Binding LimbSets}" HeightRequest="150">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid ColumnDefinitions="*,Auto" Padding="5" BackgroundColor="#2c3e50" Margin="0,2">
+                                <VerticalStackLayout Grid.Column="0">
+                                    <Label Text="{Binding DisplayName}" FontAttributes="Bold" TextColor="#ecf0f1"/>
+                                    <Label FontSize="12" TextColor="#7f8c8d">
+                                        <Label.Text>
+                                            <MultiBinding StringFormat="{}{0} - {1} slots">
+                                                <Binding Path="PairType"/>
+                                                <Binding Path="SlotCount"/>
+                                            </MultiBinding>
+                                        </Label.Text>
+                                    </Label>
+                                    <Label FontSize="12" TextColor="#bdc3c7">
+                                        <Label.Text>
+                                            <MultiBinding StringFormat="{}{0} {1} / {2}">
+                                                <Binding Path="Icon"/>
+                                                <Binding Path="LeftSlotName"/>
+                                                <Binding Path="RightSlotName"/>
+                                            </MultiBinding>
+                                        </Label.Text>
+                                    </Label>
+                                </VerticalStackLayout>
+                                <Button Grid.Column="1" Text="✕" BackgroundColor="#e74c3c" TextColor="White" CornerRadius="15" WidthRequest="30" HeightRequest="30" Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.RemoveLimbSetCommand}" CommandParameter="{Binding}"/>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <Label Text="* Required fields" FontSize="12" TextColor="#7f8c8d" Margin="0,10"/>
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

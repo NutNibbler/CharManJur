@@ -8,4 +8,6 @@ public interface IRaceDataService
 {
     Task<List<Race>> GetRacesAsync();
     Task<Race?> GetRaceByIdAsync(int id);
+    Task<List<Race>> GetAllRacesAsync(); // New: includes custom races
+    Task<Race?> GetRaceByIdCombinedAsync(int id); // New: checks both sources
 }

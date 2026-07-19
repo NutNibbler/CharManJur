@@ -4,6 +4,7 @@ namespace CharManJur.Services;
 
 public class RaceDataService : IRaceDataService
 {
+    private readonly ICustomRaceStorageService _customRaceStorage;
     // Hardcoded data for now - easily replaceable with SQLite later
     private readonly List<Race> _races = new()
     {
@@ -260,15 +261,42 @@ public class RaceDataService : IRaceDataService
         // Add more races here until SQL database integration
     };
 
-    public Task<List<Race>> GetRacesAsync()
+    public RaceDataService(ICustomRaceStorageService customRaceStorage)
     {
-        return Task.FromResult(_races);
+        _customRaceStorage = customRaceStorage;
     }
 
-    public Task<Race?> GetRaceByIdAsync(int id)
+    public async Task<List<Race>> GetRacesAsync()
     {
+        // For backwards compatibility, return only foundation races
+        // This keeps existing code working without changes
+        return await Task.FromResult(_races);
+    }
+
+    public async Task<Race?> GetRaceByIdAsync(int id)
+    {
+        // For backwards compatibility, check only foundation races
         var race = _races.FirstOrDefault(r => r.Id == id);
-        return Task.FromResult(race);
+        return await Task.FromResult(race);
+    }
+
+    public async Task<List<Race>> GetAllRacesAsync()
+    {
+        var customRaces = await _customRaceStorage.LoadCustomRacesAsync();
+        var allRaces = new List<Race>(_races);
+        allRaces.AddRange(customRaces);
+        return allRaces;
+    }
+
+    public async Task<Race?> GetRaceByIdCombinedAsync(int id)
+    {
+        // Check foundation races first
+        var race = _races.FirstOrDefault(r => r.Id == id);
+        if (race != null) return race;
+
+        // Check custom races
+        var customRaces = await _customRaceStorage.LoadCustomRacesAsync();
+        return customRaces.FirstOrDefault(r => r.Id == id);
     }
 
 }

@@ -70,6 +70,11 @@
         ContentTemplate="{DataTemplate views:CharBuilder_Godrick_HinderanceSelection}" 
         Route="CharBuilder_Godrick_HinderanceSelection" />
 
+    <ShellContent 
+        Title="CustomRaceCreator" 
+        ContentTemplate="{DataTemplate views:Godrick_CustomRaceCreator}" 
+        Route="Godrick_CustomRaceCreator" />
+
     <!-- Live Game Routes -->
     <ShellContent 
         Title="CharacterHomePage" 

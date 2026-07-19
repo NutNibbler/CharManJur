@@ -47,6 +47,11 @@ namespace CharManJur
             builder.Services.AddTransient<EquippedItemContextMenu>();
             builder.Services.AddSingleton<IItemRecoveryService, ItemRecoveryService>();
             builder.Services.AddSingleton<IPlayerActionLogService, PlayerActionLogService>();
+
+            //CUSTOM RACE BUILDER REGISTER
+            builder.Services.AddTransient<Godrick_CustomRaceCreator>();
+            builder.Services.AddSingleton<ICustomRaceStorageService, CustomRaceStorageService>();
+            builder.Services.AddTransient<CustomRaceBuilderViewModel>();
 #if DEBUG
             builder.Logging.AddDebug();
 #endif

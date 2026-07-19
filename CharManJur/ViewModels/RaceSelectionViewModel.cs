@@ -66,9 +66,8 @@ public class RaceSelectionViewModel : INotifyPropertyChanged
         get
         {
             if (SelectedRace == null) return "0";
-            return SelectedRace.VigorModifier != 0
-                ? $"+{SelectedRace.VigorModifier}"
-                : "0";
+            var value = SelectedRace.VigorModifier;
+            return value > 0 ? $"+{value}" : value.ToString();
         }
     }
 
@@ -77,9 +76,8 @@ public class RaceSelectionViewModel : INotifyPropertyChanged
         get
         {
             if (SelectedRace == null) return "0";
-            return SelectedRace.AgilityModifier != 0
-                ? $"+{SelectedRace.AgilityModifier}"
-                : "0";
+            var value = SelectedRace.AgilityModifier;
+            return value > 0 ? $"+{value}" : value.ToString();
         }
     }
 
@@ -88,9 +86,8 @@ public class RaceSelectionViewModel : INotifyPropertyChanged
         get
         {
             if (SelectedRace == null) return "0";
-            return SelectedRace.MindModifier != 0
-                ? $"+{SelectedRace.MindModifier}"
-                : "0";
+            var value = SelectedRace.MindModifier;
+            return value > 0 ? $"+{value}" : value.ToString();
         }
     }
 
@@ -99,9 +96,8 @@ public class RaceSelectionViewModel : INotifyPropertyChanged
         get
         {
             if (SelectedRace == null) return "0";
-            return SelectedRace.SpiritModifier != 0
-                ? $"+{SelectedRace.SpiritModifier}"
-                : "0";
+            var value = SelectedRace.SpiritModifier;
+            return value > 0 ? $"+{value}" : value.ToString();
         }
     }
 
@@ -112,7 +108,12 @@ public class RaceSelectionViewModel : INotifyPropertyChanged
             if (SelectedRace?.SkillBonuses == null || !SelectedRace.SkillBonuses.Any())
                 return "No skill bonuses";
 
-            return string.Join(", ", SelectedRace.SkillBonuses.Select(s => $"{s.SkillName} +{s.Bonus}"));
+            return string.Join(", ", SelectedRace.SkillBonuses.Select(s =>
+            {
+                var bonus = s.Bonus;
+                var bonusDisplay = bonus > 0 ? $"+{bonus}" : bonus.ToString();
+                return $"{s.SkillName} {bonusDisplay}";
+            }));
         }
     }
 
@@ -152,6 +153,9 @@ public class RaceSelectionViewModel : INotifyPropertyChanged
     public ICommand LoadRacesCommand { get; }
     public ICommand SelectRaceCommand { get; }
     public ICommand ConfirmRaceCommand { get; }
+    public ICommand CreateCustomRaceCommand { get; }
+    public ICommand EditCustomRaceCommand { get; }
+    public ICommand DeleteCustomRaceCommand { get; }
 
     public RaceSelectionViewModel(
         IRaceDataService raceDataService,
@@ -163,8 +167,94 @@ public class RaceSelectionViewModel : INotifyPropertyChanged
         LoadRacesCommand = new Command(async () => await LoadRacesAsync());
         SelectRaceCommand = new Command<Race>(OnRaceSelected);
         ConfirmRaceCommand = new Command(async () => await ConfirmRaceAsync());
+        CreateCustomRaceCommand = new Command(async () => await CreateCustomRaceAsync());
+        EditCustomRaceCommand = new Command<Race>(async (race) => await EditCustomRaceAsync(race));
+        DeleteCustomRaceCommand = new Command<Race>(async (race) => await DeleteCustomRaceAsync(race));
 
         Task.Run(LoadRacesAsync);
+    }
+
+    private async Task CreateCustomRaceAsync()
+    {
+        // Use the route without "///" if registered without it
+        await Shell.Current.GoToAsync("///Godrick_CustomRaceCreator");
+    }
+
+    public async Task EditCustomRaceAsync(Race? race)
+    {
+        if (race == null) return;
+
+        // Only allow editing custom races (ID >= 90001)
+        if (race.Id < 90001)
+        {
+            await Application.Current.MainPage.DisplayAlertAsync(
+                "Cannot Edit",
+                "Foundation races cannot be edited.",
+                "OK");
+            return;
+        }
+
+        // Navigate to editor with race data
+        var navigationParameters = new Dictionary<string, object>
+    {
+        { "RaceToEdit", race }
+    };
+        await Shell.Current.GoToAsync("///Godrick_CustomRaceCreator", navigationParameters);
+    }
+
+    public async Task DeleteCustomRaceAsync(Race? race)
+    {
+        if (race == null) return;
+
+        // Only allow deleting custom races (ID >= 90001)
+        if (race.Id < 90001)
+        {
+            await Application.Current.MainPage.DisplayAlertAsync(
+                "Cannot Delete",
+                "Foundation races cannot be deleted.",
+                "OK");
+            return;
+        }
+
+        var confirm = await Application.Current.MainPage.DisplayAlertAsync(
+            "Delete Custom Kin",
+            $"Are you sure you want to delete '{race.Name}'? This action cannot be undone.",
+            "Yes, Delete",
+            "No, Cancel");
+
+        if (!confirm) return;
+
+        try
+        {
+            var customRaceStorage = Application.Current.Handler?.MauiContext?.Services?.GetService<ICustomRaceStorageService>();
+            if (customRaceStorage != null)
+            {
+                var deleted = await customRaceStorage.DeleteCustomRaceAsync(race.Id);
+                if (deleted)
+                {
+                    // Remove from the observable collection
+                    Races.Remove(race);
+
+                    // If this was the selected race, clear selection
+                    if (SelectedRace?.Id == race.Id)
+                    {
+                        SelectedRace = null;
+                    }
+
+                    await Application.Current.MainPage.DisplayAlertAsync(
+                        "Success",
+                        $"Kin '{race.Name}' has been deleted.",
+                        "OK");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            await Application.Current.MainPage.DisplayAlertAsync(
+                "Error",
+                $"Failed to delete race: {ex.Message}",
+                "OK");
+        }
     }
 
     private async Task LoadRacesAsync()
@@ -174,7 +264,8 @@ public class RaceSelectionViewModel : INotifyPropertyChanged
         IsLoading = true;
         try
         {
-            var races = await _raceDataService.GetRacesAsync();
+            // CHANGE THIS: Use GetAllRacesAsync to include custom races
+            var races = await _raceDataService.GetAllRacesAsync();
 
             // Filter races based on campaign type
             var filteredRaces = races.Where(r => r.CompatibleCampaigns.Contains(_charDataService.CampaignType)).ToList();
