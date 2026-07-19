@@ -7,15 +7,15 @@
     <Application.Resources>
         <ResourceDictionary>
             
-            <!--==Destroy Item Button Converters==-->
-            <converters:DestroyModeBorderColorConverter x:Key="DestroyModeBorderColorConverter" />
-            <converters:DestroyModeBorderThicknessConverter x:Key="DestroyModeBorderThicknessConverter" />
-            <converters:DestroyModeBackgroundConverter x:Key="DestroyModeBackgroundConverter" />
-            <converters:DestroyModeTextColorConverter x:Key="DestroyModeTextColorConverter" />
-            <converters:DestroyModeButtonColorConverter x:Key="DestroyModeButtonColorConverter" />
-            <converters:DestroyModeButtonTextConverter x:Key="DestroyModeButtonTextConverter" />
-            <converters:DestroyModeItemBorderConverter x:Key="DestroyModeItemBorderConverter" />
-            <converters:DestroyModeItemBorderThicknessConverter x:Key="DestroyModeItemBorderThicknessConverter" />
+            <!--==Drop Item Button Converters==-->
+            <converters:DropModeBorderColorConverter x:Key="DropModeBorderColorConverter" />
+            <converters:DropModeBorderThicknessConverter x:Key="DropModeBorderThicknessConverter" />
+            <converters:DropModeBackgroundConverter x:Key="DropModeBackgroundConverter" />
+            <converters:DropModeTextColorConverter x:Key="DropModeTextColorConverter" />
+            <converters:DropModeButtonColorConverter x:Key="DropModeButtonColorConverter" />
+            <converters:DropModeButtonTextConverter x:Key="DropModeButtonTextConverter" />
+            <converters:DropModeItemBorderConverter x:Key="DropModeItemBorderConverter" />
+            <converters:DropModeItemBorderThicknessConverter x:Key="DropModeItemBorderThicknessConverter" />
 
             <!--==Background Creator Converters==-->
             <converters:ConfirmButtonTextConverter x:Key="ConfirmButtonTextConverter" />

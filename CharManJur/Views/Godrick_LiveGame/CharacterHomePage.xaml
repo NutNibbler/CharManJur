@@ -266,11 +266,11 @@
             <!-- RIGHT: Inventory Panel - Column 1 -->
             <Border Grid.Row="0" Grid.Column="1"
                     x:Name="InventoryBorder"
-                    Stroke="{Binding IsDestroyModeActive, Converter={StaticResource DestroyModeBorderColorConverter}}"
-                    StrokeThickness="{Binding IsDestroyModeActive, Converter={StaticResource DestroyModeBorderThicknessConverter}}"
+                    Stroke="{Binding IsDropModeActive, Converter={StaticResource DropModeBorderColorConverter}}"
+                    StrokeThickness="{Binding IsDropModeActive, Converter={StaticResource DropModeBorderThicknessConverter}}"
                     StrokeShape="RoundRectangle 8"
                     Padding="10"
-                    BackgroundColor="{Binding IsDestroyModeActive, Converter={StaticResource DestroyModeBackgroundConverter}}">
+                    BackgroundColor="{Binding IsDropModeActive, Converter={StaticResource DropModeBackgroundConverter}}">
                 <Grid RowDefinitions="Auto, *, Auto, Auto"
                       RowSpacing="5">
 
@@ -280,7 +280,7 @@
                                Text="🎒 Inventory"
                                FontAttributes="Bold"
                                FontSize="14"
-                               TextColor="{Binding IsDestroyModeActive, Converter={StaticResource DestroyModeTextColorConverter}}" />
+                               TextColor="{Binding IsDropModeActive, Converter={StaticResource DropModeTextColorConverter}}" />
 
                         <HorizontalStackLayout Grid.Row="0" Grid.Column="1" Spacing="8">
                             <Label Text="{Binding InventorySlotsUsed, StringFormat='Slots: {0}'}"
@@ -299,8 +299,8 @@
                                     Padding="4,2"
                                     StrokeThickness="0"
                                     StrokeShape="RoundRectangle 4"
-                                    IsVisible="{Binding IsDestroyModeActive}">
-                                <Label Text="🗑️ DESTROY MODE"
+                                    IsVisible="{Binding IsDropModeActive}">
+                                <Label Text="🗑️ DROP MODE"
                                        FontSize="9"
                                        FontAttributes="Bold"
                                        TextColor="#ff4444" />
@@ -317,8 +317,8 @@
                         ItemsLayout="VerticalGrid, 3">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
-                                <Border Stroke="{Binding IsDestroyMode, Converter={StaticResource DestroyModeItemBorderConverter}}"
-                                        StrokeThickness="{Binding IsDestroyMode, Converter={StaticResource DestroyModeItemBorderThicknessConverter}}"
+                                <Border Stroke="{Binding IsDropMode, Converter={StaticResource DropModeItemBorderConverter}}"
+                                        StrokeThickness="{Binding IsDropMode, Converter={StaticResource DropModeItemBorderThicknessConverter}}"
                                         StrokeShape="RoundRectangle 4"
                                         Padding="6"
                                         Margin="2"
@@ -346,15 +346,15 @@
                                                 Padding="3,1"
                                                 StrokeThickness="0"
                                                 StrokeShape="RoundRectangle 2"
-                                                IsVisible="{Binding IsDestroyMode}">
-                                            <Label Text="🗑️ Destroy"
+                                                IsVisible="{Binding IsDropMode}">
+                                            <Label Text="🫳Drop"
                                                    FontSize="8"
                                                    FontAttributes="Bold"
                                                    TextColor="#ff4444" />
                                         </Border>
                                     </VerticalStackLayout>
                                     <Border.GestureRecognizers>
-                                        <TapGestureRecognizer Tapped="OnDestroyItemTapped"
+                                        <TapGestureRecognizer Tapped="OnDropItemTapped"
                                                               NumberOfTapsRequired="1" />
                                     </Border.GestureRecognizers>
                                 </Border>
@@ -464,25 +464,34 @@
                     </Border>
 
                     <!-- Action Buttons - Row 3 -->
-                    <Grid Grid.Row="3" ColumnDefinitions="*, *" ColumnSpacing="8">
+                    <Grid Grid.Row="3" ColumnDefinitions="*, *, *" ColumnSpacing="8">
                         <Button Grid.Row="0" Grid.Column="0"
-                                Text="📦 Bestow"
-                                BackgroundColor="#2ecc71"
-                                TextColor="White"
-                                CornerRadius="6"
-                                HeightRequest="35"
-                                FontSize="12"
-                                Command="{Binding BestowCommand}" />
+                            Text="📦 Bestow"
+                            BackgroundColor="#2ecc71"
+                            TextColor="White"
+                            CornerRadius="6"
+                            HeightRequest="35"
+                            FontSize="12"
+                            Command="{Binding BestowCommand}" />
 
                         <Button Grid.Row="0" Grid.Column="1"
-                                Text="{Binding IsDestroyModeActive, Converter={StaticResource DestroyModeButtonTextConverter}}"
-                                BackgroundColor="{Binding IsDestroyModeActive, Converter={StaticResource DestroyModeButtonColorConverter}}"
-                                TextColor="White"
-                                CornerRadius="6"
-                                HeightRequest="35"
-                                FontSize="12"
-                                FontAttributes="Bold"
-                                Command="{Binding ToggleDestroyModeCommand}" />
+                            Text="♻️ Recover"
+                            BackgroundColor="#3498db"
+                            TextColor="White"
+                            CornerRadius="6"
+                            HeightRequest="35"
+                            FontSize="12"
+                            Command="{Binding RecoverItemCommand}" />
+
+                        <Button Grid.Row="0" Grid.Column="2"
+                            Text="{Binding IsDropModeActive, Converter={StaticResource DropModeButtonTextConverter}}"
+                            BackgroundColor="{Binding IsDropModeActive, Converter={StaticResource DropModeButtonColorConverter}}"
+                            TextColor="White"
+                            CornerRadius="6"
+                            HeightRequest="35"
+                            FontSize="12"
+                            FontAttributes="Bold"
+                            Command="{Binding ToggleDropModeCommand}" />
                     </Grid>
 
                     <!-- Empty State - Row 1 (overlay) -->

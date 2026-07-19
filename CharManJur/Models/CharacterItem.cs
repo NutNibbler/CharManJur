@@ -64,6 +64,7 @@ public class CharacterItem
 
     // === SYNC (for multiplayer) ===
     public string? SyncId { get; set; }
+    public Guid? PlayerId { get; set; }
 
     // === RESOLVED TEMPLATE (loaded at runtime) ===
     public Item? Template { get; set; }

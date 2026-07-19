@@ -7,6 +7,7 @@ public class CharacterSaveData
 {
     public string FileName { get; set; } = string.Empty;
     public string PlayerName { get; set; } = string.Empty;
+    public Guid PlayerId { get; set; }
     public string CharacterName { get; set; } = string.Empty;
     public DateTime LastSaved { get; set; }
     public bool IsComplete { get; set; }
@@ -24,6 +25,7 @@ public class CharacterData
     // Campaign Data
     public string CampaignType { get; set; } = string.Empty;
     public string PlayerName { get; set; } = string.Empty;
+    public Guid PlayerId { get; set; }   // NEW
     public string CharacterName { get; set; } = string.Empty;
 
     // ===== RACE DATA =====

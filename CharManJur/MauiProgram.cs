@@ -45,6 +45,8 @@ namespace CharManJur
             builder.Services.AddTransient<TrainingPopupViewModel>();
             builder.Services.AddTransient<Godrick_Training_Popup>();
             builder.Services.AddTransient<EquippedItemContextMenu>();
+            builder.Services.AddSingleton<IItemRecoveryService, ItemRecoveryService>();
+            builder.Services.AddSingleton<IPlayerActionLogService, PlayerActionLogService>();
 #if DEBUG
             builder.Logging.AddDebug();
 #endif

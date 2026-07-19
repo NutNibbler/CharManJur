@@ -3,11 +3,11 @@ using Microsoft.Maui.Controls;
 
 namespace CharManJur.Converters;
 
-public class DestroyModeBorderColorConverter : IValueConverter
+public class DropModeBorderColorConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        if (value is bool isDestroyMode && isDestroyMode)
+        if (value is bool isDropMode && isDropMode)
             return Colors.Red;
         return Color.FromArgb("#3498db");
     }
@@ -18,11 +18,11 @@ public class DestroyModeBorderColorConverter : IValueConverter
     }
 }
 
-public class DestroyModeBorderThicknessConverter : IValueConverter
+public class DropModeBorderThicknessConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        if (value is bool isDestroyMode && isDestroyMode)
+        if (value is bool isDropMode && isDropMode)
             return new Thickness(3);
         return new Thickness(1);
     }
@@ -33,11 +33,11 @@ public class DestroyModeBorderThicknessConverter : IValueConverter
     }
 }
 
-public class DestroyModeBackgroundConverter : IValueConverter
+public class DropModeBackgroundConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        if (value is bool isDestroyMode && isDestroyMode)
+        if (value is bool isDropMode && isDropMode)
             return Color.FromArgb("#2a0a0a");
         return Color.FromArgb("#16213e");
     }
@@ -48,11 +48,11 @@ public class DestroyModeBackgroundConverter : IValueConverter
     }
 }
 
-public class DestroyModeTextColorConverter : IValueConverter
+public class DropModeTextColorConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        if (value is bool isDestroyMode && isDestroyMode)
+        if (value is bool isDropMode && isDropMode)
             return Colors.Red;
         return Color.FromArgb("#f39c12");
     }
@@ -63,11 +63,11 @@ public class DestroyModeTextColorConverter : IValueConverter
     }
 }
 
-public class DestroyModeButtonColorConverter : IValueConverter
+public class DropModeButtonColorConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        if (value is bool isDestroyMode && isDestroyMode)
+        if (value is bool isDropMode && isDropMode)
             return Colors.DarkRed;
         return Colors.Gray;
     }
@@ -78,13 +78,13 @@ public class DestroyModeButtonColorConverter : IValueConverter
     }
 }
 
-public class DestroyModeButtonTextConverter : IValueConverter
+public class DropModeButtonTextConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        if (value is bool isDestroyMode && isDestroyMode)
-            return "🔴 Exit Destroy Mode";
-        return "🗑️ Destroy Mode";
+        if (value is bool isDropMode && isDropMode)
+            return "🔴 Exit Drop Mode";
+        return "🗑️ Drop Mode";
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -93,11 +93,11 @@ public class DestroyModeButtonTextConverter : IValueConverter
     }
 }
 
-public class DestroyModeItemBorderConverter : IValueConverter
+public class DropModeItemBorderConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        if (value is bool isDestroyMode && isDestroyMode)
+        if (value is bool isDropMode && isDropMode)
             return Colors.Red;
         return Color.FromArgb("#444444");
     }
@@ -108,11 +108,11 @@ public class DestroyModeItemBorderConverter : IValueConverter
     }
 }
 
-public class DestroyModeItemBorderThicknessConverter : IValueConverter
+public class DropModeItemBorderThicknessConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        if (value is bool isDestroyMode && isDestroyMode)
+        if (value is bool isDropMode && isDropMode)
             return new Thickness(2);
         return new Thickness(0.5);
     }

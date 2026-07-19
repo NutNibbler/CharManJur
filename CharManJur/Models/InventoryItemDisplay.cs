@@ -7,7 +7,7 @@ namespace CharManJur.Models;
 public class InventoryItemDisplay : INotifyPropertyChanged
 {
     private bool _isSelected;
-    private bool _isDestroyMode;
+    private bool _isDropMode;
 
     public int Id { get; set; }
     public string DisplayName { get; set; } = string.Empty;
@@ -30,7 +30,7 @@ public class InventoryItemDisplay : INotifyPropertyChanged
             if (EquippedSlotType == "Armor")
                 return "🛡️ Current Armor";
             else if (EquippedSlotType == "Belt")
-                return "🪢 Belted";
+                return "🔗 Belted";
             else if (EquippedSlotType == "Hand")
                 return "🔒 Equipped";
 
@@ -71,17 +71,17 @@ public class InventoryItemDisplay : INotifyPropertyChanged
     public bool HasUses => MaxUses.HasValue && MaxUses.Value > 0;
     public bool IsUnlimited => !MaxUses.HasValue || MaxUses.Value == -1;
 
-    public bool IsDestroyMode
+    public bool IsDropMode
     {
-        get => _isDestroyMode;
+        get => _isDropMode;
         set
         {
-            _isDestroyMode = value;
+            _isDropMode = value;
             OnPropertyChanged();
         }
     }
 
-    public ICommand? DestroyCommand { get; set; }
+    public ICommand? DropCommand { get; set; }
 
     public bool IsSelected
     {

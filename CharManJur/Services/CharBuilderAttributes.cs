@@ -8,6 +8,10 @@ namespace CharManJur.Services;
 // Step 1A: Define the interface (the contract)
 public interface ICharAttribDataService
 {
+
+    Task<List<CharacterItem>> GetRecoverableItemsAsync();
+    Task<bool> RecoverItemAsync(Guid instanceId);
+
     // === HINDERANCE DATA ===
     Hinderance? SelectedHinderance { get; set; }
     bool HasSelectedHinderance { get; }
@@ -100,6 +104,7 @@ public interface ICharAttribDataService
 
     // === CHARACTER DATA (Strings) ===
     string CampaignType { get; set; }
+    Guid PlayerId { get; set; }
     string PlayerName { get; set; }
     string CharacterName { get; set; }
 
@@ -232,8 +237,8 @@ public interface ICharAttribDataService
     CharacterItem? GetEquippedBeltSlot(int slot);
     CharacterItem? GetEquippedArmor();
 
-    void AddItemToInventory(int templateId, int quantity = 1);
-    void AddItemToInventory(Item template, int quantity = 1);
+    CharacterItem AddItemToInventory(int templateId, int quantity = 1);
+    CharacterItem AddItemToInventory(Item template, int quantity = 1);
     void RemoveItemFromInventory(int characterItemId);
     void UpdateItemUses(int characterItemId, int usesRemaining);
     void EquipItem(int characterItemId, int slot);
@@ -246,10 +251,13 @@ public interface ICharAttribDataService
     // === CONVERT STARTING ITEMS TO INVENTORY ===
     void InitializeInventoryFromStartingItems();
 
+
     // ====================================== END OF LIVE GAME SERVICES ====================================== //
 }
 
 // Step 1B: Implement the interface (the actual class)
+
+
 public class CharAttribDataService : ICharAttribDataService
 {
     // === HINDERANCE DATA ===
@@ -723,6 +731,8 @@ public class CharAttribDataService : ICharAttribDataService
     // === PRIVATE FIELDS ===
     private readonly IClassDataService _classDataService;
     private readonly IItemDataService _itemDataService;
+    private readonly IPlayerActionLogService _actionLogService;
+    private readonly IItemRecoveryService _recoveryService;
     private List<Quip> _acquiredQuips = new();
     private List<Spell> _acquiredSpells = new();
     private List<Technique> _acquiredTechniques = new();
@@ -733,9 +743,26 @@ public class CharAttribDataService : ICharAttribDataService
     private List<CharacterItem> _droppedItems = new();
     private int _nextCharacterItemId = 1;
 
-    public CharAttribDataService(IClassDataService classDataService)
+    public CharAttribDataService(IClassDataService classDataService, IPlayerActionLogService actionLogService, IItemRecoveryService recoveryService)
     {
         _classDataService = classDataService;
+        _actionLogService = actionLogService;
+        _recoveryService = recoveryService;
+    }
+
+    public async Task<List<CharacterItem>> GetRecoverableItemsAsync()
+    {
+        return await _recoveryService.GetRecoverablesForPlayerAsync(PlayerId);
+    }
+
+    public async Task<bool> RecoverItemAsync(Guid instanceId)
+    {
+        int newId = GetNextCharacterItemId();
+        var recovered = await _recoveryService.RecoverItemAsync(instanceId, newId);
+        if (recovered == null) return false;
+
+        _inventory.Add(recovered);
+        return true;
     }
 
     // === RACE BONUSES ===
@@ -829,6 +856,7 @@ public class CharAttribDataService : ICharAttribDataService
     // === STRING PROPERTIES ===
     public string CampaignType { get; set; } = string.Empty;
     public string PlayerName { get; set; } = string.Empty;
+    public Guid PlayerId { get; set; } = InstallIdentity.GetOrCreateInstallPlayerId();
     public string CharacterName { get; set; } = string.Empty;
     public string CharacterClassName { get; set; } = string.Empty;
     public string? CharacterClassDescription { get; set; } = string.Empty;
@@ -1126,11 +1154,8 @@ public class CharAttribDataService : ICharAttribDataService
         return _inventory.FirstOrDefault(i => i.IsEquipped && i.EquipmentSlot == EquipmentSlotType.Armor);
     }
 
-    public void AddItemToInventory(int templateId, int quantity = 1)
+    public CharacterItem AddItemToInventory(int templateId, int quantity = 1)
     {
-        // We need to resolve the template first
-        // This requires the ItemDataService to be injected
-        // For now, we'll add without Template resolution
         var existingStack = _inventory.FirstOrDefault(i =>
             i.TemplateId == templateId &&
             !i.IsEquipped &&
@@ -1141,12 +1166,12 @@ public class CharAttribDataService : ICharAttribDataService
         {
             existingStack.Quantity += quantity;
             existingStack.LastModified = DateTime.Now;
-            return;
+            return existingStack;
         }
 
         var newItem = new CharacterItem
         {
-            Id = _nextCharacterItemId++,
+            Id = GetNextCharacterItemId(),
             TemplateId = templateId,
             Quantity = quantity,
             RemainingUses = 0,
@@ -1154,13 +1179,13 @@ public class CharAttribDataService : ICharAttribDataService
         };
 
         _inventory.Add(newItem);
+        return newItem;
     }
 
-    public void AddItemToInventory(Item template, int quantity = 1)
+    public CharacterItem AddItemToInventory(Item template, int quantity = 1)
     {
-        if (template == null) return;
+        if (template == null) return null;
 
-        // Check for existing stack (only for stackable items)
         if (template.IsStackableItem)
         {
             var existingStack = _inventory.FirstOrDefault(i =>
@@ -1173,24 +1198,16 @@ public class CharAttribDataService : ICharAttribDataService
             {
                 existingStack.Quantity += quantity;
                 existingStack.LastModified = DateTime.Now;
-                return;
+                return existingStack;
             }
         }
 
-        // ===== CRITICAL: New items should start with FULL uses =====
         int newId = GetNextCharacterItemId();
 
-        // Determine remaining uses for the new item
         int remainingUses = 0;
         if (template.HasUses)
         {
-            // New items start with full uses
             remainingUses = template.Uses.Value;
-        }
-        else
-        {
-            // Items without uses get 0 (unlimited)
-            remainingUses = 0;
         }
 
         var newItem = new CharacterItem
@@ -1199,13 +1216,14 @@ public class CharAttribDataService : ICharAttribDataService
             TemplateId = template.Id,
             Template = template,
             Quantity = quantity,
-            RemainingUses = remainingUses,  // ← Full uses for new items
+            RemainingUses = remainingUses,
             IsEmpty = false,
             AcquiredAt = DateTime.Now
         };
 
         _inventory.Add(newItem);
         System.Diagnostics.Debug.WriteLine($"Added item: {newItem.DisplayName} with ID: {newItem.Id}, Uses: {remainingUses}/{template.Uses}");
+        return newItem;
     }
 
     private int GetNextCharacterItemId()
@@ -1436,6 +1454,9 @@ public class CharAttribDataService : ICharAttribDataService
             _inventory.Remove(item);
             _droppedItems.Add(item);
             System.Diagnostics.Debug.WriteLine($"Dropped item: {item.DisplayName} (ID: {item.Id})");
+
+            _ = _actionLogService.LogItemDroppedAsync(item, PlayerName, PlayerId);   // NEW
+            _ = _recoveryService.AddRecoverableAsync(item, PlayerId);
         }
     }
 
@@ -1955,6 +1976,7 @@ public class CharAttribDataService : ICharAttribDataService
             return new CharacterSaveData
             {
                 PlayerName = PlayerName,
+                PlayerId = PlayerId,
                 CharacterName = CharacterName,
                 LastSaved = DateTime.Now,
                 IsComplete = IsCharacterComplete,
@@ -1991,6 +2013,7 @@ public class CharAttribDataService : ICharAttribDataService
                     CampaignType = CampaignType,
                     CurrentPage = CurrentPage,
                     PlayerName = PlayerName,
+                    PlayerId = PlayerId,
                     CharacterName = CharacterName,
 
                     // ===== RACE DATA =====
@@ -2098,6 +2121,9 @@ public class CharAttribDataService : ICharAttribDataService
         // Strings
         CampaignType = saveData.Data.CampaignType ?? string.Empty;
         PlayerName = saveData.Data.PlayerName ?? string.Empty;
+        PlayerId = saveData.Data.PlayerId != Guid.Empty
+            ? saveData.Data.PlayerId
+            : InstallIdentity.GetOrCreateInstallPlayerId();
         CharacterName = saveData.Data.CharacterName ?? string.Empty;
 
         // ===== RACE DATA =====
@@ -2236,6 +2262,7 @@ public class CharAttribDataService : ICharAttribDataService
         // === STRINGS ===
         CampaignType = string.Empty;
         PlayerName = string.Empty;
+        PlayerId = InstallIdentity.GetOrCreateInstallPlayerId();
         CharacterName = string.Empty;
         CurrentPage = string.Empty;
 

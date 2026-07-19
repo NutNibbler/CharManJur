@@ -262,10 +262,10 @@ public partial class CharacterHomePage : ContentPage
         await Navigation.PushModalAsync(flyout);
     }
 
-    // ===== DESTROY MODE ITEM TAP HANDLER =====
-    private async void OnDestroyItemTapped(object sender, TappedEventArgs e)
+    // ===== DROP MODE ITEM TAP HANDLER =====
+    private async void OnDropItemTapped(object sender, TappedEventArgs e)
     {
-        if (!_viewModel.IsDestroyModeActive)
+        if (!_viewModel.IsDropModeActive)
         {
             return;
         }
@@ -279,14 +279,14 @@ public partial class CharacterHomePage : ContentPage
             }
 
             bool confirm = await DisplayAlertAsync(
-                "🗑️ Destroy Item",
-                $"Are you sure you want to permanently destroy '{characterItem.DisplayName}'?",
-                "Yes, Destroy",
+                "🫳 Drop Item",
+                $"Are you sure you want to drop: '{characterItem.DisplayName}'?",
+                "Yes, Drop",
                 "Cancel");
 
             if (confirm)
             {
-                _viewModel.CharDataService.RemoveItemFromInventory(characterItem.Id);
+                _viewModel.CharDataService.DropItem(characterItem.Id);
                 await _viewModel.LoadCharacterDataAsync();
                 _viewModel.UpdateLimbSetDisplays();
                 GenerateLimbSetDisplay();

@@ -45,15 +45,17 @@ public partial class BestowItemPage : ContentPage, INotifyPropertyChanged
     public bool HasSelectedItem => SelectedItem != null;
     public string SelectedItemName => SelectedItem?.Name ?? string.Empty;
 
-    public BestowItemPage(IItemDataService itemDataService, ICharAttribDataService charDataService, Action? onItemsBestowed = null)
+    private readonly IPlayerActionLogService _actionLogService;
+    public BestowItemPage(IItemDataService itemDataService, ICharAttribDataService charDataService,
+        IPlayerActionLogService actionLogService, Action? onItemsBestowed = null)
     {
         InitializeComponent();
         _itemDataService = itemDataService;
         _charDataService = charDataService;
+        _actionLogService = actionLogService;
         _onItemsBestowed = onItemsBestowed;
         BindingContext = this;
 
-        // Load items immediately
         LoadItems();
     }
 
@@ -184,16 +186,25 @@ public partial class BestowItemPage : ContentPage, INotifyPropertyChanged
 
         if (!confirm) return;
 
+        CharacterItem? bestowedItem;
+
         if (SelectedItem.IsStackableItem)
         {
-            _charDataService.AddItemToInventory(SelectedItem, _selectedQuantity);
+            bestowedItem = _charDataService.AddItemToInventory(SelectedItem, _selectedQuantity);
         }
         else
         {
+            bestowedItem = null;
             for (int i = 0; i < _selectedQuantity; i++)
             {
-                _charDataService.AddItemToInventory(SelectedItem, 1);
+                bestowedItem = _charDataService.AddItemToInventory(SelectedItem, 1);
             }
+        }
+
+        if (bestowedItem != null)
+        {
+            _ = _actionLogService.LogItemBestowedAsync(
+                bestowedItem, _charDataService.PlayerName, _charDataService.PlayerId);
         }
 
         _onItemsBestowed?.Invoke();

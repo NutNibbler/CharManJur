@@ -128,6 +128,9 @@
 	  <MauiXaml Update="Views\Godrick_LiveGame\ItemInteractionPopup.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Views\Godrick_LiveGame\RecoverItemPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\Godrick_Training_Popup.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

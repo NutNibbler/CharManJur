@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CharManJur.Views.Godrick_LiveGame.RecoverItemPage"
+             Title="Recover Item"
+             BackgroundColor="#1a1a2e">
+
+    <Grid RowDefinitions="Auto, *, Auto" Padding="15" RowSpacing="10">
+
+        <Label Grid.Row="0"
+               Text="♻️ Recoverable Items"
+               FontSize="18"
+               FontAttributes="Bold"
+               TextColor="White" />
+
+        <Border Grid.Row="1"
+                Stroke="#3498db"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 8"
+                Padding="10"
+                BackgroundColor="#16213e">
+            <CollectionView ItemsSource="{Binding RecoverableItems}"
+                             SelectionMode="Single"
+                             SelectionChanged="OnItemSelectionChanged">
+                <CollectionView.EmptyView>
+                    <Label Text="No recoverable items"
+                           FontSize="13"
+                           TextColor="#888888"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center" />
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border Stroke="#444444"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 6"
+                                Padding="10"
+                                Margin="0,3">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                    <Label Text="{Binding DisplayName}"
+                                           FontSize="14"
+                                           FontAttributes="Bold"
+                                           TextColor="White" />
+                                    <Label Text="{Binding DroppedAt, StringFormat='Dropped: {0:g}'}"
+                                           FontSize="10"
+                                           TextColor="#888888" />
+                                </VerticalStackLayout>
+                                <Label Grid.Column="1"
+                                       Text="{Binding Quantity, StringFormat='x{0}'}"
+                                       FontSize="12"
+                                       TextColor="#f39c12"
+                                       VerticalOptions="Center" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Border>
+
+        <Grid Grid.Row="2" ColumnDefinitions="*, *" ColumnSpacing="8">
+            <Button Grid.Column="0"
+                    Text="♻️ Recover"
+                    BackgroundColor="#2ecc71"
+                    TextColor="White"
+                    CornerRadius="6"
+                    HeightRequest="40"
+                    FontSize="13"
+                    IsEnabled="{Binding HasSelectedItem}"
+                    Clicked="OnRecoverClicked" />
+
+            <Button Grid.Column="1"
+                    Text="Cancel"
+                    BackgroundColor="#7f8c8d"
+                    TextColor="White"
+                    CornerRadius="6"
+                    HeightRequest="40"
+                    FontSize="13"
+                    Clicked="OnCancelClicked" />
+        </Grid>
+
+    </Grid>
+</ContentPage>

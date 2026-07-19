@@ -13,6 +13,7 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
     private readonly ICharAttribDataService _charDataService;
     private readonly ICharacterPersistenceService _persistenceService;
     private readonly IItemDataService _itemDataService;
+    private readonly IPlayerActionLogService _actionLogService;
 
     private ObservableCollection<InventoryItemDisplay> _inventoryItems = new();
     private InventoryItemDisplay? _selectedInventoryItem;
@@ -24,17 +25,19 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
     private string _equippedHands = "0 / 0";
     private string _equippedBelt = "0 / 4";
 
-    // ===== DESTROY MODE =====
-    private bool _isDestroyModeActive = false;
+    // ===== DROP MODE =====
+    private bool _isDropModeActive = false;
 
     public CharacterHomeViewModel(
         ICharAttribDataService charDataService,
         ICharacterPersistenceService persistenceService,
-        IItemDataService itemDataService)
+        IItemDataService itemDataService,
+        IPlayerActionLogService actionLogService)
     {
         _charDataService = charDataService;
         _persistenceService = persistenceService;
         _itemDataService = itemDataService;
+        _actionLogService = actionLogService;
 
         // Initialize hand slots based on limb system
         InitializeHandSlots();
@@ -53,7 +56,8 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
         IncrementUsesCommand = new Command(OnIncrementUses);
         DecrementUsesCommand = new Command(OnDecrementUses);
         BestowCommand = new Command(OnBestow);
-        ToggleDestroyModeCommand = new Command(OnToggleDestroyMode);
+        RecoverItemCommand = new Command(OnRecoverItem);
+        ToggleDropModeCommand = new Command(OnToggleDropMode);
         EditNoteCommand = new Command(OnEditNote);
     }
 
@@ -65,6 +69,15 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
         {
             _handSlots.Add("Empty");
         }
+    }
+
+    private async void OnRecoverItem()
+    {
+        var recoverPage = new RecoverItemPage(_charDataService, async () =>
+        {
+            await LoadCharacterDataAsync();
+        });
+        await Shell.Current.Navigation.PushModalAsync(recoverPage);
     }
 
     // ===== HEADER PROPERTIES =====
@@ -437,15 +450,15 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
         }
     }
 
-    // ===== DESTROY MODE =====
-    public bool IsDestroyModeActive
+    // ===== DROP MODE =====
+    public bool IsDropModeActive
     {
-        get => _isDestroyModeActive;
+        get => _isDropModeActive;
         set
         {
-            _isDestroyModeActive = value;
+            _isDropModeActive = value;
             OnPropertyChanged();
-            UpdateDestroyModeState();
+            UpdateDropModeState();
         }
     }
 
@@ -532,8 +545,9 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
     public ICommand IncrementUsesCommand { get; }
     public ICommand DecrementUsesCommand { get; }
     public ICommand BestowCommand { get; }
-    public ICommand ToggleDestroyModeCommand { get; }
+    public ICommand ToggleDropModeCommand { get; }
     public ICommand EditNoteCommand { get; }
+    public ICommand RecoverItemCommand { get; }
 
     // ===== INTERACT COMMAND =====
     private async void OnInteract()
@@ -654,42 +668,42 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
     // ===== BESTOW COMMAND =====
     private async void OnBestow()
     {
-        var bestowPage = new BestowItemPage(_itemDataService, _charDataService, async () =>
+        var bestowPage = new BestowItemPage(_itemDataService, _charDataService, _actionLogService, async () =>
         {
             await LoadCharacterDataAsync();
         });
         await Shell.Current.Navigation.PushModalAsync(bestowPage);
     }
 
-    // ===== DESTROY MODE =====
-    private void OnToggleDestroyMode()
+    // ===== DROP MODE =====
+    private void OnToggleDropMode()
     {
-        IsDestroyModeActive = !IsDestroyModeActive;
+        IsDropModeActive = !IsDropModeActive;
     }
 
-    private void UpdateDestroyModeState()
+    private void UpdateDropModeState()
     {
         foreach (var item in InventoryItems)
         {
-            item.IsDestroyMode = IsDestroyModeActive;
+            item.IsDropMode = IsDropModeActive;
         }
         OnPropertyChanged(nameof(InventoryItems));
     }
 
-    private async void OnDestroyItem(int characterItemId)
+    private async void OnDropItem(int characterItemId)
     {
         var characterItem = _charDataService.Inventory.FirstOrDefault(i => i.Id == characterItemId);
         if (characterItem == null) return;
 
         bool confirm = await Application.Current.MainPage.DisplayAlertAsync(
-            "Destroy Item",
-            $"Are you sure you want to permanently destroy '{characterItem.DisplayName}'?",
-            "Yes, Destroy",
+            "Drop Item",
+            $"Are you sure you want to drop '{characterItem.DisplayName}'?",
+            "Yes, Drop",
             "Cancel");
 
         if (confirm)
         {
-            _charDataService.RemoveItemFromInventory(characterItemId);
+            _charDataService.DropItem(characterItemId);
             await LoadCharacterDataAsync();
         }
     }
@@ -735,8 +749,8 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
                         PlayerNote = characterItem.PlayerNote,
                         MaxUses = characterItem.Template?.Uses ?? 0,
                         RemainingUses = characterItem.RemainingUses,
-                        IsDestroyMode = IsDestroyModeActive,
-                        DestroyCommand = new Command<int>(OnDestroyItem),
+                        IsDropMode = IsDropModeActive,
+                        DropCommand = new Command<int>(OnDropItem),
                         IsStackable = true,
                         EquippedSlotType = GetEquipmentSlotType(characterItem)
                     };
@@ -759,8 +773,8 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
                             PlayerNote = characterItem.PlayerNote,
                             MaxUses = characterItem.Template?.Uses ?? 0,
                             RemainingUses = characterItem.RemainingUses,
-                            IsDestroyMode = IsDestroyModeActive,
-                            DestroyCommand = new Command<int>(OnDestroyItem),
+                            IsDropMode = IsDropModeActive,
+                            DropCommand = new Command<int>(OnDropItem),
                             IsStackable = false,
                             EquippedSlotType = GetEquipmentSlotType(characterItem)
                         };
