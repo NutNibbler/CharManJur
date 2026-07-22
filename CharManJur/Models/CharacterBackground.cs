@@ -46,6 +46,33 @@ public class CharacterBackground
         var modifier = SkillBonuses.FirstOrDefault(s => s.SkillName == skillName);
         return modifier?.Bonus ?? 0;
     }
+
+    public CharacterBackground Clone()
+    {
+        return new CharacterBackground
+        {
+            Id = Id,
+            Name = Name,
+            Description = Description,
+            VigorModifier = VigorModifier,
+            AgilityModifier = AgilityModifier,
+            MindModifier = MindModifier,
+            SpiritModifier = SpiritModifier,
+            SkillBonuses = SkillBonuses.Select(b => new BGSkillBonuses { SkillName = b.SkillName, Bonus = b.Bonus }).ToList(),
+            StartingItems = StartingItems != null
+                ? new ObservableCollection<StartingItem>(StartingItems.Select(si => new StartingItem
+                {
+                    ItemId = si.ItemId,
+                    Quantity = si.Quantity,
+                    PlayerNote = si.PlayerNote,
+                    ItemDetails = si.ItemDetails
+                }))
+                : new ObservableCollection<StartingItem>(),
+            ItemChoices = ItemChoices?.ToList() ?? new List<ItemChoice>(),
+            StartingFamiliar = StartingFamiliar,
+            FamiliarChoices = FamiliarChoices?.ToList() ?? new List<FamiliarChoice>()
+        };
+    }
 }
 
 public class StartingItem : INotifyPropertyChanged

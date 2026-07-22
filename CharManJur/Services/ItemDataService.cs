@@ -709,6 +709,16 @@ public class ItemDataService : IItemDataService
             },
             new Item
             {
+                Id = 501,
+                Name = "Lute",
+                Category = ItemCategory.Instrument,
+                BaseDescription = "A classic",
+                Size = ItemSize.Regular,
+                IsPlayerCreated = false,
+                IsStackable = false
+            },
+            new Item
+            {
                 Id = 1000,
                 Name = "Concealed Dagger",
                 Category = ItemCategory.Weapon,

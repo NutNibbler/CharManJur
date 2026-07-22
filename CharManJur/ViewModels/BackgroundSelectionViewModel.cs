@@ -148,7 +148,7 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
                     ResetTrainingPoints();
                 }
 
-                _selectedBackground = value;
+                _selectedBackground = value?.Clone();
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(HasSelectedBackground));
                 OnPropertyChanged(nameof(SelectedBackgroundName));
@@ -378,7 +378,8 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
                     DisplayName = item.Name,
                     Quantity = 1,
                     IsSelected = false,
-                    IsCustom = item.IsPlayerCreated
+                    IsCustom = item.IsPlayerCreated,
+                    ItemDetails = item
                 });
             }
             ItemChoiceDisplays.Add(display);
@@ -499,28 +500,9 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
                 Quantity = 1,
                 IsSelected = true,
                 IsCustom = true,
-                CustomTemplate = newItem
+                CustomTemplate = newItem,
+                ItemDetails = newItem   // NEW — needed so confirm-time harvest can resolve it, same as any other item
             });
-
-            if (SelectedBackground != null)
-            {
-                if (SelectedBackground.StartingItems == null)
-                {
-                    SelectedBackground.StartingItems = new ObservableCollection<StartingItem>();
-                }
-
-                var newStartingItem = new StartingItem
-                {
-                    ItemId = newItem.Id,
-                    Quantity = 1,
-                    PlayerNote = "Custom item created during background selection"
-                };
-                newStartingItem.ItemDetails = newItem;
-
-                SelectedBackground.StartingItems.Add(newStartingItem);
-
-                OnPropertyChanged(nameof(SelectedBackgroundStartingItems));
-            }
 
             OnPropertyChanged(nameof(ItemChoiceDisplays));
         };
@@ -614,6 +596,23 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
         _charDataService.BGMindBonus = SelectedBackground.MindModifier;
         _charDataService.BGSpiritBonus = SelectedBackground.SpiritModifier;
 
+        // === MERGE ITEM CHOICE SELECTIONS INTO STARTING ITEMS ===
+        foreach (var display in ItemChoiceDisplays)
+        {
+            var selectedOptions = display.Options.Where(o => o.IsSelected);   // no IsCustom filter needed anymore
+            foreach (var option in selectedOptions)
+            {
+                SelectedBackground.StartingItems ??= new ObservableCollection<StartingItem>();
+
+                SelectedBackground.StartingItems.Add(new StartingItem
+                {
+                    ItemId = option.ItemId,
+                    Quantity = option.Quantity,
+                    ItemDetails = option.ItemDetails
+                });
+            }
+        }
+
         _charDataService.SelectedStartingItems = SelectedBackground.StartingItems?.ToList() ?? new List<StartingItem>();
 
         _charDataService.SelectedSkillBonuses = SelectedBackground.SkillBonuses?.ToList() ?? new List<BGSkillBonuses>();
@@ -654,6 +653,7 @@ public class SelectableItem
     public bool IsSelected { get; set; }
     public bool IsCustom { get; set; }
     public Item? CustomTemplate { get; set; }
+    public Item? ItemDetails { get; set; }
 }
 
 public class SelectableFamiliar

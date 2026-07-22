@@ -743,11 +743,12 @@ public class CharAttribDataService : ICharAttribDataService
     private List<CharacterItem> _droppedItems = new();
     private int _nextCharacterItemId = 1;
 
-    public CharAttribDataService(IClassDataService classDataService, IPlayerActionLogService actionLogService, IItemRecoveryService recoveryService)
+    public CharAttribDataService(IClassDataService classDataService, IPlayerActionLogService actionLogService, IItemDataService itemDataService, IItemRecoveryService recoveryService)
     {
         _classDataService = classDataService;
         _actionLogService = actionLogService;
         _recoveryService = recoveryService;
+        _itemDataService = itemDataService;
     }
 
     public async Task<List<CharacterItem>> GetRecoverableItemsAsync()
