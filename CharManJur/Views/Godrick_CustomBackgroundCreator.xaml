@@ -1,0 +1,428 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:CharManJur.Converters"
+             x:Class="CharManJur.Views.Godrick_CustomBackgroundCreator"
+             Shell.NavBarIsVisible="False"
+             Title="Custom Background Creator">
+
+    <ContentPage.Resources>
+        <converters:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+
+        <Style x:Key="StepperButtonStyle" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="#34495e"/>
+            <Setter Property="TextColor" Value="White"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontAttributes" Value="Bold"/>
+            <Setter Property="WidthRequest" Value="30"/>
+            <Setter Property="HeightRequest" Value="30"/>
+        </Style>
+
+        <Style x:Key="RemoveButtonStyle" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="#e74c3c"/>
+            <Setter Property="TextColor" Value="White"/>
+            <Setter Property="CornerRadius" Value="15"/>
+            <Setter Property="WidthRequest" Value="30"/>
+            <Setter Property="HeightRequest" Value="30"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontAttributes" Value="Bold"/>
+        </Style>
+
+        <Style x:Key="SectionHeaderStyle" TargetType="Label">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontAttributes" Value="Bold"/>
+            <Setter Property="TextColor" Value="#2ecc71"/>
+            <Setter Property="Margin" Value="0,10,0,5"/>
+        </Style>
+        <Style x:Key="FieldLabelStyle" TargetType="Label">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="TextColor" Value="#ecf0f1"/>
+            <Setter Property="Margin" Value="0,5"/>
+        </Style>
+        <Style x:Key="EntryStyle" TargetType="Entry">
+            <Setter Property="BackgroundColor" Value="#2c3e50"/>
+            <Setter Property="TextColor" Value="#ecf0f1"/>
+            <Setter Property="PlaceholderColor" Value="#7f8c8d"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        <Style x:Key="EditorStyle" TargetType="Editor">
+            <Setter Property="BackgroundColor" Value="#2c3e50"/>
+            <Setter Property="TextColor" Value="#ecf0f1"/>
+            <Setter Property="PlaceholderColor" Value="#7f8c8d"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="HeightRequest" Value="80"/>
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*">
+        <!-- Header -->
+        <Border Grid.Row="0" BackgroundColor="#1a1a2e" Padding="10,5">
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+                <Label Grid.Column="0" Text="{Binding PageTitle}" FontSize="28" FontAttributes="Bold" TextColor="#2ecc71" VerticalTextAlignment="Center"/>
+                <Button Grid.Column="1" Text="Cancel" BackgroundColor="#e74c3c" TextColor="White" CornerRadius="8" HeightRequest="40" WidthRequest="100" Command="{Binding CancelCommand}"/>
+                <Button Grid.Column="2" Text="{Binding SaveButtonText}" BackgroundColor="#2ecc71" TextColor="White" CornerRadius="8" HeightRequest="40" WidthRequest="160" IsEnabled="{Binding CanSave}" Command="{Binding SaveBackgroundCommand}"/>
+            </Grid>
+        </Border>
+
+        <!-- Main Content -->
+        <ScrollView Grid.Row="1" Padding="10">
+            <VerticalStackLayout Spacing="5">
+
+                <!-- Clone from existing (only in create mode, not edit) -->
+                <VerticalStackLayout IsVisible="{Binding ShowCloneSection}">
+                    <Label Text="Clone From Existing Background" Style="{StaticResource SectionHeaderStyle}"/>
+                    <Label Text="Select a background to clone its data (optional)" Style="{StaticResource FieldLabelStyle}" TextColor="#7f8c8d" FontSize="12"/>
+                    <Picker ItemsSource="{Binding AllBackgrounds}" 
+                            SelectedItem="{Binding SelectedCloneSource}"
+                            ItemDisplayBinding="{Binding Name}"
+                            Title="Select background to clone..."
+                            BackgroundColor="#2c3e50"
+                            TextColor="#ecf0f1"/>
+                </VerticalStackLayout>
+
+                <!-- Basic Information -->
+                <BoxView Color="#2ecc71" HeightRequest="2" Margin="5"/>
+                <Label Text="Basic Information" Style="{StaticResource SectionHeaderStyle}"/>
+                <Label Text="Background Name*" Style="{StaticResource FieldLabelStyle}"/>
+                <Entry Text="{Binding Name}" Placeholder="Enter background name..." Style="{StaticResource EntryStyle}"/>
+
+                <Label Text="Description" Style="{StaticResource FieldLabelStyle}"/>
+                <Editor Text="{Binding Description}" Placeholder="Describe this background..." Style="{StaticResource EditorStyle}" HeightRequest="80"/>
+
+                <!-- Stat Modifiers -->
+                <BoxView Color="#2ecc71" HeightRequest="2" Margin="5"/>
+                <Label Text="Ability Score Modifiers" Style="{StaticResource SectionHeaderStyle}"/>
+
+                <Grid ColumnDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="5">
+                    <!-- Vigor -->
+                    <Border Grid.Column="0" Padding="3" StrokeThickness="2" Stroke="Red" StrokeShape="RoundRectangle 4">
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="2">
+                            <Label Grid.Column="0" Text="Vigor" FontAttributes="Bold" TextColor="Red" FontSize="16" VerticalOptions="Center" HorizontalTextAlignment="Center" WidthRequest="60"/>
+                            <Entry Grid.Column="1" Text="{Binding VigorModifier}" Keyboard="Numeric" FontSize="16" Style="{StaticResource EntryStyle}"/>
+                            <Button Grid.Column="2" Text="−" Style="{StaticResource StepperButtonStyle}" Command="{Binding DecrementVigorCommand}"/>
+                            <Button Grid.Column="3" Text="+" Style="{StaticResource StepperButtonStyle}" Command="{Binding IncrementVigorCommand}"/>
+                        </Grid>
+                    </Border>
+                    <!-- Agility -->
+                    <Border Grid.Column="1" Padding="3" StrokeThickness="2" Stroke="Green" StrokeShape="RoundRectangle 4">
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="2">
+                            <Label Grid.Column="0" Text="Agility" FontAttributes="Bold" TextColor="Green" FontSize="16" VerticalOptions="Center" HorizontalTextAlignment="Center" WidthRequest="60"/>
+                            <Entry Grid.Column="1" Text="{Binding AgilityModifier}" Keyboard="Numeric" FontSize="16" Style="{StaticResource EntryStyle}"/>
+                            <Button Grid.Column="2" Text="−" Style="{StaticResource StepperButtonStyle}" Command="{Binding DecrementAgilityCommand}"/>
+                            <Button Grid.Column="3" Text="+" Style="{StaticResource StepperButtonStyle}" Command="{Binding IncrementAgilityCommand}"/>
+                        </Grid>
+                    </Border>
+                    <!-- Mind -->
+                    <Border Grid.Column="2" Padding="3" StrokeThickness="2" Stroke="Orange" StrokeShape="RoundRectangle 4">
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="2">
+                            <Label Grid.Column="0" Text="Mind" FontAttributes="Bold" TextColor="Orange" FontSize="16" VerticalOptions="Center" HorizontalTextAlignment="Center" WidthRequest="60"/>
+                            <Entry Grid.Column="1" Text="{Binding MindModifier}" Keyboard="Numeric" FontSize="16" Style="{StaticResource EntryStyle}"/>
+                            <Button Grid.Column="2" Text="−" Style="{StaticResource StepperButtonStyle}" Command="{Binding DecrementMindCommand}"/>
+                            <Button Grid.Column="3" Text="+" Style="{StaticResource StepperButtonStyle}" Command="{Binding IncrementMindCommand}"/>
+                        </Grid>
+                    </Border>
+                    <!-- Spirit -->
+                    <Border Grid.Column="3" Padding="3" StrokeThickness="2" Stroke="Aqua" StrokeShape="RoundRectangle 4">
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="2">
+                            <Label Grid.Column="0" Text="Spirit" FontAttributes="Bold" TextColor="Aqua" FontSize="16" VerticalOptions="Center" HorizontalTextAlignment="Center" WidthRequest="60"/>
+                            <Entry Grid.Column="1" Text="{Binding SpiritModifier}" Keyboard="Numeric" FontSize="16" Style="{StaticResource EntryStyle}"/>
+                            <Button Grid.Column="2" Text="−" Style="{StaticResource StepperButtonStyle}" Command="{Binding DecrementSpiritCommand}"/>
+                            <Button Grid.Column="3" Text="+" Style="{StaticResource StepperButtonStyle}" Command="{Binding IncrementSpiritCommand}"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+
+                <!-- Skill Bonuses -->
+                <BoxView Color="#2ecc71" HeightRequest="2" Margin="5"/>
+                <Label Text="Skill Bonuses" Style="{StaticResource SectionHeaderStyle}"/>
+                <Grid ColumnDefinitions="150,Auto,Auto,Auto,Auto" ColumnSpacing="5">
+                    <Picker Grid.Column="0" ItemsSource="{Binding PredefinedSkills}" SelectedItem="{Binding SelectedSkillName}" Title="Select Skill..." BackgroundColor="#2c3e50" TextColor="#ecf0f1"/>
+                    <Entry Grid.Column="1" Text="{Binding SelectedSkillBonus}" Keyboard="Numeric" Placeholder="Bonus" WidthRequest="60" FontSize="20" HorizontalTextAlignment="Center" Style="{StaticResource EntryStyle}"/>
+                    <Button Grid.Column="2" Text="−" Style="{StaticResource StepperButtonStyle}" Command="{Binding DecrementSkillBonusCommand}"/>
+                    <Button Grid.Column="3" Text="+" Style="{StaticResource StepperButtonStyle}" Command="{Binding IncrementSkillBonusCommand}"/>
+                    <Button Grid.Column="4" Text="Add" Command="{Binding AddSkillCommand}" IsEnabled="{Binding CanAddSkill}" BackgroundColor="#3498db" TextColor="White" CornerRadius="8" HeightRequest="40"/>
+                </Grid>
+
+                <CollectionView ItemsSource="{Binding SkillBonuses}" HeightRequest="100">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid ColumnDefinitions="*,Auto" Padding="5" BackgroundColor="#2c3e50" Margin="0,2">
+                                <Label Grid.Column="0" TextColor="#ecf0f1" VerticalTextAlignment="Center">
+                                    <Label.Text>
+                                        <MultiBinding StringFormat="{}{0} +{1}">
+                                            <Binding Path="SkillName"/>
+                                            <Binding Path="Bonus"/>
+                                        </MultiBinding>
+                                    </Label.Text>
+                                </Label>
+                                <Button Grid.Column="1" Text="✕" Style="{StaticResource RemoveButtonStyle}" Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.RemoveSkillCommand}" CommandParameter="{Binding}"/>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <!-- Starting Items -->
+                <BoxView Color="#2ecc71" HeightRequest="2" Margin="5"/>
+                <Label Text="Starting Items" Style="{StaticResource SectionHeaderStyle}"/>
+                <Border Padding="3" StrokeThickness="2" Stroke="#2ecc71" StrokeShape="RoundRectangle 4">
+                    <Grid ColumnDefinitions="400,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="5">
+                        <Picker Grid.Column="0"
+                                WidthRequest="400"
+                                x:Name="StartingItemPicker"
+                                ItemsSource="{Binding AvailableItems}" 
+                                SelectedItem="{Binding SelectedStartingItem}"
+                                ItemDisplayBinding="{Binding Name}"
+                                Title="Select item..."
+                                BackgroundColor="#2c3e50"
+                                TextColor="#ecf0f1"/>
+                        <Entry Grid.Column="1" Text="{Binding SelectedStartingItemQuantity}" Keyboard="Numeric" Placeholder="Qty" WidthRequest="60" HeightRequest="40" Style="{StaticResource EntryStyle}"/>
+                        <Button Grid.Column="2" Text="−" Style="{StaticResource StepperButtonStyle}" Command="{Binding DecrementQuantityCommand}"/>
+                        <Button Grid.Column="3" Text="+" Style="{StaticResource StepperButtonStyle}" Command="{Binding IncrementQuantityCommand}"/>
+                        <Button Grid.Column="4" Text="Add" Command="{Binding AddStartingItemCommand}" IsEnabled="{Binding CanAddStartingItem}" BackgroundColor="#2ecc71" TextColor="White" CornerRadius="8" HeightRequest="40"/>
+                        <Button Grid.Column="5" Text="+ Create Item" Command="{Binding CreateCustomItemCommand}" BackgroundColor="#9b59b6" TextColor="White" CornerRadius="8" HeightRequest="40"/>
+                    </Grid>
+                </Border>
+
+                <CollectionView ItemsSource="{Binding StartingItems}" HeightRequest="120">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid ColumnDefinitions="*,Auto,Auto" Padding="5" BackgroundColor="#2c3e50" Margin="0,2" ColumnSpacing="5">
+                                <Label Grid.Column="0" TextColor="#ecf0f1" VerticalTextAlignment="Center">
+                                    <Label.Text>
+                                        <MultiBinding StringFormat="{}{0} × {1}">
+                                            <Binding Path="Quantity"/>
+                                            <Binding Path="ItemDetails.Name" FallbackValue="Loading..."/>
+                                        </MultiBinding>
+                                    </Label.Text>
+                                </Label>
+                                <Label Grid.Column="1" Text="{Binding PlayerNote}" FontSize="10" TextColor="#7f8c8d" VerticalTextAlignment="Center" IsVisible="{Binding PlayerNote}"/>
+                                <Button Grid.Column="2" Text="✕" Style="{StaticResource RemoveButtonStyle}" Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.RemoveStartingItemCommand}" CommandParameter="{Binding}"/>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <!-- ===== ITEM CHOICES ===== -->
+                <BoxView Color="#f39c12" HeightRequest="2" Margin="5"/>
+                <Label Text="Item Choices" Style="{StaticResource SectionHeaderStyle}" TextColor="#f39c12"/>
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="5">
+                    <Label Grid.Column="0" Text="Enable item choices for this background" Style="{StaticResource FieldLabelStyle}" VerticalTextAlignment="Center"/>
+                    <Switch Grid.Column="1" IsToggled="{Binding HasItemChoices}" BackgroundColor="#2c3e50"/>
+                </Grid>
+
+                <VerticalStackLayout IsVisible="{Binding HasItemChoices}">
+                    <Button Text="+ Add Item Choice" Command="{Binding AddItemChoiceCommand}" BackgroundColor="#f39c12" TextColor="White" CornerRadius="8" HeightRequest="40"/>
+
+                    <CollectionView ItemsSource="{Binding ItemChoices}" HeightRequest="350">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Border Stroke="#f39c12" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10" Margin="0,5">
+                                    <VerticalStackLayout Spacing="5">
+                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="5">
+                                            <Label Grid.Column="0" Text="Item Choice" FontAttributes="Bold" FontSize="14" TextColor="#f39c12" VerticalTextAlignment="Center"/>
+                                            <Button Grid.Column="1" Text="✕" Style="{StaticResource RemoveButtonStyle}" Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.RemoveItemChoiceCommand}" CommandParameter="{Binding}"/>
+                                        </Grid>
+
+                                        <Entry Text="{Binding Prompt}" Placeholder="Prompt..." Style="{StaticResource EntryStyle}"/>
+                                        <Entry Text="{Binding Description}" Placeholder="Description..." Style="{StaticResource EntryStyle}"/>
+
+                                        <Grid ColumnDefinitions="Auto,*,Auto,*" ColumnSpacing="5">
+                                            <Label Grid.Column="0" Text="Min:" FontSize="12" TextColor="#aaaaaa" VerticalTextAlignment="Center"/>
+                                            <Entry Grid.Column="1" Text="{Binding RecommendedMin}" Keyboard="Numeric" WidthRequest="50" Style="{StaticResource EntryStyle}"/>
+                                            <Label Grid.Column="2" Text="Max:" FontSize="12" TextColor="#aaaaaa" VerticalTextAlignment="Center"/>
+                                            <Entry Grid.Column="3" Text="{Binding RecommendedMax}" Keyboard="Numeric" WidthRequest="50" Style="{StaticResource EntryStyle}"/>
+                                        </Grid>
+
+                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="5">
+                                            <Switch Grid.Column="0" IsToggled="{Binding AllowCustomItems}" HorizontalOptions="Start"/>
+                                            <Label Grid.Column="1" Text="Allow Custom Items" FontSize="12" TextColor="#aaaaaa" VerticalTextAlignment="Center"/>
+                                        </Grid>
+
+                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="5">
+                                            <Switch Grid.Column="0" IsToggled="{Binding AllowDuplicates}" HorizontalOptions="Start"/>
+                                            <Label Grid.Column="1" Text="Allow Duplicates" FontSize="12" TextColor="#aaaaaa" VerticalTextAlignment="Center"/>
+                                        </Grid>
+
+                                        <!-- Category Filters -->
+                                        <Label Text="Categories:" FontSize="12" TextColor="#aaaaaa"/>
+                                        <CollectionView ItemsSource="{Binding Categories}" HeightRequest="100">
+                                            <CollectionView.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid ColumnDefinitions="*,Auto" Padding="2" ColumnSpacing="5">
+                                                        <Picker Grid.Column="0" 
+                                                            ItemsSource="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.AvailableItemCategories}" 
+                                                            SelectedItem="{Binding Value}" 
+                                                            Title="Category..." 
+                                                            BackgroundColor="#2c3e50" 
+                                                            TextColor="#ecf0f1"/>
+                                                        <Button Grid.Column="1" 
+                                                            Text="✕" 
+                                                            Style="{StaticResource RemoveButtonStyle}" 
+                                                            WidthRequest="25" 
+                                                            HeightRequest="25" 
+                                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.RemoveItemChoiceCategoryCommand}" 
+                                                            CommandParameter="{Binding}"/>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </CollectionView.ItemTemplate>
+                                        </CollectionView>
+                                        <Button Text="+ Add Category Filter" 
+                                            BackgroundColor="#f39c12" 
+                                            TextColor="White" 
+                                            CornerRadius="8" 
+                                            HeightRequest="30" 
+                                            FontSize="12" 
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.AddItemChoiceCategoryCommand}" 
+                                            CommandParameter="{Binding}"/>
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+
+                <!-- ===== FAMILIAR CHOICES ===== -->
+                <BoxView Color="#9b59b6" HeightRequest="2" Margin="5"/>
+                <Label Text="Familiar Choices" Style="{StaticResource SectionHeaderStyle}" TextColor="#9b59b6"/>
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="5">
+                    <Label Grid.Column="0" Text="Enable familiar selection for this background" Style="{StaticResource FieldLabelStyle}" VerticalTextAlignment="Center"/>
+                    <Switch Grid.Column="1" IsToggled="{Binding HasFamiliarChoices}" BackgroundColor="#2c3e50"/>
+                </Grid>
+
+                <VerticalStackLayout IsVisible="{Binding HasFamiliarChoices}">
+                    <Button Text="+ Add Familiar Choice" Command="{Binding AddFamiliarChoiceCommand}" BackgroundColor="#9b59b6" TextColor="White" CornerRadius="8" HeightRequest="40"/>
+
+                    <CollectionView ItemsSource="{Binding FamiliarChoices}" HeightRequest="500">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Border Stroke="#9b59b6" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10" Margin="0,5">
+                                    <VerticalStackLayout Spacing="5">
+                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="5">
+                                            <Label Grid.Column="0" Text="Familiar Choice" FontAttributes="Bold" FontSize="14" TextColor="#9b59b6" VerticalTextAlignment="Center"/>
+                                            <Button Grid.Column="1" Text="✕" Style="{StaticResource RemoveButtonStyle}" Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.RemoveFamiliarChoiceCommand}" CommandParameter="{Binding}"/>
+                                        </Grid>
+
+                                        <Entry Text="{Binding Prompt}" Placeholder="Prompt..." Style="{StaticResource EntryStyle}"/>
+                                        <Entry Text="{Binding Description}" Placeholder="Description..." Style="{StaticResource EntryStyle}"/>
+
+                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="5">
+                                            <Switch Grid.Column="0" IsToggled="{Binding AllowCustomFamiliar}" HorizontalOptions="Start"/>
+                                            <Label Grid.Column="1" Text="Allow Custom Familiar" FontSize="12" TextColor="#aaaaaa" VerticalTextAlignment="Center"/>
+                                        </Grid>
+
+                                        <!-- Size Filters -->
+                                        <Label Text="Size Filters:" FontSize="12" TextColor="#aaaaaa"/>
+                                        <CollectionView ItemsSource="{Binding Sizes}" HeightRequest="100">
+                                            <CollectionView.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid ColumnDefinitions="*,Auto" Padding="2" ColumnSpacing="5">
+                                                        <Picker Grid.Column="0" 
+                                                ItemsSource="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.AvailableSizes}" 
+                                                SelectedItem="{Binding Value}" 
+                                                Title="Size..." 
+                                                BackgroundColor="#2c3e50" 
+                                                TextColor="#ecf0f1"/>
+                                                        <Button Grid.Column="1" 
+                                                Text="✕" 
+                                                Style="{StaticResource RemoveButtonStyle}" 
+                                                WidthRequest="25" 
+                                                HeightRequest="25" 
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.RemoveFamiliarFilterCommand}" 
+                                                CommandParameter="{Binding}"/>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </CollectionView.ItemTemplate>
+                                        </CollectionView>
+                                        <Button Text="+ Add Size Filter" 
+                                BackgroundColor="#3498db" 
+                                TextColor="White" 
+                                CornerRadius="8" 
+                                HeightRequest="30" 
+                                FontSize="12" 
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.AddSizeFilterCommand}" 
+                                CommandParameter="{Binding}"/>
+
+                                        <!-- Intelligence Filters -->
+                                        <Label Text="Intelligence Filters:" FontSize="12" TextColor="#aaaaaa"/>
+                                        <CollectionView ItemsSource="{Binding Intelligences}" HeightRequest="100">
+                                            <CollectionView.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid ColumnDefinitions="*,Auto" Padding="2" ColumnSpacing="5">
+                                                        <Picker Grid.Column="0" 
+                                                ItemsSource="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.AvailableIntelligences}" 
+                                                SelectedItem="{Binding Value}" 
+                                                Title="Intelligence..." 
+                                                BackgroundColor="#2c3e50" 
+                                                TextColor="#ecf0f1"/>
+                                                        <Button Grid.Column="1" 
+                                                Text="✕" 
+                                                Style="{StaticResource RemoveButtonStyle}" 
+                                                WidthRequest="25" 
+                                                HeightRequest="25" 
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.RemoveFamiliarFilterCommand}" 
+                                                CommandParameter="{Binding}"/>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </CollectionView.ItemTemplate>
+                                        </CollectionView>
+                                        <Button Text="+ Add Intelligence Filter" 
+                                BackgroundColor="#3498db" 
+                                TextColor="White" 
+                                CornerRadius="8" 
+                                HeightRequest="30" 
+                                FontSize="12" 
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.AddIntelligenceFilterCommand}" 
+                                CommandParameter="{Binding}"/>
+
+                                        <!-- Species Filters -->
+                                        <Label Text="Species Filters:" FontSize="12" TextColor="#aaaaaa"/>
+                                        <CollectionView ItemsSource="{Binding Species}" HeightRequest="100">
+                                            <CollectionView.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid ColumnDefinitions="*,Auto" Padding="2" ColumnSpacing="5">
+                                                        <Picker Grid.Column="0" 
+                                                            ItemsSource="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.AvailableSpecies}" 
+                                                            SelectedItem="{Binding Value}" 
+                                                            Title="Species..." 
+                                                            BackgroundColor="#2c3e50" 
+                                                            TextColor="#ecf0f1"/>
+                                                        <Button Grid.Column="1" 
+                                                            Text="✕" 
+                                                            Style="{StaticResource RemoveButtonStyle}" 
+                                                            WidthRequest="25" 
+                                                            HeightRequest="25" 
+                                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.RemoveFamiliarFilterCommand}" 
+                                                            CommandParameter="{Binding}"/>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </CollectionView.ItemTemplate>
+                                        </CollectionView>
+                                        <Button Text="+ Add Species Filter" 
+                                            BackgroundColor="#3498db" 
+                                            TextColor="White" 
+                                            CornerRadius="8" 
+                                            HeightRequest="30" 
+                                            FontSize="12" 
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.AddSpeciesFilterCommand}" 
+                                            CommandParameter="{Binding}"/>
+
+                                        <Button Text="+ Create Custom Familiar" 
+                                BackgroundColor="#9b59b6" 
+                                TextColor="White" 
+                                CornerRadius="8" 
+                                HeightRequest="30" 
+                                FontSize="12" 
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.CreateCustomFamiliarCommand}" 
+                                CommandParameter="{Binding}"/>
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+                <Label Text="* Required fields" FontSize="12" TextColor="#7f8c8d" Margin="0,10"/>
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

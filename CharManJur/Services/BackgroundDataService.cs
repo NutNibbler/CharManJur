@@ -8,6 +8,8 @@ namespace CharManJur.Services;
 
 public class BackgroundDataService : IBackgroundDataService
 {
+    private readonly ICustomBackgroundStorageService _customBackgroundStorage;
+
     private readonly List<CharacterBackground> _backgrounds = new()
     {
         new CharacterBackground
@@ -293,6 +295,11 @@ public class BackgroundDataService : IBackgroundDataService
 
     };
 
+    public BackgroundDataService(ICustomBackgroundStorageService customBackgroundStorage)
+    {
+        _customBackgroundStorage = customBackgroundStorage;
+    }
+
     public Task<List<CharacterBackground>> GetBackgroundsAsync()
     {
         return Task.FromResult(_backgrounds);
@@ -302,5 +309,24 @@ public class BackgroundDataService : IBackgroundDataService
     {
         var result = _backgrounds.FirstOrDefault(b => b.Id == id);
         return Task.FromResult(result);
+    }
+
+    public async Task<List<CharacterBackground>> GetAllBackgroundsAsync()
+    {
+        var customBackgrounds = await _customBackgroundStorage.LoadCustomBackgroundsAsync();
+        var allBackgrounds = new List<CharacterBackground>(_backgrounds);
+        allBackgrounds.AddRange(customBackgrounds);
+        return allBackgrounds;
+    }
+
+    public async Task<CharacterBackground?> GetBackgroundByIdCombinedAsync(int id)
+    {
+        // Check foundation first
+        var background = _backgrounds.FirstOrDefault(b => b.Id == id);
+        if (background != null) return background;
+
+        // Check custom
+        var customBackgrounds = await _customBackgroundStorage.LoadCustomBackgroundsAsync();
+        return customBackgrounds.FirstOrDefault(b => b.Id == id);
     }
 }

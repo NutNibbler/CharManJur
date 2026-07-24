@@ -21,26 +21,53 @@
                TextColor="DeepSkyBlue" />
 
         <ScrollView Grid.Row="1" Grid.Column="0">
-            <CollectionView x:Name="BackgroundsCollectionView"
-                            ItemsSource="{Binding Backgrounds}"
-                            SelectedItem="{Binding SelectedBackground}"
-                            SelectionMode="Single">
-                <CollectionView.ItemTemplate>
-                    <DataTemplate>
-                        <Grid Padding="5">
-                            <Border Stroke="DeepSkyBlue"
-                                    StrokeThickness="1"
-                                    StrokeShape="RoundRectangle 8"
-                                    Padding="12">
-                                <Label Text="{Binding Name}"
-                                       FontSize="16"
-                                       FontAttributes="Bold"
-                                       TextColor="White" />
-                            </Border>
-                        </Grid>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+            <VerticalStackLayout Spacing="5">
+                <Button Text="➕ Create Custom Background"
+                BackgroundColor="#2ecc71"
+                TextColor="White"
+                CornerRadius="8"
+                HeightRequest="45"
+                Command="{Binding CreateCustomBackgroundCommand}"/>
+
+                <CollectionView x:Name="BackgroundsCollectionView"
+                        ItemsSource="{Binding Backgrounds}"
+                        SelectedItem="{Binding SelectedBackground}"
+                        SelectionMode="Single">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Padding="5" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="5">
+                                <Border Grid.Column="0" Stroke="DeepSkyBlue" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="12">
+                                    <Label Text="{Binding Name}" FontSize="16" FontAttributes="Bold" TextColor="White" VerticalTextAlignment="Center"/>
+                                </Border>
+                                <!-- Edit Button - Only for custom backgrounds -->
+                                <Button Grid.Column="1" 
+                                Text="✏️" 
+                                BackgroundColor="#3498db" 
+                                TextColor="White" 
+                                CornerRadius="15" 
+                                WidthRequest="35" 
+                                HeightRequest="35"
+                                FontSize="12"
+                                IsVisible="{Binding Id, Converter={StaticResource IsCustomBackgroundConverter}}"
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditCustomBackgroundCommand}"
+                                CommandParameter="{Binding}"/>
+                                <!-- Delete Button - Only for custom backgrounds -->
+                                <Button Grid.Column="2" 
+                                Text="🗑️" 
+                                BackgroundColor="#e74c3c" 
+                                TextColor="White" 
+                                CornerRadius="15" 
+                                WidthRequest="35" 
+                                HeightRequest="35"
+                                FontSize="12"
+                                IsVisible="{Binding Id, Converter={StaticResource IsCustomBackgroundConverter}}"
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteCustomBackgroundCommand}"
+                                CommandParameter="{Binding}"/>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </VerticalStackLayout>
         </ScrollView>
 
         <ScrollView Grid.Row="1" Grid.Column="1">
@@ -66,11 +93,11 @@
                            FontSize="16"
                            TextColor="DeepSkyBlue" />
 
-                    <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
-                        <Label Grid.Column="0" Text="{Binding SelectedBackgroundVigorBonus}" FontSize="14" TextColor="White" />
-                        <Label Grid.Column="1" Text="{Binding SelectedBackgroundAgilityBonus}" FontSize="14" TextColor="White" />
-                        <Label Grid.Column="0" Text="{Binding SelectedBackgroundMindBonus}" FontSize="14" TextColor="White" />
-                        <Label Grid.Column="1" Text="{Binding SelectedBackgroundSpiritBonus}" FontSize="14" TextColor="White" />
+                    <Grid ColumnDefinitions="*, *" RowDefinitions="Auto,Auto" ColumnSpacing="10">
+                        <Label Grid.Column="0" Grid.Row="0" Text="{Binding SelectedBackgroundVigorBonus}" FontSize="14" TextColor="White" />
+                        <Label Grid.Column="1" Grid.Row="0" Text="{Binding SelectedBackgroundAgilityBonus}" FontSize="14" TextColor="White" />
+                        <Label Grid.Column="0" Grid.Row="1" Text="{Binding SelectedBackgroundMindBonus}" FontSize="14" TextColor="White" />
+                        <Label Grid.Column="1" Grid.Row="1" Text="{Binding SelectedBackgroundSpiritBonus}" FontSize="14" TextColor="White" />
                     </Grid>
 
                     <BoxView HeightRequest="2" Color="DeepSkyBlue" Margin="5"/>
@@ -263,8 +290,7 @@
                                         <!-- ===== NO CHECKBOX, SINGLE SELECTION BY TAP ===== -->
                                         <CollectionView ItemsSource="{Binding Options}"
                                             HeightRequest="120"
-                                            SelectionMode="Single"
-                                            SelectedItem="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:BackgroundSelectionViewModel}}, Path=SelectedFamiliar}">
+                                            SelectionMode="None">
                                             <CollectionView.ItemTemplate>
                                                 <DataTemplate>
                                                     <Grid Padding="3">
@@ -277,11 +303,11 @@
                                                                FontSize="14"
                                                                FontAttributes="Bold"
                                                                TextColor="White"
-                                                               HorizontalOptions="Center" />
+                                                               HorizontalOptions="Center"/>
                                                         </Border>
                                                         <Grid.GestureRecognizers>
                                                             <TapGestureRecognizer Command="{Binding SelectCommand}"
-                                                              CommandParameter="{Binding .}" />
+                                                                CommandParameter="{Binding .}"/>
                                                         </Grid.GestureRecognizers>
                                                     </Grid>
                                                 </DataTemplate>
@@ -312,13 +338,12 @@
               Margin="0,10,0,0">
 
             <Button Grid.Column="0"
-                    Text="{Binding HasSelectedBackground, Converter={StaticResource ConfirmButtonTextConverter}}"
-                    BackgroundColor="{Binding HasSelectedBackground, Converter={StaticResource ConfirmButtonColorConverter}}"
-                    TextColor="White"
-                    CornerRadius="8"
-                    HeightRequest="45"
-                    IsEnabled="{Binding CanConfirmBackground}"
-                    Command="{Binding ConfirmBackgroundCommand}" />
+                Text="Confirm"
+                BackgroundColor="{Binding CanConfirmBackground, Converter={StaticResource ConfirmButtonColorConverter}}"
+                TextColor="White"
+                CornerRadius="8"
+                HeightRequest="45"
+                Command="{Binding ConfirmBackgroundCommand}" />
 
             <Button Grid.Column="1"
                     Text="📋 Summary"

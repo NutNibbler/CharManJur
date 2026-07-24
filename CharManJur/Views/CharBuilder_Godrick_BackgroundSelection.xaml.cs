@@ -25,15 +25,16 @@ public partial class CharBuilder_Godrick_BackgroundSelection : ContentPage
         BindingContext = _viewModel;
     }
 
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
 
-        if (_globalMenuDataService.NeedsUIReset == true)
+        // Check if we need to refresh using Preferences
+        bool refreshNeeded = Preferences.Default.Get("RefreshBackgrounds", false);
+        if (refreshNeeded)
         {
-            BackgroundsCollectionView.SelectedItem = null;
-            _viewModel.SelectedBackground = null;
-            _globalMenuDataService.NeedsUIReset = false;
+            await _viewModel.RefreshBackgroundsAsync();
+            Preferences.Default.Set("RefreshBackgrounds", false);
         }
     }
 
@@ -62,4 +63,5 @@ public partial class CharBuilder_Godrick_BackgroundSelection : ContentPage
             await Shell.Current.GoToAsync("///MainPage");
         }
     }
+
 }

@@ -52,6 +52,11 @@ namespace CharManJur
             builder.Services.AddTransient<Godrick_CustomRaceCreator>();
             builder.Services.AddSingleton<ICustomRaceStorageService, CustomRaceStorageService>();
             builder.Services.AddTransient<CustomRaceBuilderViewModel>();
+
+            //CUSTOM BACKGROUND BUILDER REGISTER
+            builder.Services.AddSingleton<ICustomBackgroundStorageService, CustomBackgroundStorageService>();
+            builder.Services.AddTransient<CustomBackgroundBuilderViewModel>();
+            builder.Services.AddTransient<Godrick_CustomBackgroundCreator>();
 #if DEBUG
             builder.Logging.AddDebug();
 #endif

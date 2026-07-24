@@ -20,7 +20,8 @@
             <!--==Background Creator Converters==-->
             <converters:ConfirmButtonTextConverter x:Key="ConfirmButtonTextConverter" />
             <converters:ConfirmButtonColorConverter x:Key="ConfirmButtonColorConverter" />
-
+            <converters:IsCustomBackgroundConverter x:Key="IsCustomBackgroundConverter" />
+            
             <converters:LanguageBorderConverter x:Key="LanguageBorderConverter" />
             <converters:LanguageBorderThicknessConverter x:Key="LanguageBorderThicknessConverter" />
             <converters:LanguageBackgroundConverter x:Key="LanguageBackgroundConverter" />

@@ -44,7 +44,6 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
         : "No languages selected";
 
     private ObservableCollection<FamiliarChoiceDisplay> _familiarChoiceDisplays = new();
-    private SelectableFamiliar? _selectedFamiliar;
 
     public ObservableCollection<FamiliarChoiceDisplay> FamiliarChoiceDisplays
     {
@@ -53,38 +52,17 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
         {
             _familiarChoiceDisplays = value;
             OnPropertyChanged();
+            OnPropertyChanged(nameof(HasFamiliarChoices));
+            OnPropertyChanged(nameof(AreFamiliarChoicesSatisfied));
+            OnPropertyChanged(nameof(CanConfirmBackground));
+            // Refresh command state
+            ((Command)ConfirmBackgroundCommand)?.ChangeCanExecute();
         }
     }
 
-    public SelectableFamiliar? SelectedFamiliar
-    {
-        get => _selectedFamiliar;
-        set
-        {
-            if (_selectedFamiliar != value)
-            {
-                if (_selectedFamiliar != null)
-                {
-                    _selectedFamiliar.IsSelected = false;
-                }
+    public bool HasFamiliarChoices => FamiliarChoiceDisplays.Any();
 
-                _selectedFamiliar = value;
-
-                if (_selectedFamiliar != null)
-                {
-                    _selectedFamiliar.IsSelected = true;
-                }
-
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(HasSelectedFamiliar));
-                OnPropertyChanged(nameof(AreFamiliarChoicesSatisfied));
-                OnPropertyChanged(nameof(CanConfirmBackground));
-            }
-        }
-    }
-
-    public bool HasSelectedFamiliar => SelectedFamiliar != null;
-
+    // Each choice group must have a selection
     public bool AreFamiliarChoicesSatisfied
     {
         get
@@ -94,24 +72,23 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
 
             foreach (var display in FamiliarChoiceDisplays)
             {
-                var selected = display.Options.Any(o => o.IsSelected);
-                if (!selected) return false;
+                if (!display.Options.Any(o => o.IsSelected))
+                    return false;
             }
 
             return true;
         }
     }
 
+    // Each choice group must have a selection for CanConfirmBackground
     public bool CanConfirmBackground
     {
         get
         {
             if (!HasSelectedBackground) return false;
 
-            // Check if there are any familiar choices
             if (FamiliarChoiceDisplays.Any())
             {
-                // For each familiar choice, check if at least one option is selected
                 foreach (var display in FamiliarChoiceDisplays)
                 {
                     if (!display.Options.Any(o => o.IsSelected))
@@ -122,8 +99,6 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
             return true;
         }
     }
-
-    public bool HasFamiliarChoices => FamiliarChoiceDisplays.Any();
 
     public ObservableCollection<CharacterBackground> Backgrounds
     {
@@ -142,7 +117,6 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
         {
             if (_selectedBackground != value)
             {
-                // Reset training points when background changes
                 if (_selectedBackground != null && value != null && _selectedBackground.Id != value.Id)
                 {
                     ResetTrainingPoints();
@@ -173,13 +147,11 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
 
     private void ResetTrainingPoints()
     {
-        // Reset all skill training levels to -2 (base penalty, no training points)
         foreach (var skill in _charDataService.SkillTrainingLevels.Keys.ToList())
         {
             _charDataService.SkillTrainingLevels[skill] = -2;
         }
 
-        // Reset AvailableTrainingPoints to 4 (base)
         _charDataService.AvailableTrainingPoints = 4;
 
         System.Diagnostics.Debug.WriteLine("=== Training points reset due to background change ===");
@@ -231,16 +203,16 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
     public string SelectedBackgroundDescription => SelectedBackground?.Description ?? "Description will appear here";
     public string SelectedBackgroundVigorBonus => SelectedBackground != null && SelectedBackground.VigorModifier != 0
         ? $"Vigor: {SelectedBackground.VigorModifier:+0;-0;0}"
-        : "No Stat bonus";
+        : "";
     public string SelectedBackgroundAgilityBonus => SelectedBackground != null && SelectedBackground.AgilityModifier != 0
         ? $"Agility: {SelectedBackground.AgilityModifier:+0;-0;0}"
-        : "No Stat bonus";
+        : "";
     public string SelectedBackgroundMindBonus => SelectedBackground != null && SelectedBackground.MindModifier != 0
         ? $"Mind: {SelectedBackground.MindModifier:+0;-0;0}"
-        : "No Stat bonus";
+        : "";
     public string SelectedBackgroundSpiritBonus => SelectedBackground != null && SelectedBackground.SpiritModifier != 0
         ? $"Spirit: {SelectedBackground.SpiritModifier:+0;-0;0}"
-        : "No Stat bonus";
+        : "";
 
     public string SelectedBackgroundSkillBonuses
     {
@@ -276,6 +248,9 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
     public ICommand CreateCustomFamiliarCommand { get; }
     public ICommand RemoveStartingItemCommand { get; }
     public ICommand ToggleLanguageCommand { get; }
+    public ICommand CreateCustomBackgroundCommand { get; }
+    public ICommand EditCustomBackgroundCommand { get; }
+    public ICommand DeleteCustomBackgroundCommand { get; }
 
     public BackgroundSelectionViewModel(
         IBackgroundDataService backgroundDataService,
@@ -292,11 +267,14 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
 
         LoadBackgroundsCommand = new Command(async () => await LoadBackgroundsAsync());
         SelectBackgroundCommand = new Command<CharacterBackground>(OnBackgroundSelected);
-        ConfirmBackgroundCommand = new Command(async () => await ConfirmBackgroundAsync(), () => CanConfirmBackground);
+        ConfirmBackgroundCommand = new Command(async () => await ConfirmBackgroundAsync());
         CreateCustomItemCommand = new Command<ItemChoice>(OnCreateCustomItem);
         CreateCustomFamiliarCommand = new Command<FamiliarChoice>(OnCreateCustomFamiliar);
         RemoveStartingItemCommand = new Command<StartingItem>(OnRemoveStartingItem);
         ToggleLanguageCommand = new Command<LanguageDisplay>(OnToggleLanguage);
+        CreateCustomBackgroundCommand = new Command(async () => await CreateCustomBackgroundAsync());
+        EditCustomBackgroundCommand = new Command<CharacterBackground>(async (bg) => await EditCustomBackgroundAsync(bg));
+        DeleteCustomBackgroundCommand = new Command<CharacterBackground>(async (bg) => await DeleteCustomBackgroundAsync(bg));
 
         Task.Run(LoadBackgroundsAsync);
         Task.Run(LoadLanguagesAsync);
@@ -309,7 +287,7 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
         IsLoading = true;
         try
         {
-            var backgrounds = await _backgroundDataService.GetBackgroundsAsync();
+            var backgrounds = await _backgroundDataService.GetAllBackgroundsAsync();
             Backgrounds = new ObservableCollection<CharacterBackground>(backgrounds);
         }
         catch (Exception ex)
@@ -368,7 +346,29 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
                 choice.QueryCriteria = new ItemQueryCriteria();
             }
 
-            var items = await _itemDataService.QueryItemsAsync(choice.QueryCriteria);
+            // Make sure the QueryCriteria is properly set up for filtering
+            var criteria = choice.QueryCriteria;
+
+            // Ensure categories are properly set for filtering
+            if (criteria.AllowedCategories != null && criteria.AllowedCategories.Any())
+            {
+                // Categories are already set
+                System.Diagnostics.Debug.WriteLine($"Item choice {choice.Id} has {criteria.AllowedCategories.Count} categories");
+                foreach (var cat in criteria.AllowedCategories)
+                {
+                    System.Diagnostics.Debug.WriteLine($"  Category: {cat}");
+                }
+            }
+            else if (criteria.Category.HasValue)
+            {
+                // Single category - add to AllowedCategories for consistency
+                criteria.AllowedCategories = new List<ItemCategory> { criteria.Category.Value };
+                System.Diagnostics.Debug.WriteLine($"Item choice {choice.Id} has single category: {criteria.Category.Value}");
+            }
+
+            var items = await _itemDataService.QueryItemsAsync(criteria);
+
+            System.Diagnostics.Debug.WriteLine($"Found {items.Count} items for choice {choice.Id}");
 
             foreach (var item in items)
             {
@@ -389,10 +389,103 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(SelectedBackgroundItemChoices));
     }
 
+    private async Task CreateCustomBackgroundAsync()
+    {
+        var navigationParameters = new Dictionary<string, object>
+        {
+            { "RefreshOnReturn", true }
+        };
+        await Shell.Current.GoToAsync("///Godrick_CustomBackgroundCreator", navigationParameters);
+    }
+
+    public async Task EditCustomBackgroundAsync(CharacterBackground? background)
+    {
+        if (background == null) return;
+
+        System.Diagnostics.Debug.WriteLine($"=== EditCustomBackgroundAsync called for: {background.Name} (ID: {background.Id}) ===");
+
+        if (background.Id < 90001)
+        {
+            await Application.Current.MainPage.DisplayAlertAsync(
+                "Cannot Edit",
+                "Foundation backgrounds cannot be edited.",
+                "OK");
+            return;
+        }
+
+        var navigationParameters = new Dictionary<string, object>
+        {
+            { "BackgroundToEdit", background }
+        };
+        await Shell.Current.GoToAsync("///Godrick_CustomBackgroundCreator", navigationParameters);
+    }
+
+    public async Task DeleteCustomBackgroundAsync(CharacterBackground? background)
+    {
+        if (background == null) return;
+
+        if (background.Id < 90001)
+        {
+            await Application.Current.MainPage.DisplayAlertAsync(
+                "Cannot Delete",
+                "Foundation backgrounds cannot be deleted.",
+                "OK");
+            return;
+        }
+
+        var confirm = await Application.Current.MainPage.DisplayAlertAsync(
+            "Delete Custom Background",
+            $"Are you sure you want to delete '{background.Name}'? This action cannot be undone.",
+            "Yes, Delete",
+            "No, Cancel");
+
+        if (!confirm) return;
+
+        try
+        {
+            var customBgStorage = Application.Current.Handler?.MauiContext?.Services?.GetService<ICustomBackgroundStorageService>();
+            if (customBgStorage != null)
+            {
+                var deleted = await customBgStorage.DeleteCustomBackgroundAsync(background.Id);
+                if (deleted)
+                {
+                    Backgrounds.Remove(background);
+                    if (SelectedBackground?.Id == background.Id)
+                    {
+                        SelectedBackground = null;
+                    }
+                    await Application.Current.MainPage.DisplayAlertAsync(
+                        "Success",
+                        $"Background '{background.Name}' has been deleted.",
+                        "OK");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            await Application.Current.MainPage.DisplayAlertAsync(
+                "Error",
+                $"Failed to delete background: {ex.Message}",
+                "OK");
+        }
+    }
+
+    public async Task RefreshBackgroundsAsync()
+    {
+        try
+        {
+            var backgrounds = await _backgroundDataService.GetAllBackgroundsAsync();
+            Backgrounds = new ObservableCollection<CharacterBackground>(backgrounds);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error refreshing backgrounds: {ex.Message}");
+        }
+    }
+
     private async Task LoadFamiliarChoices()
     {
         FamiliarChoiceDisplays.Clear();
-        SelectedFamiliar = null;
 
         if (SelectedBackground?.FamiliarChoices == null) return;
 
@@ -401,9 +494,13 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
             var display = new FamiliarChoiceDisplay { Choice = choice };
 
             System.Diagnostics.Debug.WriteLine($"=== Loading familiars for choice: {choice.Id} ===");
-            System.Diagnostics.Debug.WriteLine($"  Size: {choice.QueryCriteria?.Size ?? "None"}");
-            System.Diagnostics.Debug.WriteLine($"  Species: {choice.QueryCriteria?.Species ?? "None"}");
-            System.Diagnostics.Debug.WriteLine($"  Intelligence: {choice.QueryCriteria?.Intelligence ?? "None"}");
+
+            if (choice.QueryCriteria != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"  Sizes: {string.Join(", ", choice.QueryCriteria.AllowedSizes ?? new List<string>())}");
+                System.Diagnostics.Debug.WriteLine($"  Intelligences: {string.Join(", ", choice.QueryCriteria.AllowedIntelligences ?? new List<string>())}");
+                System.Diagnostics.Debug.WriteLine($"  Species: {string.Join(", ", choice.QueryCriteria.AllowedSpecies ?? new List<string>())}");
+            }
 
             var familiars = await _familiarDataService.QueryFamiliarsAsync(choice.QueryCriteria);
 
@@ -439,35 +536,43 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
 
         System.Diagnostics.Debug.WriteLine($"=== OnFamiliarSelected called: {selected.DisplayName} ===");
 
-        var display = FamiliarChoiceDisplays.FirstOrDefault(d => d.Options.Contains(selected));
-        if (display != null)
+        // Find which choice group this familiar belongs to
+        var parentDisplay = FamiliarChoiceDisplays.FirstOrDefault(d => d.Options.Contains(selected));
+        if (parentDisplay == null) return;
+
+        // If this familiar is already selected, deselect it (toggle off)
+        if (selected.IsSelected)
         {
-            foreach (var option in display.Options)
+            selected.IsSelected = false;
+
+            OnPropertyChanged(nameof(FamiliarChoiceDisplays));
+            OnPropertyChanged(nameof(AreFamiliarChoicesSatisfied));
+            OnPropertyChanged(nameof(CanConfirmBackground));
+            ((Command)ConfirmBackgroundCommand)?.ChangeCanExecute();
+            return;
+        }
+
+        // Deselect ALL familiars in the SAME choice group only
+        foreach (var option in parentDisplay.Options)
+        {
+            if (option != selected && option.IsSelected)
             {
-                if (option != selected && option.IsSelected)
-                {
-                    option.IsSelected = false;
-                }
+                option.IsSelected = false;
+                System.Diagnostics.Debug.WriteLine($"=== Deselecting: {option.DisplayName} ===");
             }
         }
 
-        selected.IsSelected = !selected.IsSelected;
+        // Select this familiar
+        selected.IsSelected = true;
 
-        if (!selected.IsSelected)
-        {
-            SelectedFamiliar = null;
-            System.Diagnostics.Debug.WriteLine($"=== Familiar deselected ===");
-        }
-        else
-        {
-            SelectedFamiliar = selected;
-            System.Diagnostics.Debug.WriteLine($"=== Familiar selected: {selected.DisplayName} ===");
-        }
-
+        OnPropertyChanged(nameof(FamiliarChoiceDisplays));
         OnPropertyChanged(nameof(AreFamiliarChoicesSatisfied));
         OnPropertyChanged(nameof(CanConfirmBackground));
-        OnPropertyChanged(nameof(FamiliarChoiceDisplays));
-        OnPropertyChanged(nameof(SelectedFamiliar));
+        ((Command)ConfirmBackgroundCommand)?.ChangeCanExecute();
+
+        System.Diagnostics.Debug.WriteLine($"=== Selected familiar: {selected.DisplayName} ===");
+        System.Diagnostics.Debug.WriteLine($"=== AreFamiliarChoicesSatisfied: {AreFamiliarChoicesSatisfied} ===");
+        System.Diagnostics.Debug.WriteLine($"=== CanConfirmBackground: {CanConfirmBackground} ===");
     }
 
     private void OnToggleLanguage(LanguageDisplay? display)
@@ -501,7 +606,7 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
                 IsSelected = true,
                 IsCustom = true,
                 CustomTemplate = newItem,
-                ItemDetails = newItem   // NEW — needed so confirm-time harvest can resolve it, same as any other item
+                ItemDetails = newItem
             });
 
             OnPropertyChanged(nameof(ItemChoiceDisplays));
@@ -523,21 +628,37 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
 
         System.Diagnostics.Debug.WriteLine($"=== Create Custom Familiar for choice: {choice.Id} ===");
 
-        Action<Familiar> onFamiliarCreated = (newFamiliar) =>
+        Action<Familiar> onFamiliarCreated = async (newFamiliar) =>
         {
             System.Diagnostics.Debug.WriteLine($"=== Familiar created: {newFamiliar.FmlrName} (ID: {newFamiliar.Id}) ===");
 
             var display = FamiliarChoiceDisplays.FirstOrDefault(d => d.Choice.Id == choice.Id);
             if (display != null)
             {
-                display.Options.Add(new SelectableFamiliar
+                // Reload all familiars to include the new one
+                var familiars = await _familiarDataService.QueryFamiliarsAsync(display.Choice.QueryCriteria);
+
+                display.Options.Clear();
+                foreach (var familiar in familiars)
                 {
-                    FamiliarId = newFamiliar.Id,
-                    DisplayName = newFamiliar.FmlrName ?? "Unnamed Familiar",
-                    IsSelected = true,
-                    IsCustom = true,
-                    Familiar = newFamiliar
-                });
+                    var selectable = new SelectableFamiliar
+                    {
+                        FamiliarId = familiar.Id,
+                        DisplayName = familiar.FmlrName ?? "Unnamed Familiar",
+                        IsSelected = false,
+                        IsCustom = familiar.IsPlayerCreated,
+                        Familiar = familiar,
+                        SelectCommand = new Command<SelectableFamiliar>(OnFamiliarSelected)
+                    };
+                    display.Options.Add(selectable);
+                }
+
+                // Auto-select the newly created familiar
+                var newOption = display.Options.FirstOrDefault(o => o.FamiliarId == newFamiliar.Id);
+                if (newOption != null)
+                {
+                    newOption.IsSelected = true;
+                }
             }
 
             _charDataService.AddFamiliar(newFamiliar);
@@ -546,6 +667,7 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(HasFamiliarChoices));
             OnPropertyChanged(nameof(AreFamiliarChoicesSatisfied));
             OnPropertyChanged(nameof(CanConfirmBackground));
+            ((Command)ConfirmBackgroundCommand)?.ChangeCanExecute();
 
             System.Diagnostics.Debug.WriteLine($"=== Familiar added to list. Total options: {display?.Options.Count ?? 0} ===");
         };
@@ -588,6 +710,40 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
     {
         if (SelectedBackground == null) return;
 
+        // ===== VALIDATE FAMILIAR SELECTIONS =====
+        if (FamiliarChoiceDisplays.Any())
+        {
+            var missingGroups = new List<string>();
+
+            foreach (var display in FamiliarChoiceDisplays)
+            {
+                if (!display.Options.Any(o => o.IsSelected))
+                {
+                    missingGroups.Add(display.Choice.Prompt ?? $"Choice {display.Choice.Id}");
+                }
+            }
+
+            if (missingGroups.Any())
+            {
+                string message;
+                if (missingGroups.Count == 1)
+                {
+                    message = $"Please select a familiar for:\n\n• {missingGroups[0]}";
+                }
+                else
+                {
+                    message = $"Please select a familiar for the following choice(s):\n\n";
+                    message += string.Join("\n", missingGroups.Select(g => $"• {g}"));
+                }
+
+                await Application.Current.MainPage.DisplayAlertAsync(
+                    "Selection Required",
+                    message + "\n\nYou must make a selection for each before continuing.",
+                    "OK");
+                return;
+            }
+        }
+
         _charDataService.SelectedBackgroundName = SelectedBackground.Name;
         _charDataService.SelectedBackgroundDescription = SelectedBackground.Description;
 
@@ -599,7 +755,7 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
         // === MERGE ITEM CHOICE SELECTIONS INTO STARTING ITEMS ===
         foreach (var display in ItemChoiceDisplays)
         {
-            var selectedOptions = display.Options.Where(o => o.IsSelected);   // no IsCustom filter needed anymore
+            var selectedOptions = display.Options.Where(o => o.IsSelected);
             foreach (var option in selectedOptions)
             {
                 SelectedBackground.StartingItems ??= new ObservableCollection<StartingItem>();
@@ -625,11 +781,15 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
             .ToList();
         _charDataService.SelectedLanguages = selectedLanguages;
 
-        // === SAVE SELECTED FAMILIAR ===
-        if (SelectedFamiliar != null && SelectedFamiliar.Familiar != null)
+        // === SAVE SELECTED FAMILIARS FROM EACH CHOICE GROUP ===
+        foreach (var display in FamiliarChoiceDisplays)
         {
-            _charDataService.AddFamiliar(SelectedFamiliar.Familiar);
-            System.Diagnostics.Debug.WriteLine($"=== Saved familiar: {SelectedFamiliar.Familiar.FmlrName} ===");
+            var selectedFamiliar = display.Options.FirstOrDefault(o => o.IsSelected);
+            if (selectedFamiliar != null && selectedFamiliar.Familiar != null)
+            {
+                _charDataService.AddFamiliar(selectedFamiliar.Familiar);
+                System.Diagnostics.Debug.WriteLine($"=== Saved familiar: {selectedFamiliar.Familiar.FmlrName} from choice: {display.Choice.Prompt} ===");
+            }
         }
 
         System.Diagnostics.Debug.WriteLine($"=== Confirmed Background: {SelectedBackground.Name} ===");

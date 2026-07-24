@@ -75,6 +75,11 @@
         ContentTemplate="{DataTemplate views:Godrick_CustomRaceCreator}" 
         Route="Godrick_CustomRaceCreator" />
 
+    <ShellContent 
+        Title="CustomBackgroundCreator" 
+        ContentTemplate="{DataTemplate views:Godrick_CustomBackgroundCreator}" 
+        Route="Godrick_CustomBackgroundCreator" />
+
     <!-- Live Game Routes -->
     <ShellContent 
         Title="CharacterHomePage" 
@@ -84,4 +89,5 @@
         Title="BestowItemPage" 
         ContentTemplate="{DataTemplate livegame:BestowItemPage}" 
         Route="BestowItemPage" />
+    
 </Shell>

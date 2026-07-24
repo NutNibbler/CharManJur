@@ -26,6 +26,9 @@ namespace CharManJur
             Familiar system is not working, familiars don't populate from dataservice.
             Confirm background button converters don't exist, so button is always grey and says True/False. Backgrounds should not be confirmable until their available choices are picked including familiars.
             Ability Score(stat) and Skill bonuses aren't being saved and added to background bonus data. Both ability scores and skill bonuses should show up as "Background Bonuses" and saved as such in the character's JSON.
+
+        CHARACTER HOME SCREEN:
+            Two-Handed items that get equipped, then un-equipped don't clear the two-handed state of a paired limb set, preventing two-handed items from being equipped there again.
         */
     }
 }

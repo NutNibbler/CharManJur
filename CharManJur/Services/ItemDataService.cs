@@ -939,7 +939,15 @@ public class ItemDataService : IItemDataService
             query = query.Where(i => i.Category == criteria.Category);
 
         if (criteria.AllowedCategories != null && criteria.AllowedCategories.Any())
+        {
+            // Filter by any of the allowed categories
             query = query.Where(i => i.Category.HasValue && criteria.AllowedCategories.Contains(i.Category.Value));
+        }
+        // Also handle single category
+        else if (criteria.Category != null)
+        {
+            query = query.Where(i => i.Category == criteria.Category);
+        }
 
         // === EXACT ITEMS ===
         if (criteria.SpecificItemIds != null && criteria.SpecificItemIds.Any())
