@@ -3,10 +3,15 @@ using CharManJur.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 public class FamiliarDataService : IFamiliarDataService
 {
+    private readonly ICustomFamiliarStorageService _customFamiliarStorage;
+    private readonly SemaphoreSlim _loadLock = new(1, 1);
+    private bool _customFamiliarsLoaded = false;
+
     private readonly List<Familiar> _familiars = new()
     {
         new Familiar
@@ -79,25 +84,58 @@ public class FamiliarDataService : IFamiliarDataService
         }
     };
 
-    public Task<List<Familiar>> GetAllFamiliarsAsync()
+    public FamiliarDataService(ICustomFamiliarStorageService customFamiliarStorage)
     {
-        return Task.FromResult(_familiars);
+        _customFamiliarStorage = customFamiliarStorage;
     }
 
-    public Task<Familiar?> GetFamiliarByIdAsync(int id)
+    private async Task EnsureCustomFamiliarsLoadedAsync()
     {
-        var result = _familiars.FirstOrDefault(f => f.Id == id);
-        return Task.FromResult(result);
+        if (_customFamiliarsLoaded) return;
+
+        await _loadLock.WaitAsync();
+        try
+        {
+            if (_customFamiliarsLoaded) return; // double-check after acquiring the lock
+
+            var customFamiliars = await _customFamiliarStorage.LoadCustomFamiliarsAsync();
+            foreach (var familiar in customFamiliars)
+            {
+                if (!_familiars.Any(f => f.Id == familiar.Id))
+                {
+                    _familiars.Add(familiar);
+                }
+            }
+            _customFamiliarsLoaded = true;
+        }
+        finally
+        {
+            _loadLock.Release();
+        }
     }
 
-    public Task<List<Familiar>> QueryFamiliarsAsync(FamiliarQueryCriteria criteria)
+    public async Task<List<Familiar>> GetAllFamiliarsAsync()
     {
+        await EnsureCustomFamiliarsLoadedAsync();
+        return _familiars;
+    }
+
+    public async Task<Familiar?> GetFamiliarByIdAsync(int id)
+    {
+        await EnsureCustomFamiliarsLoadedAsync();
+        return _familiars.FirstOrDefault(f => f.Id == id);
+    }
+
+    public async Task<List<Familiar>> QueryFamiliarsAsync(FamiliarQueryCriteria criteria)
+    {
+        await EnsureCustomFamiliarsLoadedAsync();
+
         var query = _familiars.AsQueryable();
 
         if (criteria.SpecificFamiliarIds != null && criteria.SpecificFamiliarIds.Any())
         {
             query = query.Where(f => criteria.SpecificFamiliarIds.Contains(f.Id));
-            return Task.FromResult(query.ToList());
+            return query.ToList();
         }
 
         if (!string.IsNullOrEmpty(criteria.Species))
@@ -152,7 +190,6 @@ public class FamiliarDataService : IFamiliarDataService
             }
             else
             {
-                // Fallback: try parsing with exact match for debugging
                 System.Diagnostics.Debug.WriteLine($"Failed to parse Intelligence: {criteria.Intelligence}");
             }
         }
@@ -185,18 +222,14 @@ public class FamiliarDataService : IFamiliarDataService
 
         var result = query.ToList();
         System.Diagnostics.Debug.WriteLine($"QueryFamiliarsAsync: Found {result.Count} familiars");
-        return Task.FromResult(result);
+        return result;
     }
 
-    public Task<Familiar> CreateCustomFamiliarAsync(CreateCustomFamiliarRequest request)
+    public async Task<Familiar> CreateCustomFamiliarAsync(CreateCustomFamiliarRequest request)
     {
-        var maxCustomId = _familiars
-            .Where(f => f.IsPlayerCreated)
-            .Select(f => f.Id)
-            .DefaultIfEmpty(99000)
-            .Max();
+        await EnsureCustomFamiliarsLoadedAsync();
 
-        int newId = Math.Max(maxCustomId + 1, 99001);
+        int newId = await _customFamiliarStorage.GetNextCustomFamiliarIdAsync();
 
         var newFamiliar = new Familiar
         {
@@ -220,25 +253,43 @@ public class FamiliarDataService : IFamiliarDataService
         };
 
         _familiars.Add(newFamiliar);
-        return Task.FromResult(newFamiliar);
+        await _customFamiliarStorage.SaveCustomFamiliarAsync(newFamiliar);   // NEW — actually persist it
+
+        return newFamiliar;
     }
 
-    public Task<bool> UpdateFamiliarAsync(Familiar familiar)
+    public async Task<bool> UpdateFamiliarAsync(Familiar familiar)
     {
+        await EnsureCustomFamiliarsLoadedAsync();
+
         var existing = _familiars.FirstOrDefault(f => f.Id == familiar.Id);
-        if (existing == null) return Task.FromResult(false);
+        if (existing == null) return false;
 
         var index = _familiars.IndexOf(existing);
         _familiars[index] = familiar;
-        return Task.FromResult(true);
+
+        if (familiar.IsPlayerCreated)
+        {
+            await _customFamiliarStorage.SaveCustomFamiliarAsync(familiar);   // NEW — persist edits too
+        }
+
+        return true;
     }
 
-    public Task<bool> DeleteFamiliarAsync(int id)
+    public async Task<bool> DeleteFamiliarAsync(int id)
     {
+        await EnsureCustomFamiliarsLoadedAsync();
+
         var familiar = _familiars.FirstOrDefault(f => f.Id == id);
-        if (familiar == null) return Task.FromResult(false);
+        if (familiar == null) return false;
 
         _familiars.Remove(familiar);
-        return Task.FromResult(true);
+
+        if (familiar.IsPlayerCreated)
+        {
+            await _customFamiliarStorage.DeleteCustomFamiliarAsync(id);   // NEW — persist deletion too
+        }
+
+        return true;
     }
 }

@@ -290,7 +290,7 @@
                                         <!-- ===== NO CHECKBOX, SINGLE SELECTION BY TAP ===== -->
                                         <CollectionView ItemsSource="{Binding Options}"
                                             HeightRequest="120"
-                                            SelectionMode="None">
+                                            SelectionMode="Single">
                                             <CollectionView.ItemTemplate>
                                                 <DataTemplate>
                                                     <Grid Padding="3">

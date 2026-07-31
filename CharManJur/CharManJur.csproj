@@ -116,6 +116,9 @@
 	  <MauiXaml Update="Views\Godrick_CustomBackgroundCreator.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Views\Godrick_CustomHinderanceCreator.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\Godrick_CustomRaceCreator.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

@@ -1,5 +1,6 @@
 ﻿using CharManJur.Models;
 using CharManJur.Services;
+using CharManJur.Views;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -195,6 +196,7 @@ public class HinderanceSelectionViewModel : INotifyPropertyChanged
     public ICommand SelectStatToIncreaseCommand { get; }
     public ICommand ConfirmHinderanceCommand { get; }
     public ICommand SkipHinderanceCommand { get; }
+    public ICommand CreateCustomHinderanceCommand { get; }
 
     public HinderanceSelectionViewModel(
         IHinderanceDataService hinderanceDataService,
@@ -211,9 +213,21 @@ public class HinderanceSelectionViewModel : INotifyPropertyChanged
         SelectStatToIncreaseCommand = new Command<string>(stat => SelectedStat = stat);
         ConfirmHinderanceCommand = new Command(async () => await ConfirmHinderanceAsync());
         SkipHinderanceCommand = new Command(async () => await SkipHinderanceAsync());
+        CreateCustomHinderanceCommand = new Command(async () => await CreateCustomHinderanceAsync());
 
         LoadStats();
         Task.Run(LoadHinderancesAsync);
+    }
+
+    private async Task CreateCustomHinderanceAsync()
+    {
+        var creatorPage = new Godrick_CustomHinderanceCreator(_hinderanceDataService);
+        await Shell.Current.Navigation.PushModalAsync(creatorPage);
+    }
+
+    public async Task RefreshHinderancesAsync()
+    {
+        await LoadHinderancesAsync();
     }
 
     private void LoadStats()

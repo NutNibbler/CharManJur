@@ -35,7 +35,15 @@ namespace CharManJur
             builder.Services.AddTransient<LoadCharacterViewModel>();
             builder.Services.AddSingleton<IBackgroundDataService, BackgroundDataService>();
             builder.Services.AddSingleton<IItemDataService, ItemDataService>();
+
+            //CUSTOM HINDERANCE REGISTERS
+            builder.Services.AddSingleton<ICustomHinderanceStorageService, CustomHinderanceStorageService>();
+            builder.Services.AddTransient<CustomHinderanceBuilderViewModel>();
+
+            //CUSTOM FAMILIAR REGISTERS
             builder.Services.AddSingleton<IFamiliarDataService, FamiliarDataService>();
+            builder.Services.AddSingleton<ICustomFamiliarStorageService, CustomFamiliarStorageService>();
+
             builder.Services.AddTransient<BackgroundSelectionViewModel>();
             builder.Services.AddSingleton<ICustomItemStorageService, CustomItemStorageService>();
             builder.Services.AddSingleton<CharacterHomeViewModel>();

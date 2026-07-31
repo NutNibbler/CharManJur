@@ -1,12 +1,17 @@
 ﻿using CharManJur.Models;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CharManJur.Services;
 
 public class HinderanceDataService : IHinderanceDataService
 {
+    private readonly ICustomHinderanceStorageService _customHinderanceStorage;
+    private readonly SemaphoreSlim _loadLock = new(1, 1);
+    private bool _customHinderancesLoaded = false;
+
     private readonly List<Hinderance> _hinderances = new()
     {
         new Hinderance
@@ -158,17 +163,106 @@ public class HinderanceDataService : IHinderanceDataService
             Name = "Liar",
             Description = "You lie about everything. In fact, you can’t find a way to tell the truth. Help."
         }
-
     };
 
-    public Task<List<Hinderance>> GetHinderancesAsync()
+    public HinderanceDataService(ICustomHinderanceStorageService customHinderanceStorage)
     {
-        return Task.FromResult(_hinderances);
+        _customHinderanceStorage = customHinderanceStorage;
     }
 
-    public Task<Hinderance?> GetHinderanceByIdAsync(int id)
+    private async Task EnsureCustomHinderancesLoadedAsync()
     {
-        var result = _hinderances.FirstOrDefault(h => h.Id == id);
-        return Task.FromResult(result);
+        if (_customHinderancesLoaded) return;
+
+        await _loadLock.WaitAsync();
+        try
+        {
+            if (_customHinderancesLoaded) return;
+
+            var customHinderances = await _customHinderanceStorage.LoadCustomHinderancesAsync();
+            foreach (var hinderance in customHinderances)
+            {
+                if (!_hinderances.Any(h => h.Id == hinderance.Id))
+                {
+                    _hinderances.Add(hinderance);
+                }
+            }
+            _customHinderancesLoaded = true;
+        }
+        finally
+        {
+            _loadLock.Release();
+        }
+    }
+
+    public async Task<List<Hinderance>> GetHinderancesAsync()
+    {
+        await EnsureCustomHinderancesLoadedAsync();
+        return _hinderances;
+    }
+
+    public async Task<Hinderance?> GetHinderanceByIdAsync(int id)
+    {
+        await EnsureCustomHinderancesLoadedAsync();
+        return _hinderances.FirstOrDefault(h => h.Id == id);
+    }
+
+    public async Task<Hinderance> CreateCustomHinderanceAsync(CreateCustomHinderanceRequest request)
+    {
+        await EnsureCustomHinderancesLoadedAsync();
+
+        int newId = await _customHinderanceStorage.GetNextCustomHinderanceIdAsync();
+
+        var newHinderance = new Hinderance
+        {
+            Id = newId,
+            Name = request.Name,
+            Description = request.Description,
+            VigorModifier = request.VigorModifier,
+            AgilityModifier = request.AgilityModifier,
+            MindModifier = request.MindModifier,
+            SpiritModifier = request.SpiritModifier,
+            SkillModifiers = request.SkillModifiers ?? new List<HinderanceSkillModifier>()
+        };
+
+        _hinderances.Add(newHinderance);
+        await _customHinderanceStorage.SaveCustomHinderanceAsync(newHinderance);
+
+        return newHinderance;
+    }
+
+    public async Task<bool> UpdateHinderanceAsync(Hinderance hinderance)
+    {
+        await EnsureCustomHinderancesLoadedAsync();
+
+        var existing = _hinderances.FirstOrDefault(h => h.Id == hinderance.Id);
+        if (existing == null) return false;
+
+        var index = _hinderances.IndexOf(existing);
+        _hinderances[index] = hinderance;
+
+        if (hinderance.Id >= 70001)
+        {
+            await _customHinderanceStorage.SaveCustomHinderanceAsync(hinderance);
+        }
+
+        return true;
+    }
+
+    public async Task<bool> DeleteHinderanceAsync(int id)
+    {
+        await EnsureCustomHinderancesLoadedAsync();
+
+        var hinderance = _hinderances.FirstOrDefault(h => h.Id == id);
+        if (hinderance == null) return false;
+
+        _hinderances.Remove(hinderance);
+
+        if (id >= 70001)
+        {
+            await _customHinderanceStorage.DeleteCustomHinderanceAsync(id);
+        }
+
+        return true;
     }
 }

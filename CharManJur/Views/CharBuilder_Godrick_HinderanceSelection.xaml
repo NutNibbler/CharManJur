@@ -187,9 +187,18 @@
         </Grid>
 
         <!-- Footer Buttons -->
-        <Grid Grid.Row="2" ColumnDefinitions="*, Auto, Auto, Auto" ColumnSpacing="10">
+        <Grid Grid.Row="2" ColumnDefinitions="Auto, *, Auto, Auto, Auto" ColumnSpacing="10">
 
             <Button Grid.Column="0"
+                    Text="+ Create Custom"
+                    BackgroundColor="#9b59b6"
+                    TextColor="White"
+                    FontSize="14"
+                    CornerRadius="8"
+                    HeightRequest="45"
+                    Command="{Binding CreateCustomHinderanceCommand}" />
+            
+            <Button Grid.Column="1"
                     Text="Skip (No Hinderance)"
                     BackgroundColor="#95a5a6"
                     TextColor="White"
@@ -198,7 +207,7 @@
                     HeightRequest="45"
                     Command="{Binding SkipHinderanceCommand}" />
 
-            <Button Grid.Column="1"
+            <Button Grid.Column="2"
                     Text="← Back"
                     BackgroundColor="{AppThemeBinding Light=#95a5a6, Dark=#7f8c8d}"
                     TextColor="White"
@@ -208,7 +217,7 @@
                     WidthRequest="80"
                     Clicked="OnBackClicked" />
 
-            <Button Grid.Column="2"
+            <Button Grid.Column="3"
                     Text="Cancel"
                     BackgroundColor="#e74c3c"
                     TextColor="White"
@@ -218,7 +227,7 @@
                     WidthRequest="80"
                     Clicked="OnCancelClicked" />
 
-            <Button Grid.Column="3"
+            <Button Grid.Column="4"
                     Text="✅ Confirm"
                     BackgroundColor="#2ecc71"
                     TextColor="White"

@@ -22,17 +22,23 @@ public partial class CharBuilder_Godrick_HinderanceSelection : ContentPage
         BindingContext = _viewModel;
     }
 
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
 
         if (_globalMenuDataService.NeedsUIReset == true)
         {
-            // Reset selection if needed
             _viewModel.SelectedHinderance = null;
             _viewModel.SelectedRewardType = HinderanceRewardType.None;
             _viewModel.SelectedStat = null;
             _globalMenuDataService.NeedsUIReset = false;
+        }
+
+        bool refreshNeeded = Preferences.Default.Get("RefreshHinderances", false);
+        if (refreshNeeded)
+        {
+            await _viewModel.RefreshHinderancesAsync();
+            Preferences.Default.Set("RefreshHinderances", false);
         }
     }
 

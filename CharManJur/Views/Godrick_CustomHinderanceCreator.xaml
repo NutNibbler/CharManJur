@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CharManJur.Views.Godrick_CustomHinderanceCreator"
+             Shell.NavBarIsVisible="False"
+             Title="Custom Hinderance Creator">
+
+    <ContentPage.Resources>
+        <Style x:Key="StepperButtonStyle" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="#34495e"/>
+            <Setter Property="TextColor" Value="White"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontAttributes" Value="Bold"/>
+            <Setter Property="WidthRequest" Value="30"/>
+            <Setter Property="HeightRequest" Value="30"/>
+        </Style>
+        <Style x:Key="RemoveButtonStyle" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="#e74c3c"/>
+            <Setter Property="TextColor" Value="White"/>
+            <Setter Property="CornerRadius" Value="15"/>
+            <Setter Property="WidthRequest" Value="30"/>
+            <Setter Property="HeightRequest" Value="30"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontAttributes" Value="Bold"/>
+        </Style>
+        <Style x:Key="SectionHeaderStyle" TargetType="Label">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontAttributes" Value="Bold"/>
+            <Setter Property="TextColor" Value="#e74c3c"/>
+            <Setter Property="Margin" Value="0,10,0,5"/>
+        </Style>
+        <Style x:Key="FieldLabelStyle" TargetType="Label">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="TextColor" Value="#ecf0f1"/>
+            <Setter Property="Margin" Value="0,5"/>
+        </Style>
+        <Style x:Key="EntryStyle" TargetType="Entry">
+            <Setter Property="BackgroundColor" Value="#2c3e50"/>
+            <Setter Property="TextColor" Value="#ecf0f1"/>
+            <Setter Property="PlaceholderColor" Value="#7f8c8d"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        <Style x:Key="EditorStyle" TargetType="Editor">
+            <Setter Property="BackgroundColor" Value="#2c3e50"/>
+            <Setter Property="TextColor" Value="#ecf0f1"/>
+            <Setter Property="PlaceholderColor" Value="#7f8c8d"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="HeightRequest" Value="80"/>
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*">
+        <Border Grid.Row="0" BackgroundColor="#1a1a2e" Padding="10,5">
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+                <Label Grid.Column="0" Text="{Binding PageTitle}" FontSize="28" FontAttributes="Bold" TextColor="#e74c3c" VerticalTextAlignment="Center"/>
+                <Button Grid.Column="1" Text="Cancel" BackgroundColor="#7f8c8d" TextColor="White" CornerRadius="8" HeightRequest="40" WidthRequest="100" Command="{Binding CancelCommand}"/>
+                <Button Grid.Column="2" Text="{Binding SaveButtonText}" BackgroundColor="#e74c3c" TextColor="White" CornerRadius="8" HeightRequest="40" WidthRequest="160" IsEnabled="{Binding CanSave}" Command="{Binding SaveHinderanceCommand}"/>
+            </Grid>
+        </Border>
+
+        <ScrollView Grid.Row="1" Padding="10">
+            <VerticalStackLayout Spacing="5">
+
+                <Label Text="Basic Information" Style="{StaticResource SectionHeaderStyle}"/>
+                <Label Text="Hinderance Name*" Style="{StaticResource FieldLabelStyle}"/>
+                <Entry Text="{Binding Name}" Placeholder="Enter hinderance name..." Style="{StaticResource EntryStyle}"/>
+
+                <Label Text="Description" Style="{StaticResource FieldLabelStyle}"/>
+                <Editor Text="{Binding Description}" Placeholder="Describe this hinderance..." Style="{StaticResource EditorStyle}" HeightRequest="80"/>
+
+                <BoxView Color="#e74c3c" HeightRequest="2" Margin="5"/>
+                <Label Text="Ability Score Modifiers" Style="{StaticResource SectionHeaderStyle}"/>
+
+                <Grid ColumnDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="5">
+                    <Border Grid.Column="0" Padding="3" StrokeThickness="2" Stroke="Red" StrokeShape="RoundRectangle 4">
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="2">
+                            <Label Grid.Column="0" Text="Vigor" FontAttributes="Bold" TextColor="Red" FontSize="16" VerticalOptions="Center" HorizontalTextAlignment="Center" WidthRequest="60"/>
+                            <Entry Grid.Column="1" Text="{Binding VigorModifier}" Keyboard="Numeric" FontSize="16" Style="{StaticResource EntryStyle}"/>
+                            <Button Grid.Column="2" Text="−" Style="{StaticResource StepperButtonStyle}" Command="{Binding DecrementVigorCommand}"/>
+                            <Button Grid.Column="3" Text="+" Style="{StaticResource StepperButtonStyle}" Command="{Binding IncrementVigorCommand}"/>
+                        </Grid>
+                    </Border>
+                    <Border Grid.Column="1" Padding="3" StrokeThickness="2" Stroke="Green" StrokeShape="RoundRectangle 4">
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="2">
+                            <Label Grid.Column="0" Text="Agility" FontAttributes="Bold" TextColor="Green" FontSize="16" VerticalOptions="Center" HorizontalTextAlignment="Center" WidthRequest="60"/>
+                            <Entry Grid.Column="1" Text="{Binding AgilityModifier}" Keyboard="Numeric" FontSize="16" Style="{StaticResource EntryStyle}"/>
+                            <Button Grid.Column="2" Text="−" Style="{StaticResource StepperButtonStyle}" Command="{Binding DecrementAgilityCommand}"/>
+                            <Button Grid.Column="3" Text="+" Style="{StaticResource StepperButtonStyle}" Command="{Binding IncrementAgilityCommand}"/>
+                        </Grid>
+                    </Border>
+                    <Border Grid.Column="2" Padding="3" StrokeThickness="2" Stroke="Orange" StrokeShape="RoundRectangle 4">
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="2">
+                            <Label Grid.Column="0" Text="Mind" FontAttributes="Bold" TextColor="Orange" FontSize="16" VerticalOptions="Center" HorizontalTextAlignment="Center" WidthRequest="60"/>
+                            <Entry Grid.Column="1" Text="{Binding MindModifier}" Keyboard="Numeric" FontSize="16" Style="{StaticResource EntryStyle}"/>
+                            <Button Grid.Column="2" Text="−" Style="{StaticResource StepperButtonStyle}" Command="{Binding DecrementMindCommand}"/>
+                            <Button Grid.Column="3" Text="+" Style="{StaticResource StepperButtonStyle}" Command="{Binding IncrementMindCommand}"/>
+                        </Grid>
+                    </Border>
+                    <Border Grid.Column="3" Padding="3" StrokeThickness="2" Stroke="Aqua" StrokeShape="RoundRectangle 4">
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="2">
+                            <Label Grid.Column="0" Text="Spirit" FontAttributes="Bold" TextColor="Aqua" FontSize="16" VerticalOptions="Center" HorizontalTextAlignment="Center" WidthRequest="60"/>
+                            <Entry Grid.Column="1" Text="{Binding SpiritModifier}" Keyboard="Numeric" FontSize="16" Style="{StaticResource EntryStyle}"/>
+                            <Button Grid.Column="2" Text="−" Style="{StaticResource StepperButtonStyle}" Command="{Binding DecrementSpiritCommand}"/>
+                            <Button Grid.Column="3" Text="+" Style="{StaticResource StepperButtonStyle}" Command="{Binding IncrementSpiritCommand}"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+
+                <BoxView Color="#e74c3c" HeightRequest="2" Margin="5"/>
+                <Label Text="Skill Modifiers" Style="{StaticResource SectionHeaderStyle}"/>
+                <Grid ColumnDefinitions="150,Auto,Auto,Auto,Auto" ColumnSpacing="5">
+                    <Picker Grid.Column="0" ItemsSource="{Binding PredefinedSkills}" SelectedItem="{Binding SelectedSkillName}" Title="Select Skill..." BackgroundColor="#2c3e50" TextColor="#ecf0f1"/>
+                    <Entry Grid.Column="1" Text="{Binding SelectedSkillModifierAmount}" Keyboard="Numeric" WidthRequest="60" FontSize="20" HorizontalTextAlignment="Center" Style="{StaticResource EntryStyle}"/>
+                    <Button Grid.Column="2" Text="−" Style="{StaticResource StepperButtonStyle}" Command="{Binding DecrementSkillModifierCommand}"/>
+                    <Button Grid.Column="3" Text="+" Style="{StaticResource StepperButtonStyle}" Command="{Binding IncrementSkillModifierCommand}"/>
+                    <Button Grid.Column="4" Text="Add" Command="{Binding AddSkillModifierCommand}" IsEnabled="{Binding CanAddSkillModifier}" BackgroundColor="#e74c3c" TextColor="White" CornerRadius="8" HeightRequest="40"/>
+                </Grid>
+
+                <CollectionView ItemsSource="{Binding SkillModifiers}" HeightRequest="100">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid ColumnDefinitions="*,Auto" Padding="5" BackgroundColor="#2c3e50" Margin="0,2">
+                                <Label Grid.Column="0" TextColor="#ecf0f1" VerticalTextAlignment="Center">
+                                    <Label.Text>
+                                        <MultiBinding StringFormat="{}{0} {1}">
+                                            <Binding Path="SkillName"/>
+                                            <Binding Path="Modifier"/>
+                                        </MultiBinding>
+                                    </Label.Text>
+                                </Label>
+                                <Button Grid.Column="1" Text="✕" Style="{StaticResource RemoveButtonStyle}" Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.RemoveSkillModifierCommand}" CommandParameter="{Binding}"/>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <Label Text="* Required fields" FontSize="12" TextColor="#7f8c8d" Margin="0,10"/>
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>
