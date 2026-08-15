@@ -107,7 +107,7 @@ public class LoadCharacterViewModel : INotifyPropertyChanged
         if (saveData != null)
         {
             _charDataService.PopulateFromSaveData(saveData);
-            _globalMenuDataService.CharBuilderResetRequest();
+            _globalMenuDataService.CharBuilderLoadRequest();
             _globalMenuDataService.SetCharacterCreationMode(true);
 
             if (saveData.IsComplete)
@@ -117,25 +117,9 @@ public class LoadCharacterViewModel : INotifyPropertyChanged
             }
             else
             {
-                // Determine where to resume (incomplete character)
-                string resumePage = "///CreateNewCharacter";
-
-                if (!string.IsNullOrEmpty(_charDataService.CharacterName) &&
-                    !string.IsNullOrEmpty(_charDataService.PlayerName) &&
-                    !string.IsNullOrEmpty(_charDataService.CampaignType))
-                {
-                    resumePage = "///CharacterBuilderHome";
-                }
-
-                if (!string.IsNullOrEmpty(_charDataService.CharacterRace))
-                {
-                    resumePage = "///CharBuilder_Godrick_KinSelection";
-                }
-
-                if (!string.IsNullOrEmpty(_charDataService.CharacterClassName))
-                {
-                    resumePage = "///CharBuilder_Godrick_ClassSelection";
-                }
+                string resumePage = !string.IsNullOrEmpty(saveData.CurrentPage)
+                    ? saveData.CurrentPage
+                    : "///CharacterBuilderHome";
 
                 await Shell.Current.GoToAsync(resumePage);
             }

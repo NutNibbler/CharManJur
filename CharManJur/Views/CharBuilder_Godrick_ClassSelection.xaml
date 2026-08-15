@@ -104,12 +104,15 @@
                     <BoxView HeightRequest="2" Color="#3498db" />
 
                     <!-- Recurring Benefit-->
-                    <Grid RowDefinitions="Auto,*" Padding="3">
+                    <Grid RowDefinitions="Auto,*,*" Padding="3">
                         <Label Grid.Row="0" Grid.Column="0" Text="Recurring Benefit"
                                FontSize="16"
                                FontAttributes="Bold"
                                TextColor="DeepSkyBlue" />
                         <Label Grid.Row="1" Grid.Column="0" Text="{Binding SelectedClassRecurringBenefit}"
+                               FontSize="13"
+                               TextColor="White" />
+                        <Label Grid.Row="2" Grid.Column="0" Text="{Binding SelectedClassHitpointsBenefit}"
                                FontSize="13"
                                TextColor="White" />
                     </Grid>
@@ -189,12 +192,12 @@
                                         <CollectionView.ItemTemplate>
                                             <DataTemplate>
                                                 <Border Stroke="#444444"
-                                        StrokeThickness="0.5"
-                                        StrokeShape="RoundRectangle 4"
-                                        Padding="8,6"
-                                        Margin="4,2">
+                                                    StrokeThickness="0.5"
+                                                    StrokeShape="RoundRectangle 4"
+                                                    Padding="8,6"
+                                                    Margin="4,2">
                                                     <Grid ColumnDefinitions="0.15*, 0.25*, 0.60*"
-                                          ColumnSpacing="5">
+                                                        ColumnSpacing="5">
 
                                                         <!-- PD -->
                                                         <Label Grid.Column="0"
@@ -236,9 +239,10 @@
 
                     <!-- Features List (Sub-selection) -->
                     <Label Text="Class Features"
-                           FontAttributes="Bold"
-                           FontSize="14"
-                           IsVisible="{Binding HasFeatures}" />
+                            FontSize="16"
+                            FontAttributes="Bold"
+                            TextColor="DeepSkyBlue"
+                            IsVisible="{Binding HasFeatures}" />
 
                     <CollectionView x:Name="FeaturesCollectionView"
                                     ItemsSource="{Binding SelectedClassFeatures}"
@@ -298,9 +302,10 @@
                              IsVisible="{Binding HasAnyUnlockableTypes}" />
 
                     <Label Text="Unlock Sub-Features"
-                           FontAttributes="Bold"
-                           FontSize="13"
-                           IsVisible="{Binding HasAnyUnlockableTypes}" />
+                            FontSize="16"
+                            FontAttributes="Bold"
+                            TextColor="DeepSkyBlue"
+                            IsVisible="{Binding HasAnyUnlockableTypes}" />
 
                     <Grid RowDefinitions="Auto"
                           ColumnDefinitions="*, *"

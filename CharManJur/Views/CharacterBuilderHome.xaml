@@ -91,7 +91,7 @@
                         <Grid RowDefinitions="Auto" ColumnDefinitions="60,*,70">
                             <Label Grid.Column="0" Text="🛡️" FontSize="36" HorizontalOptions="Center" VerticalTextAlignment="Center" HeightRequest="40"/>
                             <Label Grid.Column="1" Text="Hit Protection" FontSize="16" HorizontalOptions="Center" VerticalTextAlignment="Center" HeightRequest="40" ToolTipProperties.Text="Hit Protection is the barrier between your Vigor health and incoming damage, more on this later."/>
-                            <Entry Grid.Column="2" TextColor="Black" BackgroundColor="Silver" FontSize="36" HorizontalTextAlignment="Center" x:Name="entryStatHp" Keyboard="Numeric" TextChanged="OnHpChanged"/>
+                            <Label Grid.Column="2" x:Name="lblHitProtection" TextColor="Black" BackgroundColor="Silver" FontSize="36" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" Text="1"/>
                         </Grid>
                     </Border>
                     <Border Grid.Row="0" Grid.Column="1">

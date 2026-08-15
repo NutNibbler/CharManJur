@@ -178,7 +178,7 @@ public interface ICharAttribDataService
     int? StatAgility { get; set; }
     int? StatMind { get; set; }
     int? StatSpirit { get; set; }
-    int? Hitpoints { get; set; }
+    int Hitpoints { get; }
     int ASMStatVigor { get; set; }
     int ASMStatAgility { get; set; }
     int ASMStatMind { get; set; }
@@ -881,7 +881,21 @@ public class CharAttribDataService : ICharAttribDataService
     public int? StatAgility { get; set; }
     public int? StatMind { get; set; }
     public int? StatSpirit { get; set; }
-    public int? Hitpoints { get; set; }
+
+    // Godrick patch 08/07/2026: HP is now static — 1 base + Class's flat bonus + Vigor Bonus.
+    // Never reduced by a negative Vigor Bonus.
+    public int HitpointsAdjustment { get; set; } = 0;
+
+    public int Hitpoints
+    {
+        get
+        {
+            int classBonus = GetSelectedClass()?.HitProtectionBonus ?? 0;
+            int vigorContribution = Math.Max(TotalASMStatVigor, 0);
+            return 1 + classBonus + vigorContribution + HitpointsAdjustment;
+        }
+    }
+
     public int ASMStatVigor { get; set; }
     public int ASMStatAgility { get; set; }
     public int ASMStatMind { get; set; }
@@ -2162,7 +2176,6 @@ public class CharAttribDataService : ICharAttribDataService
         StatAgility = saveData.Data.StatAgility;
         StatMind = saveData.Data.StatMind;
         StatSpirit = saveData.Data.StatSpirit;
-        Hitpoints = saveData.Data.Hitpoints;
         ASMStatVigor = saveData.Data.ASMStatVigor;
         ASMStatAgility = saveData.Data.ASMStatAgility;
         ASMStatMind = saveData.Data.ASMStatMind;
@@ -2294,7 +2307,6 @@ public class CharAttribDataService : ICharAttribDataService
         StatAgility = null;
         StatMind = null;
         StatSpirit = null;
-        Hitpoints = null;
         ASMStatVigor = 0;
         ASMStatAgility = 0;
         ASMStatMind = 0;

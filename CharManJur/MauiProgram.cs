@@ -38,7 +38,7 @@ namespace CharManJur
 
             //CUSTOM HINDERANCE REGISTERS
             builder.Services.AddSingleton<ICustomHinderanceStorageService, CustomHinderanceStorageService>();
-            builder.Services.AddTransient<CustomHinderanceBuilderViewModel>();
+            builder.Services.AddTransient<Godrick_CustomHinderanceCreator>();
 
             //CUSTOM FAMILIAR REGISTERS
             builder.Services.AddSingleton<IFamiliarDataService, FamiliarDataService>();

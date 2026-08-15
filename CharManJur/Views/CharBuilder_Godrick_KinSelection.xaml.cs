@@ -7,6 +7,8 @@ namespace CharManJur.Views;
 
 public partial class CharBuilder_Godrick_KinSelection : ContentPage
 {
+    private const string ThisPageRoute = "///CharBuilder_Godrick_KinSelection";
+
     private readonly ICharAttribDataService _charDataService;
     private readonly IGlobalMenuDataService _globalMenuDataService;
     private readonly ICharacterPersistenceService _persistenceService;
@@ -91,7 +93,7 @@ public partial class CharBuilder_Godrick_KinSelection : ContentPage
 
     private async void OnSaveForLaterClicked(object sender, EventArgs e)
     {
-        _charDataService.SetCurrentPage("///CharBuilder_Godrick_KinSelection");
+        _charDataService.SetCurrentPage(ThisPageRoute);
 
         string playerName = string.IsNullOrEmpty(_charDataService.PlayerName)
             ? "UnknownPlayer"

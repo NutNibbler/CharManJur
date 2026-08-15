@@ -269,21 +269,7 @@ public partial class Godrick_Training_Popup : ContentPage
 
     private async void OnBackClicked(object sender, EventArgs e)
     {
-        bool confirm = await DisplayAlertAsync(
-            "Save Changes?",
-            "Do you want to save your training point allocations before going back?",
-            "Yes, Save",
-            "No, Discard");
-
-        if (confirm)
-        {
-            await _viewModel.SaveCharacterAsync();
-            await Shell.Current.GoToAsync("///CharBuilder_Godrick_BackgroundSelection");
-        }
-        else
-        {
-            await Shell.Current.GoToAsync("///CharBuilder_Godrick_BackgroundSelection");
-        }
+        await Shell.Current.GoToAsync("///CharBuilder_Godrick_HinderanceSelection");
     }
 
     private async void OnConfirmClicked(object sender, EventArgs e)

@@ -100,6 +100,7 @@ public class ClassSelectionViewModel : INotifyPropertyChanged
                 OnPropertyChanged(nameof(SelectedClassFeatures));
                 OnPropertyChanged(nameof(SelectedClassLevelingSkillBonus));
                 OnPropertyChanged(nameof(SelectedClassRecurringBenefit));
+                OnPropertyChanged(nameof(SelectedClassHitpointsBenefit));
 
                 // Update unlockable types
                 UpdateAvailableUnlockTypes();
@@ -145,8 +146,10 @@ public class ClassSelectionViewModel : INotifyPropertyChanged
     public bool HasSelectedClass => SelectedClass != null;
     public string SelectedClassName => SelectedClass?.ClassName ?? "Select a Class";
     public string SelectedClassDescription => SelectedClass?.Description ?? "Description will appear here, if it exists";
-    public string SelectedClassLevelingSkillBonus => SelectedClass?.LevelingSkillBonus ?? "No leveling bonus available";
+    public string SelectedClassLevelingSkillBonus => SelectedClass?.LevelingSkillBonus ?? "No allocation requirement";
     public string SelectedClassRecurringBenefit => SelectedClass?.RecurringBenefit ?? "No recurring benefit available";
+
+    public string SelectedClassHitpointsBenefit => "Hitpoints Bonus: " + (SelectedClass?.HitProtectionBonus.ToString() ?? "No Hitpoints bonus available.");
 
     private ObservableCollection<ClassFeature> _selectedClassFeatures = new();
     public ObservableCollection<ClassFeature> SelectedClassFeatures
@@ -197,7 +200,7 @@ public class ClassSelectionViewModel : INotifyPropertyChanged
         // Reset sub-feature selection status when class/feature changes
         if (IsSubFeatureRequired)
         {
-            HasSelectedSubFeature = false;
+            CheckSubFeatureSelection();
         }
 
         // Update button state

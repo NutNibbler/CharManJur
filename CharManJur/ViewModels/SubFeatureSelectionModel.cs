@@ -13,15 +13,13 @@ public class SelectableItem<T> : INotifyPropertyChanged
     private bool _isSelected;
     private T _item = default!;
     private string _displayName = string.Empty;
+    private string _description = string.Empty;
+    private string _detailLine = string.Empty;
 
     public T Item
     {
         get => _item;
-        set
-        {
-            _item = value;
-            OnPropertyChanged();
-        }
+        set { _item = value; OnPropertyChanged(); }
     }
 
     public bool IsSelected
@@ -33,7 +31,6 @@ public class SelectableItem<T> : INotifyPropertyChanged
             {
                 _isSelected = value;
                 OnPropertyChanged();
-                // Notify the parent ViewModel to re-evaluate HasAnySelected
                 OnSelectionChanged?.Invoke(this, EventArgs.Empty);
             }
         }
@@ -42,12 +39,36 @@ public class SelectableItem<T> : INotifyPropertyChanged
     public string DisplayName
     {
         get => _displayName;
+        set { _displayName = value; OnPropertyChanged(); }
+    }
+
+    public string Description
+    {
+        get => _description;
         set
         {
-            _displayName = value;
+            _description = value;
             OnPropertyChanged();
+            OnPropertyChanged(nameof(HasDescription));
         }
     }
+
+    public bool HasDescription => !string.IsNullOrWhiteSpace(Description);
+
+    // Type-specific extra info: Blueprint cost, Spell dice/range, etc.
+    // Empty for types (Quip, Technique) that have nothing extra to show.
+    public string DetailLine
+    {
+        get => _detailLine;
+        set
+        {
+            _detailLine = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(HasDetailLine));
+        }
+    }
+
+    public bool HasDetailLine => !string.IsNullOrWhiteSpace(DetailLine);
 
     public event EventHandler? OnSelectionChanged;
 
@@ -198,7 +219,9 @@ public class SubFeatureSelectionViewModel : INotifyPropertyChanged
                     {
                         Item = item,
                         IsSelected = false,
-                        DisplayName = GetDisplayName(item)
+                        DisplayName = GetDisplayName(item),
+                        Description = GetDescription(item),   // NEW
+                        DetailLine = GetDetailLine(item)       // NEW
                     };
                     // Subscribe to selection changed event
                     selectable.OnSelectionChanged += OnItemSelectionChanged;
@@ -231,6 +254,38 @@ public class SubFeatureSelectionViewModel : INotifyPropertyChanged
             Technique t => t.TechniqueName,
             _ => "Unknown"
         };
+    }
+
+    private string GetDescription(object item)
+    {
+        return item switch
+        {
+            Blueprint b => b.BlueprintDescription,
+            Quip q => q.QuipDescription ?? string.Empty,
+            Spell s => s.SpellDescription ?? string.Empty,
+            Technique t => t.TechniqueDescription,
+            _ => string.Empty
+        };
+    }
+
+    private string GetDetailLine(object item)
+    {
+        return item switch
+        {
+            Blueprint b => $"Cost: {b.BlueprintCost}",
+            Spell s => BuildSpellDetailLine(s),
+            Technique t => string.Empty,
+            Quip q => string.Empty,
+            _ => string.Empty
+        };
+    }
+
+    private string BuildSpellDetailLine(Spell s)
+    {
+        var parts = new List<string>();
+        if (!string.IsNullOrWhiteSpace(s.SpellDice)) parts.Add($"Dice: {s.SpellDice}");
+        if (!string.IsNullOrWhiteSpace(s.SpellRange)) parts.Add($"Range: {s.SpellRange}");
+        return string.Join("   ", parts);
     }
 
     private void OnConfirmSelection()

@@ -37,24 +37,37 @@
                     <DataTemplate>
                         <Grid Padding="5,3">
                             <Border Stroke="#4fc3f7"
-                                    StrokeThickness="1"
-                                    StrokeShape="RoundRectangle 8"
-                                    Padding="10"
-                                    BackgroundColor="{Binding IsSelected, Converter={StaticResource SelectedBackgroundConverter}}">
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 8"
+                                Padding="10"
+                                BackgroundColor="{Binding IsSelected, Converter={StaticResource SelectedBackgroundConverter}}">
                                 <Grid ColumnDefinitions="Auto, *">
                                     <!-- Checkbox -->
                                     <CheckBox Grid.Column="0"
-                                              IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                              VerticalOptions="Center"
-                                              Color="#4fc3f7" />
-                                    <!-- Item Name -->
-                                    <Label Grid.Column="1"
-                                           Text="{Binding DisplayName}"
-                                           FontSize="14"
+                                          IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                          VerticalOptions="Start"
+                                          Margin="0,4,0,0"
+                                          Color="#4fc3f7" />
+
+                                    <!-- Name / Description / Detail Line -->
+                                    <VerticalStackLayout Grid.Column="1" Spacing="4" Margin="10,0,0,0">
+                                        <Label Text="{Binding DisplayName}"
+                                           FontSize="16"
                                            FontAttributes="Bold"
-                                           TextColor="White"
-                                           VerticalOptions="Center"
-                                           Margin="10,0,0,0" />
+                                           TextColor="White" />
+
+                                        <Label Text="{Binding Description}"
+                                           FontSize="13"
+                                           TextColor="#cccccc"
+                                           LineBreakMode="WordWrap"
+                                           IsVisible="{Binding HasDescription}" />
+
+                                        <Label Text="{Binding DetailLine}"
+                                           FontSize="12"
+                                           FontAttributes="Italic"
+                                           TextColor="#4fc3f7"
+                                           IsVisible="{Binding HasDetailLine}" />
+                                    </VerticalStackLayout>
                                 </Grid>
                             </Border>
                         </Grid>

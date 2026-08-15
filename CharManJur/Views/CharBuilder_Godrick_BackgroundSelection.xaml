@@ -333,7 +333,7 @@
         </ScrollView>
 
         <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
-              ColumnDefinitions="*, *, *, *"
+              ColumnDefinitions="*, *, *, *, *"
               ColumnSpacing="10"
               Margin="0,10,0,0">
 
@@ -352,8 +352,17 @@
                     CornerRadius="8"
                     HeightRequest="45"
                     Clicked="OnCharacterSummaryClicked" />
-
+            
             <Button Grid.Column="2"
+                    Text="💾 Save For Later"
+                    BackgroundColor="#f39c12"
+                    TextColor="White"
+                    CornerRadius="8"
+                    HeightRequest="40"
+                    FontSize="16"
+                    Clicked="OnSaveForLaterClicked" />
+
+            <Button Grid.Column="3"
                     Text="← Back"
                     BackgroundColor="{AppThemeBinding Light=#95a5a6, Dark=#7f8c8d}"
                     TextColor="White"
@@ -362,7 +371,7 @@
                     HeightRequest="45"
                     Clicked="OnBackClicked" />
 
-            <Button Grid.Column="3"
+            <Button Grid.Column="4"
                     Text="Cancel"
                     BackgroundColor="IndianRed"
                     TextColor="White"

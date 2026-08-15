@@ -163,6 +163,10 @@ public enum WeaponSpeedType
 
 public enum WeaponEffectType
 {
+    [Display(Name = "Range-Near", Description = "Can only effectively hit targets within NEAR range.")]
+    RangeNear,
+    [Display(Name = "Blast", Description = "PLACE-HOLDER DESC")]
+    Blast,
     [Display(Name = "Bleed V", Description = "Damage rolls of X or higher trigger an additional 1d4 VIG damage at the start of their next turn. This does not trigger a critical damage save. ")]
     BleedV,
     [Display(Name = "Bleed VI", Description = "Damage rolls of X or higher trigger an additional 1d4 VIG damage at the start of their next turn. This does not trigger a critical damage save. ")]
@@ -195,6 +199,8 @@ public enum WeaponEffectType
     PushVIII,
     [Display(Name = "Reload", Description = "Takes 1 full turn to reload.")]
     Reload,
+    [Display(Name = "Shock V", Description = "Damage rolls of X or higher trigger a VIG Save. Target loses their next turn if they fail. ")]
+    ShockV,
     [Display(Name = "Shock VI", Description = "Damage rolls of X or higher trigger a VIG Save. Target loses their next turn if they fail. ")]
     ShockVI,
     [Display(Name = "Shock VII", Description = "Damage rolls of X or higher trigger a VIG Save. Target loses their next turn if they fail. ")]
@@ -216,7 +222,9 @@ public enum WeaponEffectType
     [Display(Name = "Sweep VII", Description = "Damage rolls of X or higher grant 1 bonus attack on another target within reach. This effect doesn't chain with other abilities. ")]
     SweepVII,
     [Display(Name = "Sweep VIII", Description = "Damage rolls of X or higher grant 1 bonus attack on another target within reach. This effect doesn't chain with other abilities. ")]
-    SweepVIII
+    SweepVIII,
+    [Display(Name = "Reach", Description = "Can hit near targets.")]
+    Reach
 }
 
 public enum ArmorType

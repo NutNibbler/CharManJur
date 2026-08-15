@@ -52,7 +52,8 @@ public partial class CharacterBuilderHome : ContentPage
         entryStatAgility.Text = _charDataService.StatAgility?.ToString() ?? "";
         entryStatMind.Text = _charDataService.StatMind?.ToString() ?? "";
         entryStatSpirit.Text = _charDataService.StatSpirit?.ToString() ?? "";
-        entryStatHp.Text = _charDataService.Hitpoints?.ToString() ?? "";
+
+        lblHitProtection.Text = _charDataService.Hitpoints.ToString();
 
         // Load modifiers
         lblVigorModifier.Text = _charDataService.ASMStatVigor.ToString();
@@ -81,7 +82,7 @@ public partial class CharacterBuilderHome : ContentPage
             _globalMenuDataService.NeedsUIReset = false;
         }
 
-        lblGuidelinesBody.Text = "  -  To obtain your ability scores, roll three D6 and combine them, five times. Then, choose the four BEST rolls to be the ability scores of your choosing.\n       -  Example: You rolled 15, 12, 8, 10, 5. You may assign 4 of these numbers to any Ability score you desire.\n       -  Vigor: Relates to physical prowess and fortitude\n       -  Agility: Relates to physical speed and reaction time\n       -  Mind: Relates to knowledge and intellect\n       -  Spirit: Relates to willpower and sociability\n       -  Hover over each attribute to view a quick description.  -  Your ASM is your Ability Score Modifier, this will take part in adjusting rolls in-game.\n  -  To obtain your HIT PROTECTION(HP), roll one D6, then combine your Vigor ASM.\n       -  Hit Protection may be affected by classes and features, more on this later.\n  -  Remember: All stats can be adjusted after creating your character.";
+        lblGuidelinesBody.Text = "  -  To obtain your ability scores, roll three D6 and combine them, five times. Then, choose the four BEST rolls to be the ability scores of your choosing.\n       -  Example: You rolled 15, 12, 8, 10, 5. You may assign 4 of these numbers to any Ability score you desire.\n       -  Vigor: Relates to physical prowess and fortitude\n       -  Agility: Relates to physical speed and reaction time\n       -  Mind: Relates to knowledge and intellect\n       -  Spirit: Relates to willpower and sociability\n       -  Hover over each attribute to view a quick description.  -  Your ASM is your Ability Score Modifier, this will take part in adjusting rolls in-game.\n  -  Your Hitpoints are calculated based on your Vigor ASM, and other choices such as Class.\n       -  Hit Protection may be affected by classes and features, more on this later.\n  -  Remember: All stats can be adjusted after creating your character.";
     }
 
     private async void OnVigorChanged(object sender, EventArgs e)
@@ -125,6 +126,8 @@ public partial class CharacterBuilderHome : ContentPage
         _charDataService.StatVigor = vigorScore;
         _charDataService.ASMStatVigor = _charDataService.GetAbilityModifier(vigorScore);
         lblVigorModifier.Text = $"{_charDataService.ASMStatVigor}";
+        // Step 5: Update Hitpoints display
+        lblHitProtection.Text = _charDataService.Hitpoints.ToString();
     }
 
     private async void OnAgilityChanged(object sender, EventArgs e)
@@ -254,34 +257,6 @@ public partial class CharacterBuilderHome : ContentPage
         _charDataService.StatSpirit = spiritScore;
         _charDataService.ASMStatSpirit = _charDataService.GetAbilityModifier(spiritScore);
         lblSpiritModifier.Text = $"{_charDataService.ASMStatSpirit}";
-    }
-
-    private async void OnHpChanged(object send, EventArgs e)
-    {
-        // Step 1: Get the text from the entry
-        string inputText = entryStatHp.Text;
-
-        // Step 2: Validate and convert to integer
-        if (string.IsNullOrWhiteSpace(inputText))
-        {
-            // If empty, reset to default
-            _charDataService.Hitpoints = 1;
-            return;
-        }
-
-        if (!int.TryParse(inputText, out int Hitpoints))
-        {
-            // Invalid input - revert to previous valid value
-            // Option 1: Reset to default
-            entryStatHp.Text = "1";
-            _charDataService.Hitpoints = 1;
-
-            // Option 2: Show error message
-            await DisplayAlertAsync("Invalid Input", "Please enter a number.", "OK");
-            return;
-        }
-
-        _charDataService.Hitpoints = Hitpoints;
     }
 
     private async void OnBackClicked(object sender, EventArgs e)

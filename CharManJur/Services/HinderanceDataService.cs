@@ -222,7 +222,8 @@ public class HinderanceDataService : IHinderanceDataService
             AgilityModifier = request.AgilityModifier,
             MindModifier = request.MindModifier,
             SpiritModifier = request.SpiritModifier,
-            SkillModifiers = request.SkillModifiers ?? new List<HinderanceSkillModifier>()
+            SkillModifiers = request.SkillModifiers ?? new List<HinderanceSkillModifier>(),
+            IsPlayerCreated = true
         };
 
         _hinderances.Add(newHinderance);

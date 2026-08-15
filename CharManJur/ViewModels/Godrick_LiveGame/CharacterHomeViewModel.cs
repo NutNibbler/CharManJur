@@ -85,8 +85,8 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
     public string PlayerName => _charDataService.PlayerName;
     public string Languages => "Common";
 
-    public int CurrentHP => _charDataService.Hitpoints ?? 0;
-    public int MaxHP => _charDataService.Hitpoints ?? 0;
+    public int CurrentHP => _charDataService.Hitpoints;
+    public int MaxHP => _charDataService.Hitpoints;
 
     // ===== STAT PROPERTIES =====
     public int StatVigor => _charDataService.TotalStatVigor;

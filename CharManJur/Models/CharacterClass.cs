@@ -16,5 +16,6 @@ public class CharacterClass
     public List<SubFeatureType> ClassUnlockableTypes { get; set; } = new();
     public List<ClassFeature> Features { get; set; } = new();
     public string? ImageUrl { get; set; }  // Future use
-    public int HitProtectionBonus { get; set; }  // Example stat bonuses
+    public int HitProtectionBonus { get; set; }
+    public int FatigueBarBonus { get; set;  }
 }

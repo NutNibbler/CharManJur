@@ -93,8 +93,6 @@
                     <Grid ColumnDefinitions="Auto, *, Auto, *" ColumnSpacing="5">
                         <Label Grid.Column="0" Text="Class:" FontAttributes="Bold" FontSize="14" TextColor="DeepSkyBlue" />
                         <Label Grid.Column="1" x:Name="lblCharacterClassName" />
-                        <Label Grid.Column="2" Text="Level-Up Req:" FontAttributes="Bold" FontSize="14" TextColor="DeepSkyBlue" />
-                        <Label Grid.Column="3" x:Name="lblCharacterClassAbilityScoreBonus" />
                     </Grid>
 
                     <!-- Class Description and Feature -->
@@ -234,6 +232,40 @@
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>
+                </VerticalStackLayout>
+            </Border>
+
+            <BoxView HeightRequest="2" Color="#3498db" />
+
+            <!-- Languages -->
+            <Label Text="Languages"
+                   FontAttributes="Bold"
+                   FontSize="16"
+                   TextColor="DeepSkyBlue" />
+
+            <Border Stroke="DeepSkyBlue"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 8"
+                    Padding="10">
+                <Label x:Name="lblLanguages" LineBreakMode="WordWrap" />
+            </Border>
+
+            <BoxView HeightRequest="2" Color="#3498db" />
+
+            <!-- Hinderance -->
+            <Label Text="Hinderance"
+                   FontAttributes="Bold"
+                   FontSize="16"
+                   TextColor="#e74c3c" />
+
+            <Border Stroke="#e74c3c"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 8"
+                    Padding="10">
+                <VerticalStackLayout Spacing="5">
+                    <Label x:Name="lblHinderanceName" FontAttributes="Bold" />
+                    <Label x:Name="lblHinderanceDescription" LineBreakMode="WordWrap" />
+                    <Label x:Name="lblHinderanceReward" TextColor="#f39c12" />
                 </VerticalStackLayout>
             </Border>
 

@@ -46,13 +46,43 @@
                         <DataTemplate>
                             <Grid Padding="5">
                                 <Border Stroke="#e74c3c"
-                                        StrokeThickness="0.5"
-                                        StrokeShape="RoundRectangle 4"
-                                        Padding="10">
-                                    <Label Text="{Binding Name}"
+                                    StrokeThickness="0.5"
+                                    StrokeShape="RoundRectangle 4"
+                                    Padding="10">
+                                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="5">
+                                        <Label Grid.Column="0"
+                                           Text="{Binding Name}"
                                            FontSize="16"
                                            FontAttributes="Bold"
-                                           TextColor="White" />
+                                           TextColor="White"
+                                           VerticalTextAlignment="Center" />
+
+                                        <!-- Edit Button - Only visible for custom hinderances -->
+                                        <Button Grid.Column="1"
+                                            Text="✏️"
+                                            BackgroundColor="#3498db"
+                                            TextColor="White"
+                                            CornerRadius="15"
+                                            WidthRequest="35"
+                                            HeightRequest="35"
+                                            FontSize="12"
+                                            IsVisible="{Binding IsPlayerCreated}"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditCustomHinderanceCommand}"
+                                            CommandParameter="{Binding .}"/>
+
+                                        <!-- Delete Button - Only visible for custom hinderances -->
+                                        <Button Grid.Column="2"
+                                            Text="🗑️"
+                                            BackgroundColor="#e74c3c"
+                                            TextColor="White"
+                                            CornerRadius="15"
+                                            WidthRequest="35"
+                                            HeightRequest="35"
+                                            FontSize="12"
+                                            IsVisible="{Binding IsPlayerCreated}"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteCustomHinderanceCommand}"
+                                            CommandParameter="{Binding .}"/>
+                                    </Grid>
                                 </Border>
                             </Grid>
                         </DataTemplate>
@@ -187,7 +217,7 @@
         </Grid>
 
         <!-- Footer Buttons -->
-        <Grid Grid.Row="2" ColumnDefinitions="Auto, *, Auto, Auto, Auto" ColumnSpacing="10">
+        <Grid Grid.Row="2" ColumnDefinitions="Auto, 200, Auto, 100, 100, Auto" ColumnSpacing="10">
 
             <Button Grid.Column="0"
                     Text="+ Create Custom"
@@ -208,33 +238,40 @@
                     Command="{Binding SkipHinderanceCommand}" />
 
             <Button Grid.Column="2"
+                    Text="💾 Save For Later"
+                    BackgroundColor="#f39c12"
+                    TextColor="White"
+                    CornerRadius="8"
+                    HeightRequest="45"
+                    FontSize="14"
+                    Clicked="OnSaveForLaterClicked" />
+
+            <Button Grid.Column="3"
                     Text="← Back"
                     BackgroundColor="{AppThemeBinding Light=#95a5a6, Dark=#7f8c8d}"
                     TextColor="White"
                     FontSize="16"
                     CornerRadius="8"
                     HeightRequest="45"
-                    WidthRequest="80"
                     Clicked="OnBackClicked" />
 
-            <Button Grid.Column="3"
+            <Button Grid.Column="4"
                     Text="Cancel"
                     BackgroundColor="#e74c3c"
                     TextColor="White"
                     FontSize="16"
                     CornerRadius="8"
                     HeightRequest="45"
-                    WidthRequest="80"
                     Clicked="OnCancelClicked" />
 
-            <Button Grid.Column="4"
+            <Button Grid.Column="5"
                     Text="✅ Confirm"
                     BackgroundColor="#2ecc71"
                     TextColor="White"
                     FontSize="16"
                     CornerRadius="8"
                     HeightRequest="45"
-                    WidthRequest="80"
+                    WidthRequest="150"
                     FontAttributes="Bold"
                     Command="{Binding ConfirmHinderanceCommand}" />
 

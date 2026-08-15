@@ -9,6 +9,7 @@ public class Hinderance
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+    public bool IsPlayerCreated { get; set; } = false;
 
     // === ABILITY SCORE MODIFIERS ===
     public int VigorModifier { get; set; } = 0;

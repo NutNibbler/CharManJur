@@ -6,6 +6,11 @@ namespace CharManJur.Views;
 
 public partial class CharBuilder_Godrick_BackgroundSelection : ContentPage
 {
+    // Kept as a single named constant so Save For Later can't silently point at the
+    // wrong page again (this page's handler previously had ClassSelection's route
+    // hardcoded here, left over from copy-pasting the ClassSelection page's code).
+    private const string ThisPageRoute = "///CharBuilder_Godrick_BackgroundSelection";
+
     private readonly ICharAttribDataService _charDataService;
     private readonly IGlobalMenuDataService _globalMenuDataService;
     private readonly ICharacterPersistenceService _persistenceService;
@@ -61,6 +66,57 @@ public partial class CharBuilder_Godrick_BackgroundSelection : ContentPage
             _globalMenuDataService.CharBuilderResetRequest();
             _charDataService.ClearCharacterCreationData();
             await Shell.Current.GoToAsync("///MainPage");
+        }
+    }
+
+    private async void OnSaveForLaterClicked(object sender, EventArgs e)
+    {
+        _charDataService.SetCurrentPage(ThisPageRoute);
+
+        string playerName = string.IsNullOrEmpty(_charDataService.PlayerName)
+            ? "UnknownPlayer"
+            : _charDataService.PlayerName;
+
+        string characterName = string.IsNullOrEmpty(_charDataService.CharacterName)
+            ? "UnknownCharacter"
+            : _charDataService.CharacterName;
+
+        string fileName = await _persistenceService.GenerateFileName(playerName, characterName);
+
+        bool fileExists = await _persistenceService.CharacterExistsAsync(fileName);
+        if (fileExists)
+        {
+            bool overrideFile = await DisplayAlertAsync(
+                "File Exists",
+                $"A character save named '{fileName}' already exists. Override it?",
+                "Yes, Override",
+                "No, Cancel");
+
+            if (!overrideFile) return;
+        }
+
+        var saveData = _charDataService.CreateSaveData();
+        saveData.FileName = fileName;
+        saveData.LastSaved = DateTime.Now;
+        saveData.CurrentPage = _charDataService.CurrentPage;
+
+        bool success = await _persistenceService.SaveCharacterDataAsync(saveData);
+
+        if (success)
+        {
+            _charDataService.MarkCharacterSaved();
+            _charDataService.SaveFileName = fileName;
+
+            await DisplayAlertAsync("Character Saved!",
+                $"Your character '{characterName}' has been saved.\n" +
+                $"Save ID: {fileName}",
+                "OK");
+
+            await Shell.Current.GoToAsync("///MainPage");
+        }
+        else
+        {
+            await DisplayAlertAsync("Error", "Failed to save character. Please try again.", "OK");
         }
     }
 

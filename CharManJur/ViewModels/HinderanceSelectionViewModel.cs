@@ -197,6 +197,8 @@ public class HinderanceSelectionViewModel : INotifyPropertyChanged
     public ICommand ConfirmHinderanceCommand { get; }
     public ICommand SkipHinderanceCommand { get; }
     public ICommand CreateCustomHinderanceCommand { get; }
+    public ICommand EditCustomHinderanceCommand { get; }
+    public ICommand DeleteCustomHinderanceCommand { get; }
 
     public HinderanceSelectionViewModel(
         IHinderanceDataService hinderanceDataService,
@@ -214,6 +216,8 @@ public class HinderanceSelectionViewModel : INotifyPropertyChanged
         ConfirmHinderanceCommand = new Command(async () => await ConfirmHinderanceAsync());
         SkipHinderanceCommand = new Command(async () => await SkipHinderanceAsync());
         CreateCustomHinderanceCommand = new Command(async () => await CreateCustomHinderanceAsync());
+        EditCustomHinderanceCommand = new Command<Hinderance>(async (h) => await EditCustomHinderanceAsync(h));
+        DeleteCustomHinderanceCommand = new Command<Hinderance>(async (h) => await DeleteCustomHinderanceAsync(h));
 
         LoadStats();
         Task.Run(LoadHinderancesAsync);
@@ -221,8 +225,79 @@ public class HinderanceSelectionViewModel : INotifyPropertyChanged
 
     private async Task CreateCustomHinderanceAsync()
     {
-        var creatorPage = new Godrick_CustomHinderanceCreator(_hinderanceDataService);
-        await Shell.Current.Navigation.PushModalAsync(creatorPage);
+        await Shell.Current.GoToAsync("///Godrick_CustomHinderanceCreator");
+    }
+
+    public async Task EditCustomHinderanceAsync(Hinderance? hinderance)
+    {
+        if (hinderance == null) return;
+
+        if (!hinderance.IsPlayerCreated)
+        {
+            await Application.Current.MainPage.DisplayAlertAsync(
+                "Cannot Edit",
+                "Foundation hinderances cannot be edited.",
+                "OK");
+            return;
+        }
+
+        var navigationParameters = new Dictionary<string, object>
+    {
+        { "HinderanceToEdit", hinderance }
+    };
+        await Shell.Current.GoToAsync("///Godrick_CustomHinderanceCreator", navigationParameters);
+    }
+
+    public async Task DeleteCustomHinderanceAsync(Hinderance? hinderance)
+    {
+        if (hinderance == null) return;
+
+        if (!hinderance.IsPlayerCreated)
+        {
+            await Application.Current.MainPage.DisplayAlertAsync(
+                "Cannot Delete",
+                "Foundation hinderances cannot be deleted.",
+                "OK");
+            return;
+        }
+
+        var confirm = await Application.Current.MainPage.DisplayAlertAsync(
+            "Delete Custom Hinderance",
+            $"Are you sure you want to delete '{hinderance.Name}'? This action cannot be undone.",
+            "Yes, Delete",
+            "No, Cancel");
+
+        if (!confirm) return;
+
+        try
+        {
+            var customHinderanceStorage = Application.Current.Handler?.MauiContext?.Services?.GetService<ICustomHinderanceStorageService>();
+            if (customHinderanceStorage != null)
+            {
+                var deleted = await customHinderanceStorage.DeleteCustomHinderanceAsync(hinderance.Id);
+                if (deleted)
+                {
+                    Hinderances.Remove(hinderance);
+
+                    if (SelectedHinderance?.Id == hinderance.Id)
+                    {
+                        SelectedHinderance = null;
+                    }
+
+                    await Application.Current.MainPage.DisplayAlertAsync(
+                        "Success",
+                        $"Hinderance '{hinderance.Name}' has been deleted.",
+                        "OK");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            await Application.Current.MainPage.DisplayAlertAsync(
+                "Error",
+                $"Failed to delete hinderance: {ex.Message}",
+                "OK");
+        }
     }
 
     public async Task RefreshHinderancesAsync()

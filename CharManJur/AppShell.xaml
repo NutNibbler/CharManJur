@@ -80,6 +80,11 @@
         ContentTemplate="{DataTemplate views:Godrick_CustomBackgroundCreator}" 
         Route="Godrick_CustomBackgroundCreator" />
 
+    <ShellContent 
+    Title="CustomHinderanceCreator" 
+    ContentTemplate="{DataTemplate views:Godrick_CustomHinderanceCreator}" 
+    Route="Godrick_CustomHinderanceCreator" />
+
     <!-- Live Game Routes -->
     <ShellContent 
         Title="CharacterHomePage" 

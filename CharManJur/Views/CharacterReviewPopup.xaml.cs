@@ -1,3 +1,4 @@
+using CharManJur.Models;
 using CharManJur.Services;
 
 namespace CharManJur.Views;
@@ -43,9 +44,6 @@ public partial class CharacterReviewPopup : ContentPage
         lblCharacterClassFeatureName.Text = $"{_charDataService.CharacterClassFeatureName}";
         lblCharacterClassFeatureDescription.Text = $"{_charDataService.CharacterClassFeatureDescription}";
 
-        // ===== FIXED: Renamed property =====
-        lblCharacterClassAbilityScoreBonus.Text = $"{_charDataService.LevelUpAllocationRequirement}";
-
         // === NEW: Background Information ===
         lblBackgroundName.Text = $"Background: {_charDataService.SelectedBackgroundName}";
         lblBackgroundDescription.Text = _charDataService.SelectedBackgroundDescription;
@@ -55,6 +53,31 @@ public partial class CharacterReviewPopup : ContentPage
 
         // Skill Bonuses
         SkillBonusesCollectionView.ItemsSource = _charDataService.SelectedSkillBonuses;
+
+        // === NEW: Languages ===
+        lblLanguages.Text = (_charDataService.SelectedLanguages != null && _charDataService.SelectedLanguages.Any())
+            ? string.Join(", ", _charDataService.SelectedLanguages.Select(l => l.Name))
+            : "No languages selected";
+
+        // === NEW: Hinderance ===
+        if (_charDataService.SelectedHinderance != null)
+        {
+            lblHinderanceName.Text = _charDataService.SelectedHinderance.Name;
+            lblHinderanceDescription.Text = _charDataService.SelectedHinderance.Description;
+
+            lblHinderanceReward.Text = _charDataService.SelectedRewardType switch
+            {
+                HinderanceRewardType.StatBonus => $"Reward: +1 {_charDataService.RewardStatName}",
+                HinderanceRewardType.TrainingPoint => "Reward: +1 Training Point",
+                _ => "Reward: None selected"
+            };
+        }
+        else
+        {
+            lblHinderanceName.Text = "No Hinderance Selected";
+            lblHinderanceDescription.Text = string.Empty;
+            lblHinderanceReward.Text = string.Empty;
+        }
 
         // Sub-features are bound directly via BindingContext
     }

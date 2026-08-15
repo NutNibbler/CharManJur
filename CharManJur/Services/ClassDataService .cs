@@ -11,9 +11,10 @@ public class ClassDataService : IClassDataService
         {
             Id = 1,
             ClassName = "Warrior",
-            RecurringBenefit = "Roll TWICE for HP and select the BETTER result.\r\nChoose 1 ADDITIONAL weapon. Gain that weapon’s SKILL PROFICIENCY. \r\n",
+            RecurringBenefit = "Choose 1 ADDITIONAL weapon. Gain that weapon’s SKILL PROFICIENCY. \r\n",
             CompatibleCampaigns = {"Godrick", "Sandbox"},
             LevelingSkillBonus = "1 Vigor, 1 Any",
+            HitProtectionBonus = 3,
             Features = new List<ClassFeature>
             {
                 new ClassFeature
@@ -69,6 +70,12 @@ public class ClassDataService : IClassDataService
                     Id = 9,
                     Name = "Pack Mule",
                     Description = "Increase your pack capacity by 2 slots."
+                },
+                new ClassFeature
+                {
+                    Id = 31,
+                    Name = "Resourceful",
+                    Description = "Improvised weapons now have a 1D4 usage die. \r\nImprovised weapons now have a bonus weapon die."
                 }
             }
         },
@@ -79,13 +86,14 @@ public class ClassDataService : IClassDataService
             RecurringBenefit = "When you attack from SURPRISE or from STEALTH, raise your weapon damage die.\r\nAquire 2 TRAINING POINTS.\r\n",
             CompatibleCampaigns = {"Godrick", "Sandbox"},
             LevelingSkillBonus = "1 Agility, 1 Any",
+            HitProtectionBonus = 2,
             Features = new List<ClassFeature>
             {
                 new ClassFeature
                 {
                     Id = 10,
-                    Name = "Long Shot",
-                    Description = "Make ranged attacks with viable weapons at distant ranges with an Aim Check. The Target Number varies depending on how distant the target is."
+                    Name = "Guerrilla",
+                    Description = "When you attack from SURPRISE or from STEALTH, raise your weapon damage die."
                 },
                 new ClassFeature
                 {
@@ -145,6 +153,8 @@ public class ClassDataService : IClassDataService
             RecurringBenefit = "+1 MAGIC DIE (MD-1D6).\r\n+1 QUIP (see Quips in the List Section)",
             CompatibleCampaigns = {"Godrick", "Sandbox"},
             LevelingSkillBonus = "1 Mind, 1 Any",
+            HitProtectionBonus = 1,
+            FatigueBarBonus = 1,
             ClassUnlockableTypes = new List<SubFeatureType>
             {
                 SubFeatureType.Quip  // Arcanist always has access to Quips
@@ -181,6 +191,7 @@ public class ClassDataService : IClassDataService
             RecurringBenefit = "+1 SPIRIT DIE (SD-1D6). \r\n+2 FAVOUR\r\n",
             CompatibleCampaigns = {"Godrick", "Sandbox"},
             LevelingSkillBonus = "1 Spirit, 1 Any",
+            HitProtectionBonus = 2,
             Features = new List<ClassFeature>
             {
                 new ClassFeature
@@ -229,6 +240,7 @@ public class ClassDataService : IClassDataService
             RecurringBenefit = "+1 Construct",
             CompatibleCampaigns = {"Godrick", "Sandbox"},
             LevelingSkillBonus = "2 Mind",
+            HitProtectionBonus = 1,
             ClassUnlockableTypes = new List<SubFeatureType>
             {
                 SubFeatureType.Blueprint  // Artificer always has access to Blueprints
@@ -272,7 +284,8 @@ public class ClassDataService : IClassDataService
             Description = "Life near the Crucible has altered the collective genome… or it’s a gift from Frjor. Or both?\r\nMany shifters are hunted, whether by fear or for sport or simply to use. Shifting may come with a dose of healthy paranoia… \r\n \r\n Roll an amount of available PD to transform into a different creature. If a dice comes up 4-6, you gain 1 fatigue. \r\nTransforming takes a full turn when done in combat. You do not take damage on double values when transforming. \r\n\r\nRolling and Stability\r\nThe sum of your PD is your Stability. Whenever you take damage, decrease your Stability and make a Stability save. \r\nIf you fail your Stability save, your transformation duration runs out and you revert to your original form. \r\nThe same is true if your Stability is reduced to 0. Your stability returns to its rolled value if combat ends and you’re still an animal.\r\n\r\nWhat you transform into is determined by the traits you choose. What traits you choose are determined by the number of PD you invest:\r\n \r\n PD:    Traits:     Traits List:\r\n 1         2              PD 1\r\n 2         3              PD 1 & PD 2\r\n 3         4              PD 1 & PD 2 & PD 3\r\n 4         5              All Lists\r\n\r\nThe Default Form\r\nIn your new form, your default VIG and AGI are 10. Note that VIG is only used for feats of strength and such, as Stability is used when you take damage. Your SPI stays the same as your base form.\r\n\r\nYour VIG and AGI can be altered by picking certain traits. If you pick 2 traits that alter your attributes, consult the GM to determine the reasonable route forward. If you pick Large (VIG 16) and Strong (VIG 18), it makes sense to use the larger value. However, a combination such as Small (AGI 13, VIG 2) and Strong (VIG 18) would clash (and not really make sense), unless a somewhat plausible explanation for, say, a weightlifting mouse can be agreed upon. Stuart’s on tren, now. \r\n\r\nBy default, you transform into a creature of somewhat similar size and body mass to your base form, with no other notable features, traits or attacks, for a 10 minute duration. That means, without picking any traits, you could be a sheep, or a dog that isn’t very good at smelling or biting, or a pig, a llama, ostrich, etc..\r\n",
             RecurringBenefit = "+1 POLYMORPH DICE (PD-1D6)",
             CompatibleCampaigns = {"Godrick", "Sandbox"},
-            LevelingSkillBonus = "2 Spirit"
+            LevelingSkillBonus = "2 Spirit",
+            HitProtectionBonus = 2,
         }
     };
 
