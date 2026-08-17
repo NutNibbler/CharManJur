@@ -157,7 +157,7 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
         System.Diagnostics.Debug.WriteLine("=== Training points reset due to background change ===");
     }
 
-    private void RestoreSavedLanguages()
+    public void RestoreSavedLanguages()
     {
         if (_charDataService.SelectedLanguages == null || !_charDataService.SelectedLanguages.Any())
         {
@@ -181,6 +181,17 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(SelectedLanguagesDisplay));
 
         System.Diagnostics.Debug.WriteLine($"=== Restored {_charDataService.SelectedLanguages.Count} languages ===");
+    }
+
+    public void RestoreSelectedBackground()
+    {
+        if (string.IsNullOrEmpty(_charDataService.SelectedBackgroundName))
+        {
+            SelectedBackground = null;
+            return;
+        }
+
+        SelectedBackground = Backgrounds.FirstOrDefault(b => b.Name == _charDataService.SelectedBackgroundName);
     }
 
     private async Task ResolveItemDetails()

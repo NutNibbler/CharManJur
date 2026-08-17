@@ -25,6 +25,8 @@ public class ClassSelectionViewModel : INotifyPropertyChanged
     private bool _hasFeatures;
     private bool _isShifter;
 
+    public IEnumerable<ClassTrait> Traits => SelectedClass?.Traits ?? Enumerable.Empty<ClassTrait>();
+
     private List<SubFeatureType> _availableUnlockTypes = new();
 
     public bool HasFeatures
@@ -81,6 +83,8 @@ public class ClassSelectionViewModel : INotifyPropertyChanged
                 _selectedClass = value;
                 OnPropertyChanged();
 
+                IsShifter = _selectedClass != null && _selectedClass.ClassName == "Shifter";
+
                 RefreshSelectedClassFeatures();
                 
                 // Auto-select first feature when class changes
@@ -101,6 +105,7 @@ public class ClassSelectionViewModel : INotifyPropertyChanged
                 OnPropertyChanged(nameof(SelectedClassLevelingSkillBonus));
                 OnPropertyChanged(nameof(SelectedClassRecurringBenefit));
                 OnPropertyChanged(nameof(SelectedClassHitpointsBenefit));
+                OnPropertyChanged(nameof(Traits));
 
                 // Update unlockable types
                 UpdateAvailableUnlockTypes();
@@ -274,7 +279,7 @@ public class ClassSelectionViewModel : INotifyPropertyChanged
     public string SelectClassButtonText =>
         IsSubFeatureRequired && !HasSelectedSubFeature
             ? "Select Sub-Feature First"
-            : "Select This Class";
+            : "Confirm Class | Proceed to Background Selection";
 
     // === SELECTED SUB-FEATURE NAMES ===
     public string SelectedBlueprintNames =>

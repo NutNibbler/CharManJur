@@ -18,16 +18,10 @@
                FontAttributes="Bold"
                HorizontalOptions="Center"
                Margin="0,10,0,15"
-               TextColor="DeepSkyBlue" />
+               TextColor="{DynamicResource ThemeDetailBorderColor1}" />
 
         <ScrollView Grid.Row="1" Grid.Column="0">
             <VerticalStackLayout Spacing="5">
-                <Button Text="➕ Create Custom Background"
-                BackgroundColor="#2ecc71"
-                TextColor="White"
-                CornerRadius="8"
-                HeightRequest="45"
-                Command="{Binding CreateCustomBackgroundCommand}"/>
 
                 <CollectionView x:Name="BackgroundsCollectionView"
                         ItemsSource="{Binding Backgrounds}"
@@ -36,13 +30,13 @@
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
                             <Grid Padding="5" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="5">
-                                <Border Grid.Column="0" Stroke="DeepSkyBlue" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="12">
+                                <Border Grid.Column="0" Stroke="{DynamicResource ThemeDetailBorderColor1}" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="12">
                                     <Label Text="{Binding Name}" FontSize="16" FontAttributes="Bold" TextColor="White" VerticalTextAlignment="Center"/>
                                 </Border>
                                 <!-- Edit Button - Only for custom backgrounds -->
                                 <Button Grid.Column="1" 
                                 Text="✏️" 
-                                BackgroundColor="#3498db" 
+                                BackgroundColor="{DynamicResource ThemeDetailBorderColor1}" 
                                 TextColor="White" 
                                 CornerRadius="15" 
                                 WidthRequest="35" 
@@ -54,7 +48,7 @@
                                 <!-- Delete Button - Only for custom backgrounds -->
                                 <Button Grid.Column="2" 
                                 Text="🗑️" 
-                                BackgroundColor="#e74c3c" 
+                                BackgroundColor="{DynamicResource ThemeDangerButtonColor}" 
                                 TextColor="White" 
                                 CornerRadius="15" 
                                 WidthRequest="35" 
@@ -76,22 +70,22 @@
                 <Label Text="{Binding SelectedBackgroundName}"
                        FontSize="24"
                        FontAttributes="Bold"
-                       TextColor="DeepSkyBlue" />
+                       TextColor="{DynamicResource ThemeDetailBorderColor1}" />
 
-                <BoxView HeightRequest="2" Color="DeepSkyBlue" />
+                <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}" />
 
                 <Label Text="{Binding SelectedBackgroundDescription}"
                        FontSize="14"
                        LineBreakMode="WordWrap"
                        TextColor="White" />
 
-                <BoxView HeightRequest="2" Color="DeepSkyBlue" />
+                <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}" />
 
                 <VerticalStackLayout IsVisible="{Binding HasSelectedBackground}">
                     <Label Text="Stat Bonuses"
                            FontAttributes="Bold"
                            FontSize="16"
-                           TextColor="DeepSkyBlue" />
+                           TextColor="{DynamicResource ThemeDetailBorderColor1}" />
 
                     <Grid ColumnDefinitions="*, *" RowDefinitions="Auto,Auto" ColumnSpacing="10">
                         <Label Grid.Column="0" Grid.Row="0" Text="{Binding SelectedBackgroundVigorBonus}" FontSize="14" TextColor="White" />
@@ -100,23 +94,23 @@
                         <Label Grid.Column="1" Grid.Row="1" Text="{Binding SelectedBackgroundSpiritBonus}" FontSize="14" TextColor="White" />
                     </Grid>
 
-                    <BoxView HeightRequest="2" Color="DeepSkyBlue" Margin="5"/>
+                    <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}" Margin="5"/>
 
                     <Label Text="Skill Bonuses"
                            FontAttributes="Bold"
                            FontSize="14"
-                           TextColor="DeepSkyBlue" />
+                           TextColor="{DynamicResource ThemeDetailBorderColor1}" />
                     <Label Text="{Binding SelectedBackgroundSkillBonuses}"
                            FontSize="13"
                            LineBreakMode="WordWrap"
                            TextColor="White" />
 
-                    <BoxView HeightRequest="2" Color="DeepSkyBlue" Margin="5"/>
+                    <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}" Margin="5"/>
 
                     <Label Text="Starting Items"
                            FontAttributes="Bold"
                            FontSize="14"
-                           TextColor="DeepSkyBlue" />
+                           TextColor="{DynamicResource ThemeDetailBorderColor1}" />
                     <CollectionView ItemsSource="{Binding SelectedBackgroundStartingItems}"
                                     HeightRequest="120">
                         <CollectionView.ItemTemplate>
@@ -161,7 +155,7 @@
                                         </VerticalStackLayout>
                                         <Button Grid.Column="1"
                                                 Text="✕"
-                                                BackgroundColor="#e74c3c"
+                                                BackgroundColor="{DynamicResource ThemeDangerButtonColor}"
                                                 TextColor="White"
                                                 CornerRadius="10"
                                                 WidthRequest="30"
@@ -177,19 +171,19 @@
                         </CollectionView.ItemTemplate>
                     </CollectionView>
 
-                    <BoxView HeightRequest="2" Color="DeepSkyBlue"/>
+                    <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}"/>
 
                     <!-- Item Choices -->
                     <Label Text="Item Choices"
                        FontAttributes="Bold"
                        FontSize="14"
-                       TextColor="DeepSkyBlue"
+                       TextColor="{DynamicResource ThemeDetailBorderColor1}"
                        IsVisible="{Binding ItemChoiceDisplays.Any}" />
 
                     <VerticalStackLayout BindableLayout.ItemsSource="{Binding ItemChoiceDisplays}" Spacing="10" Padding="5">
                         <BindableLayout.ItemTemplate>
                             <DataTemplate>
-                                <Border Stroke="#3498db" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10">
+                                <Border Stroke="{DynamicResource ThemeDetailBorderColor1}" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10">
                                     <VerticalStackLayout Spacing="5">
                                         <Label Text="{Binding Choice.Prompt}" FontAttributes="Bold" FontSize="14" TextColor="#4fc3f7" />
                                         <Label Text="{Binding Choice.Description}" FontSize="12" TextColor="#aaaaaa" IsVisible="{Binding Choice.Description}" />
@@ -204,7 +198,7 @@
                                                 </DataTemplate>
                                             </CollectionView.ItemTemplate>
                                         </CollectionView>
-                                        <Button Text="+ Create Custom Item" BackgroundColor="#27ae60" TextColor="White" CornerRadius="8" HeightRequest="35" FontSize="12" 
+                                        <Button Text="+ Create Custom Item" BackgroundColor="{DynamicResource ThemeCreateButtonColor}" TextColor="White" CornerRadius="8" HeightRequest="35" FontSize="12" 
                                             Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:BackgroundSelectionViewModel}}, Path=CreateCustomItemCommand}" 
                                             CommandParameter="{Binding Choice}" />
                                     </VerticalStackLayout>
@@ -213,13 +207,13 @@
                         </BindableLayout.ItemTemplate>
                     </VerticalStackLayout>
 
-                    <BoxView HeightRequest="2" Color="DeepSkyBlue"/>
+                    <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}"/>
 
                     <!-- Language Choices -->
                     <Label Text="Languages"
                            FontAttributes="Bold"
                            FontSize="14"
-                           TextColor="DeepSkyBlue"
+                           TextColor="{DynamicResource ThemeDetailBorderColor1}"
                            Padding="5"/>
 
                     <CollectionView ItemsSource="{Binding LanguageDisplays}"
@@ -259,13 +253,13 @@
                         </CollectionView.ItemTemplate>
                     </CollectionView>
 
-                    <BoxView HeightRequest="2" Color="DeepSkyBlue" Margin="5" />
+                    <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}" Margin="5" />
 
                     <!-- Familiar Choices -->
                     <Label Text="Familiar Choices"
                        FontAttributes="Bold"
                        FontSize="14"
-                       TextColor="#9b59b6"
+                       TextColor="{DynamicResource ThemeDetailBorderColor2}"
                        IsVisible="{Binding HasFamiliarChoices}" />
 
                     <VerticalStackLayout BindableLayout.ItemsSource="{Binding FamiliarChoiceDisplays}"
@@ -273,7 +267,7 @@
                          IsVisible="{Binding HasFamiliarChoices}">
                         <BindableLayout.ItemTemplate>
                             <DataTemplate>
-                                <Border Stroke="#9b59b6"
+                                <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
                                     StrokeThickness="1"
                                     StrokeShape="RoundRectangle 8"
                                     Padding="10">
@@ -281,7 +275,7 @@
                                         <Label Text="{Binding Choice.Prompt}"
                                            FontAttributes="Bold"
                                            FontSize="14"
-                                           TextColor="#9b59b6" />
+                                           TextColor="{DynamicResource ThemeDetailBorderColor2}" />
                                         <Label Text="{Binding Choice.Description}"
                                            FontSize="12"
                                            TextColor="#aaaaaa"
@@ -315,7 +309,7 @@
                                         </CollectionView>
 
                                         <Button Text="+ Create Custom Familiar"
-                                            BackgroundColor="#9b59b6"
+                                            BackgroundColor="{DynamicResource ThemeCreateButtonColor}"
                                             TextColor="White"
                                             CornerRadius="8"
                                             HeightRequest="35"
@@ -333,52 +327,68 @@
         </ScrollView>
 
         <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
-              ColumnDefinitions="*, *, *, *, *"
-              ColumnSpacing="10"
+              ColumnDefinitions="*, *, *, *, *, *"
+              ColumnSpacing="3"
               Margin="0,10,0,0">
 
             <Button Grid.Column="0"
-                Text="Confirm"
-                BackgroundColor="{Binding CanConfirmBackground, Converter={StaticResource ConfirmButtonColorConverter}}"
+                Text="Next: Hinderance Selection"
                 TextColor="White"
                 CornerRadius="8"
                 HeightRequest="45"
-                Command="{Binding ConfirmBackgroundCommand}" />
+                Command="{Binding ConfirmBackgroundCommand}">
+                <Button.Triggers>
+                    <DataTrigger TargetType="Button" Binding="{Binding CanConfirmBackground}" Value="True">
+                        <Setter Property="BackgroundColor" Value="{DynamicResource ThemeConfirmButtonColor}"/>
+                    </DataTrigger>
+                    <DataTrigger TargetType="Button" Binding="{Binding CanConfirmBackground}" Value="False">
+                        <Setter Property="BackgroundColor" Value="{DynamicResource ThemeNeutralButtonColor}"/>
+                    </DataTrigger>
+                </Button.Triggers>
+            </Button>
 
-            <Button Grid.Column="1"
+            <Button Grid.Column="4"
                     Text="📋 Summary"
-                    BackgroundColor="Aqua"
+                    BackgroundColor="{DynamicResource ThemeSummaryButtonColor}"
                     TextColor="Black"
                     CornerRadius="8"
                     HeightRequest="45"
                     Clicked="OnCharacterSummaryClicked" />
-            
-            <Button Grid.Column="2"
+
+            <Button Grid.Column="3"
                     Text="💾 Save For Later"
-                    BackgroundColor="#f39c12"
+                    BackgroundColor="{DynamicResource ThemeWarningButtonColor}"
                     TextColor="White"
                     CornerRadius="8"
                     HeightRequest="40"
                     FontSize="16"
                     Clicked="OnSaveForLaterClicked" />
 
-            <Button Grid.Column="3"
+            <Button Grid.Column="1"
                     Text="← Back"
-                    BackgroundColor="{AppThemeBinding Light=#95a5a6, Dark=#7f8c8d}"
+                    BackgroundColor="{DynamicResource ThemeNeutralButtonColor}"
                     TextColor="White"
                     FontSize="16"
                     CornerRadius="8"
                     HeightRequest="45"
                     Clicked="OnBackClicked" />
 
-            <Button Grid.Column="4"
+            <Button Grid.Column="2"
                     Text="Cancel"
-                    BackgroundColor="IndianRed"
+                    BackgroundColor="{DynamicResource ThemeDangerButtonColor}"
                     TextColor="White"
                     FontSize="16"
                     CornerRadius="8"
                     HeightRequest="45"
                     Clicked="OnCancelClicked" />
+
+            <Button Grid.Column="5"
+                Text="Create Custom Background"
+                    BackgroundColor="{DynamicResource ThemeCreateButtonColor}"
+                    TextColor="White"
+                    CornerRadius="8"
+                    HeightRequest="45"
+                    Command="{Binding CreateCustomBackgroundCommand}"/>
 
         </Grid>
 

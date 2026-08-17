@@ -51,8 +51,6 @@ public partial class MainPage : ContentPage
 
     private async void OnSettingsClicked(object sender, EventArgs e)
     {
-        await DisplayAlertAsync("Settings",
-            "App settings will go here.",
-            "OK");
+        await Shell.Current.GoToAsync("///SettingsPage");
     }
 }

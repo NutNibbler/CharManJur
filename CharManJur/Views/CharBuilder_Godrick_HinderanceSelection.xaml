@@ -44,7 +44,7 @@
                                 SelectionMode="Single">
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
-                            <Grid Padding="5">
+                            <Grid Padding="10">
                                 <Border Stroke="#e74c3c"
                                     StrokeThickness="0.5"
                                     StrokeShape="RoundRectangle 4"
@@ -217,9 +217,9 @@
         </Grid>
 
         <!-- Footer Buttons -->
-        <Grid Grid.Row="2" ColumnDefinitions="Auto, 200, Auto, 100, 100, Auto" ColumnSpacing="10">
+        <Grid Grid.Row="2" ColumnDefinitions="*, *, *, *, *, *" ColumnSpacing="3">
 
-            <Button Grid.Column="0"
+            <Button Grid.Column="5"
                     Text="+ Create Custom"
                     BackgroundColor="#9b59b6"
                     TextColor="White"
@@ -237,7 +237,7 @@
                     HeightRequest="45"
                     Command="{Binding SkipHinderanceCommand}" />
 
-            <Button Grid.Column="2"
+            <Button Grid.Column="4"
                     Text="💾 Save For Later"
                     BackgroundColor="#f39c12"
                     TextColor="White"
@@ -246,7 +246,7 @@
                     FontSize="14"
                     Clicked="OnSaveForLaterClicked" />
 
-            <Button Grid.Column="3"
+            <Button Grid.Column="2"
                     Text="← Back"
                     BackgroundColor="{AppThemeBinding Light=#95a5a6, Dark=#7f8c8d}"
                     TextColor="White"
@@ -255,7 +255,7 @@
                     HeightRequest="45"
                     Clicked="OnBackClicked" />
 
-            <Button Grid.Column="4"
+            <Button Grid.Column="3"
                     Text="Cancel"
                     BackgroundColor="#e74c3c"
                     TextColor="White"
@@ -264,14 +264,13 @@
                     HeightRequest="45"
                     Clicked="OnCancelClicked" />
 
-            <Button Grid.Column="5"
-                    Text="✅ Confirm"
+            <Button Grid.Column="0"
+                    Text="Next: Training"
                     BackgroundColor="#2ecc71"
                     TextColor="White"
                     FontSize="16"
                     CornerRadius="8"
                     HeightRequest="45"
-                    WidthRequest="150"
                     FontAttributes="Bold"
                     Command="{Binding ConfirmHinderanceCommand}" />
 

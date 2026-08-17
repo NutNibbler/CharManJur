@@ -320,13 +320,7 @@ public class HinderanceSelectionViewModel : INotifyPropertyChanged
             var hinderances = await _hinderanceDataService.GetHinderancesAsync();
             Hinderances = new ObservableCollection<Hinderance>(hinderances);
 
-            // Restore selected hinderance from service if exists
-            if (_charDataService.SelectedHinderance != null)
-            {
-                SelectedHinderance = Hinderances.FirstOrDefault(h => h.Id == _charDataService.SelectedHinderance.Id);
-                SelectedRewardType = _charDataService.SelectedRewardType;
-                SelectedStat = _charDataService.RewardStatName;
-            }
+            RestoreSelectedHinderance();
         }
         catch (Exception ex)
         {
@@ -335,6 +329,22 @@ public class HinderanceSelectionViewModel : INotifyPropertyChanged
         finally
         {
             IsLoading = false;
+        }
+    }
+
+    public void RestoreSelectedHinderance()
+    {
+        if (_charDataService.SelectedHinderance != null)
+        {
+            SelectedHinderance = Hinderances.FirstOrDefault(h => h.Id == _charDataService.SelectedHinderance.Id);
+            SelectedRewardType = _charDataService.SelectedRewardType;
+            SelectedStat = _charDataService.RewardStatName;
+        }
+        else
+        {
+            SelectedHinderance = null;
+            SelectedRewardType = HinderanceRewardType.None;
+            SelectedStat = null;
         }
     }
 

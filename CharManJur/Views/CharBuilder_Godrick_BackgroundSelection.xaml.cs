@@ -34,7 +34,9 @@ public partial class CharBuilder_Godrick_BackgroundSelection : ContentPage
     {
         base.OnAppearing();
 
-        // Check if we need to refresh using Preferences
+        _viewModel.RestoreSelectedBackground();
+        _viewModel.RestoreSavedLanguages();
+
         bool refreshNeeded = Preferences.Default.Get("RefreshBackgrounds", false);
         if (refreshNeeded)
         {

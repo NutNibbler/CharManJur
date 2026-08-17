@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CharManJur.Views.ColorPickerPopup"
+             Shell.NavBarIsVisible="False"
+             Title="Choose a Color">
+
+    <VerticalStackLayout Padding="20" Spacing="15" VerticalOptions="Center">
+
+        <Label x:Name="lblColorName" FontSize="24" FontAttributes="Bold" HorizontalOptions="Center"/>
+
+        <Border StrokeThickness="2" Stroke="Black" HeightRequest="80" HorizontalOptions="Fill">
+            <BoxView x:Name="previewSwatch" />
+        </Border>
+
+        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+            <Button Grid.Column="0"
+                x:Name="btnCopy"
+                Text="📋 Copy"
+                FontSize="13"
+                BackgroundColor="{DynamicResource ThemeSummaryButtonColor}"
+                TextColor="Black"
+                CornerRadius="6"
+                HeightRequest="38"
+                Clicked="OnCopyClicked"/>
+            <Button Grid.Column="1"
+                x:Name="btnPaste"
+                Text="📥 Paste"
+                FontSize="13"
+                BackgroundColor="{DynamicResource ThemeWarningButtonColor}"
+                TextColor="White"
+                CornerRadius="6"
+                HeightRequest="38"
+                Clicked="OnPasteClicked"/>
+        </Grid>
+
+        <Label x:Name="lblHexPreview" FontSize="16" HorizontalOptions="Center" TextColor="Gray"/>
+
+        <Grid ColumnDefinitions="30,*,50" RowDefinitions="Auto,Auto,Auto" RowSpacing="10">
+            <Label Grid.Row="0" Grid.Column="0" Text="R" TextColor="Red" FontAttributes="Bold" VerticalTextAlignment="Center"/>
+            <Slider Grid.Row="0" Grid.Column="1" x:Name="sliderR" Minimum="0" Maximum="255" ValueChanged="OnSliderChanged"/>
+            <Label Grid.Row="0" Grid.Column="2" x:Name="lblR" Text="0" VerticalTextAlignment="Center" HorizontalTextAlignment="End"/>
+
+            <Label Grid.Row="1" Grid.Column="0" Text="G" TextColor="Green" FontAttributes="Bold" VerticalTextAlignment="Center"/>
+            <Slider Grid.Row="1" Grid.Column="1" x:Name="sliderG" Minimum="0" Maximum="255" ValueChanged="OnSliderChanged"/>
+            <Label Grid.Row="1" Grid.Column="2" x:Name="lblG" Text="0" VerticalTextAlignment="Center" HorizontalTextAlignment="End"/>
+
+            <Label Grid.Row="2" Grid.Column="0" Text="B" TextColor="Blue" FontAttributes="Bold" VerticalTextAlignment="Center"/>
+            <Slider Grid.Row="2" Grid.Column="1" x:Name="sliderB" Minimum="0" Maximum="255" ValueChanged="OnSliderChanged"/>
+            <Label Grid.Row="2" Grid.Column="2" x:Name="lblB" Text="0" VerticalTextAlignment="Center" HorizontalTextAlignment="End"/>
+        </Grid>
+
+        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+            <Button Grid.Column="0"
+                    Text="Cancel"
+                    BackgroundColor="{DynamicResource ThemeNeutralButtonColor}"
+                    TextColor="White"
+                    CornerRadius="8"
+                    HeightRequest="45"
+                    Clicked="OnCancelClicked"/>
+            <Button Grid.Column="1"
+                    Text="Apply"
+                    BackgroundColor="{DynamicResource ThemeConfirmButtonColor}"
+                    TextColor="White"
+                    CornerRadius="8"
+                    HeightRequest="45"
+                    Clicked="OnApplyClicked"/>
+        </Grid>
+
+    </VerticalStackLayout>
+</ContentPage>

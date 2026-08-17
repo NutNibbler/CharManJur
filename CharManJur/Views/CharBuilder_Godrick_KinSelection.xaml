@@ -19,7 +19,7 @@
 
         <!--=====Builder Kin Selection Body=====-->
         <Grid ColumnDefinitions="250,*" RowDefinitions="*,120">
-            <Border Stroke="Tan" StrokeThickness="3">
+            <Border Stroke="{DynamicResource ThemeSectionBorderColor}" StrokeThickness="3">
                 <ScrollView>
                     <CollectionView x:Name="RacesCollectionView" 
                                     ItemsSource="{Binding Races}" 
@@ -62,22 +62,22 @@
                 </ScrollView>
             </Border>
 
-            <Border Grid.Column="1" Stroke="Tan" StrokeThickness="3">
+            <Border Grid.Column="1" Stroke="{DynamicResource ThemeSectionBorderColor}" StrokeThickness="3">
                 <Grid ColumnDefinitions="*,*,*,*" RowDefinitions="50,50,*,Auto" RowSpacing="5">
                     <!-- Race Name -->
-                    <Border Grid.Row="0" Grid.ColumnSpan="2" Stroke="Blue" StrokeThickness="3" StrokeShape="RoundRectangle 8">
+                    <Border Grid.Row="0" Grid.ColumnSpan="2" Stroke="{DynamicResource ThemeDetailBorderColor1}" StrokeThickness="3" StrokeShape="RoundRectangle 8">
                         <Label Margin="3" Text="{Binding SelectedRaceName}" FontSize="30" FontAttributes="Bold" TextColor="White" VerticalTextAlignment="Center"/>
                     </Border>
 
                     <!-- Race Description -->
-                    <Border Grid.Row="1" Grid.RowSpan="2" Grid.ColumnSpan="2" Stroke="Blue" StrokeThickness="3" StrokeShape="RoundRectangle 8">
+                    <Border Grid.Row="1" Grid.RowSpan="2" Grid.ColumnSpan="2" Stroke="{DynamicResource ThemeDetailBorderColor1}" StrokeThickness="3" StrokeShape="RoundRectangle 8">
                         <ScrollView>
                             <Label Margin="3" Text="{Binding SelectedRaceDescription}" FontSize="16" LineBreakMode="WordWrap" />
                         </ScrollView>
                     </Border>
 
                     <!-- Feature Name -->
-                    <Border Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="2" Stroke="Red" StrokeThickness="3" StrokeShape="RoundRectangle 8">
+                    <Border Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="2" Stroke="{DynamicResource ThemeDetailBorderColor2}" StrokeThickness="3" StrokeShape="RoundRectangle 8">
                         <Grid ColumnDefinitions="95,*">
                             <Label Margin="3" Text="Feature: " FontAttributes="Bold" FontSize="20" VerticalTextAlignment="Center"/>
                             <Label Margin="3" Grid.Row="0" Grid.Column="3" Text="{Binding SelectedRaceFeatureName}" FontSize="20" VerticalTextAlignment="Center"/>
@@ -85,7 +85,7 @@
                     </Border>
 
                     <!-- Feature Description -->
-                    <Border Grid.Row="1" Grid.RowSpan="2" Grid.ColumnSpan="2" Grid.Column="2" Stroke="Red" StrokeThickness="3" StrokeShape="RoundRectangle 8">
+                    <Border Grid.Row="1" Grid.RowSpan="2" Grid.ColumnSpan="2" Grid.Column="2" Stroke="{DynamicResource ThemeDetailBorderColor2}" StrokeThickness="3" StrokeShape="RoundRectangle 8">
                         <ScrollView>
                             <Label Margin="3" Text="{Binding SelectedRaceFeatureDescription}" FontSize="16" LineBreakMode="WordWrap"/>
                         </ScrollView>
@@ -144,49 +144,49 @@
             </Border>
 
             <!-- =====Custom Race Interfaces=====-->
-            <Grid Grid.Row="1" Grid.ColumnSpan="3" ColumnDefinitions=".25*,.25*,.15*,.15*,.2*,.25*,.35*" RowDefinitions="50" Padding="10" ColumnSpacing="3">
-                <Button Grid.Column="0"
+            <Grid Grid.Row="1" Grid.ColumnSpan="2" ColumnDefinitions="*,*,*,*,*,*,*,*" RowDefinitions="50" Padding="10" ColumnSpacing="3">
+                <Button Grid.Column="5"
                     Text="➕ Create Custom Kin"
-                    BackgroundColor="purple"
+                    BackgroundColor="{DynamicResource ThemeCreateButtonColor}"
                     TextColor="White"
                     CornerRadius="10"
                     HeightRequest="50"
                     Command="{Binding CreateCustomRaceCommand}"/>
                 <!-- =====Interface Transition Buttons=====-->
-                <Button Grid.Column="1"
-                    Text="Confirm"
-                    BackgroundColor="LimeGreen"
+                <Button Grid.Column="0"
+                    Text="Next:Class Selection"
+                    BackgroundColor="{DynamicResource ThemeConfirmButtonColor}"
                     TextColor="White"
                     CornerRadius="10"
                     HeightRequest="50"
                     IsEnabled="{Binding HasSelectedRace}"
                     Command="{Binding ConfirmRaceCommand}" />
-                <Button Grid.Column="2"
+                <Button Grid.Column="1"
                     Text="← Back"
-                    BackgroundColor="{AppThemeBinding Light=#95a5a6, Dark=#7f8c8d}"
+                    BackgroundColor="{DynamicResource ThemeNeutralButtonColor}"
                     TextColor="White"
                     FontSize="16"
                     HeightRequest="50"
                     CornerRadius="10"
                     Clicked="OnBackClicked"/>
-                <Button Grid.Column="3" 
+                <Button Grid.Column="2" 
                     Text="Cancel"
-                    BackgroundColor="IndianRed"
+                    BackgroundColor="{DynamicResource ThemeDangerButtonColor}"
                     TextColor="White"
                     FontSize="16"
                     HeightRequest="50"
                     CornerRadius="10"
                     Clicked="OnCancelClicked"/>
                 <Button Grid.Column="4"
-                    Text="📋 Summary"
-                    BackgroundColor="Aqua"
-                    TextColor="Black"
+                    Text="📋 Character Summary"
+                    BackgroundColor="{DynamicResource ThemeSummaryButtonColor}"
+                    TextColor="White"
                     CornerRadius="10"
                     HeightRequest="50"
                     Clicked="OnCharacterSummaryClicked" />
-                <Button Grid.Column="5"
+                <Button Grid.Column="3"
                     Text="💾 Save For Later"
-                    BackgroundColor="#f39c12"
+                    BackgroundColor="{DynamicResource ThemeWarningButtonColor}"
                     TextColor="White"
                     FontSize="16"
                     HeightRequest="50"

@@ -36,6 +36,11 @@ namespace CharManJur
             builder.Services.AddSingleton<IBackgroundDataService, BackgroundDataService>();
             builder.Services.AddSingleton<IItemDataService, ItemDataService>();
 
+            //APPLICATION SETTINGS REGISTERS
+            builder.Services.AddSingleton<IThemeService, ThemeService>();
+            builder.Services.AddTransient<SettingsViewModel>();
+            builder.Services.AddTransient<SettingsPage>();
+
             //CUSTOM HINDERANCE REGISTERS
             builder.Services.AddSingleton<ICustomHinderanceStorageService, CustomHinderanceStorageService>();
             builder.Services.AddTransient<Godrick_CustomHinderanceCreator>();

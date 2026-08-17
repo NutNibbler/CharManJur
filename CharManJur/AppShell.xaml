@@ -81,9 +81,13 @@
         Route="Godrick_CustomBackgroundCreator" />
 
     <ShellContent 
-    Title="CustomHinderanceCreator" 
-    ContentTemplate="{DataTemplate views:Godrick_CustomHinderanceCreator}" 
-    Route="Godrick_CustomHinderanceCreator" />
+        Title="CustomHinderanceCreator" 
+        ContentTemplate="{DataTemplate views:Godrick_CustomHinderanceCreator}" 
+        Route="Godrick_CustomHinderanceCreator" />
+
+    <ShellContent 
+        Route="SettingsPage" 
+        ContentTemplate="{DataTemplate views:SettingsPage}" />
 
     <!-- Live Game Routes -->
     <ShellContent 

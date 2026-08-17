@@ -34,6 +34,7 @@ public class Item
 
     public bool IsPlayerCreated { get; set; } = false;
     public bool? IsStackable { get; set; } = false;
+    public bool IsDiscovered { get; set; } = true;
 
     // ===== HELPER PROPERTIES =====
     public bool IsJewelry => Category == ItemCategory.Jewelry;

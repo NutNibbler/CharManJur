@@ -31,13 +31,8 @@ public partial class CharBuilder_Godrick_HinderanceSelection : ContentPage
     {
         base.OnAppearing();
 
-        if (_globalMenuDataService.NeedsUIReset == true)
-        {
-            _viewModel.SelectedHinderance = null;
-            _viewModel.SelectedRewardType = HinderanceRewardType.None;
-            _viewModel.SelectedStat = null;
-            _globalMenuDataService.NeedsUIReset = false;
-        }
+        _viewModel.RestoreSelectedHinderance();
+        _globalMenuDataService.NeedsUIReset = false;
 
         bool refreshNeeded = Preferences.Default.Get("RefreshHinderances", false);
         if (refreshNeeded)

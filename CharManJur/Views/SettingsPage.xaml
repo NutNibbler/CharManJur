@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CharManJur.Views.SettingsPage"
+             Shell.NavBarIsVisible="False"
+             Title="Settings">
+    <ScrollView>
+        <VerticalStackLayout Padding="0" Spacing="0">
+
+        <Label Text="Settings"
+               FontSize="32"
+               FontAttributes="Bold"
+               HorizontalOptions="Center"
+               Margin="0,15"/>
+        
+        <!-- ===== Tab Header ===== -->
+        <Grid ColumnDefinitions="*,*" ColumnSpacing="2" Padding="10,0">
+            <Button Grid.Column="0"
+                    Text="General"
+                    TextColor="White"
+                    CornerRadius="8"
+                    HeightRequest="45"
+                    Command="{Binding SelectGeneralTabCommand}">
+                <Button.Triggers>
+                    <DataTrigger TargetType="Button" Binding="{Binding IsGeneralTabSelected}" Value="True">
+                        <Setter Property="BackgroundColor" Value="{DynamicResource ThemePrimaryButtonColor}"/>
+                    </DataTrigger>
+                    <DataTrigger TargetType="Button" Binding="{Binding IsGeneralTabSelected}" Value="False">
+                        <Setter Property="BackgroundColor" Value="{DynamicResource ThemeNeutralButtonColor}"/>
+                    </DataTrigger>
+                </Button.Triggers>
+            </Button>
+
+            <Button Grid.Column="1"
+                    Text="Theme"
+                    TextColor="White"
+                    CornerRadius="8"
+                    HeightRequest="45"
+                    Command="{Binding SelectThemeTabCommand}">
+                <Button.Triggers>
+                    <DataTrigger TargetType="Button" Binding="{Binding IsThemeTabSelected}" Value="True">
+                        <Setter Property="BackgroundColor" Value="{DynamicResource ThemePrimaryButtonColor}"/>
+                    </DataTrigger>
+                    <DataTrigger TargetType="Button" Binding="{Binding IsThemeTabSelected}" Value="False">
+                        <Setter Property="BackgroundColor" Value="{DynamicResource ThemeNeutralButtonColor}"/>
+                    </DataTrigger>
+                </Button.Triggers>
+            </Button>
+        </Grid>
+
+        <!-- ===== Save Changes bar (applies to whichever tab has pending edits) ===== -->
+        <Grid ColumnDefinitions="*" Padding="10" ColumnSpacing="10">
+            <Label Grid.Column="0"
+                   Text="⚠️ You have unsaved changes"
+                   TextColor="{DynamicResource ThemeWarningButtonColor}"
+                   VerticalTextAlignment="Center"
+                   IsVisible="{Binding HasUnsavedChanges}"/>
+        </Grid>
+
+            <VerticalStackLayout Padding="20" Spacing="15">
+
+                <!-- ===== GENERAL TAB ===== -->
+                <VerticalStackLayout IsVisible="{Binding IsGeneralTabSelected}" Spacing="10">
+                    <Label Text="General settings coming soon." FontSize="16" TextColor="Gray" HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+
+                <!-- ===== THEME TAB ===== -->
+                <VerticalStackLayout IsVisible="{Binding IsThemeTabSelected}" Spacing="15">
+
+                    <Label Text="Edits preview immediately. Save Changes to keep them."
+                           FontSize="14"
+                           TextColor="Gray"
+                           HorizontalOptions="Center"/>
+
+                    <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding ThemeColors}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="0,6" ColumnDefinitions="*,70,60,70" ColumnSpacing="8">
+                                    <Label Grid.Column="0" Text="{Binding DisplayName}" FontSize="16" VerticalTextAlignment="Center"/>
+
+                                    <Label Grid.Column="1" Text="{Binding HexValue}" FontSize="12" TextColor="Gray" VerticalTextAlignment="Center"/>
+
+                                    <BoxView Grid.Column="2" Color="{Binding PreviewColor}" WidthRequest="32" HeightRequest="32" CornerRadius="6"/>
+
+                                    <Button Grid.Column="3"
+                                            Text="Edit"
+                                            FontSize="12"
+                                            BackgroundColor="{DynamicResource ThemePrimaryButtonColor}"
+                                            TextColor="White"
+                                            CornerRadius="6"
+                                            HeightRequest="36"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditColorCommand}"
+                                            CommandParameter="{Binding .}"/>
+                                </Grid>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+
+                    <Button Text="Reset All to Defaults"
+                            BackgroundColor="{DynamicResource ThemeDangerButtonColor}"
+                            TextColor="White"
+                            CornerRadius="8"
+                            HeightRequest="45"
+                            Command="{Binding ResetToDefaultsCommand}"/>
+
+                    <BoxView HeightRequest="2" Color="Gray" Margin="0,15"/>
+
+                    <Label Text="Saved Themes"
+                           FontSize="24"
+                           FontAttributes="Bold"/>
+
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <Entry Grid.Column="0" Placeholder="Theme name" Text="{Binding NewThemeName}"/>
+                        <Button Grid.Column="1"
+                                Text="Save Current as Theme"
+                                BackgroundColor="{DynamicResource ThemePrimaryButtonColor}"
+                                TextColor="White"
+                                CornerRadius="8"
+                                Command="{Binding SaveCurrentAsThemeCommand}"/>
+                    </Grid>
+
+                    <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding SavedThemeNames}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="0,4" ColumnDefinitions="*,80,80" ColumnSpacing="8">
+                                    <Label Grid.Column="0" Text="{Binding .}" FontSize="16" VerticalTextAlignment="Center"/>
+
+                                    <Button Grid.Column="1"
+                                            Text="Load"
+                                            FontSize="12"
+                                            BackgroundColor="{DynamicResource ThemePrimaryButtonColor}"
+                                            TextColor="White"
+                                            CornerRadius="6"
+                                            HeightRequest="36"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.LoadThemeCommand}"
+                                            CommandParameter="{Binding .}"/>
+
+                                    <Button Grid.Column="2"
+                                            Text="Delete"
+                                            FontSize="12"
+                                            BackgroundColor="{DynamicResource ThemeDangerButtonColor}"
+                                            TextColor="White"
+                                            CornerRadius="6"
+                                            HeightRequest="36"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteThemeCommand}"
+                                            CommandParameter="{Binding .}"/>
+                                </Grid>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+        <Grid ColumnDefinitions="*,*" ColumnSpacing="2" Margin="10">
+            <Button Text="← Back"
+                        BackgroundColor="{DynamicResource ThemeNeutralButtonColor}"
+                        TextColor="White"
+                        CornerRadius="8"
+                        HeightRequest="45"
+                        Clicked="OnBackClicked"/>
+            <Button Grid.Column="1"
+                        Text="💾 Save Changes"
+                        BackgroundColor="{DynamicResource ThemeConfirmButtonColor}"
+                        TextColor="White"
+                        CornerRadius="8"
+                        HeightRequest="40"
+                        IsEnabled="{Binding HasUnsavedChanges}"
+                        Command="{Binding SaveChangesCommand}"/>
+        </Grid>
+    </VerticalStackLayout>
+
+    </ScrollView>
+</ContentPage>

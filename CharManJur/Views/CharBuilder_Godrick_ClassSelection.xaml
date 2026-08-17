@@ -14,7 +14,7 @@
 
         <!--=====Builder Class Selection Body=====-->
         <Grid RowDefinitions="Auto, *"
-          ColumnDefinitions="0.35*, 0.65*"
+          ColumnDefinitions="0.25*, 0.75*"
           ColumnSpacing="10"
           Padding="5">
 
@@ -28,10 +28,11 @@
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
                                 <Grid Padding="2,1">
-                                    <Border Stroke="DeepSkyBlue"
+                                    <Border Stroke="{DynamicResource ThemeDetailBorderColor1}"
                                             StrokeThickness="1"
                                             StrokeShape="RoundRectangle 8"
-                                            Padding="15">
+                                            Padding="15"
+                                            Margin="6">
                                         <Label Text="{Binding ClassName}"
                                             FontSize="16"
                                             FontAttributes="Bold" 
@@ -43,8 +44,8 @@
                     </CollectionView>
                 </ScrollView>
 
-                <Button Text="📋 Character So far..."
-                        BackgroundColor="Aqua"
+                <Button Text="📋 Character Summary"
+                        BackgroundColor="{DynamicResource ThemeSummaryButtonColor}"
                         TextColor="Black"
                         CornerRadius="10"
                         HeightRequest="40"
@@ -52,7 +53,7 @@
 
                 <Button Grid.Row="0" Grid.Column="2"
                         Text="💾 Save For Later"
-                        BackgroundColor="#f39c12"
+                        BackgroundColor="{DynamicResource ThemeWarningButtonColor}"
                         TextColor="White"
                         CornerRadius="8"
                         HeightRequest="40"
@@ -60,7 +61,7 @@
                         Clicked="OnSaveForLaterClicked" />
 
                 <Button Text="← Back"
-                        BackgroundColor="{AppThemeBinding Light=#95a5a6, Dark=#7f8c8d}"
+                        BackgroundColor="{DynamicResource ThemeNeutralButtonColor}"
                         TextColor="White"
                         FontSize="16"
                         HeightRequest="40"
@@ -68,7 +69,7 @@
                         Clicked="OnBackClicked"/>
 
                 <Button Text="Cancel"
-                        BackgroundColor="IndianRed"
+                        BackgroundColor="{DynamicResource ThemeDangerButtonColor}"
                         TextColor="White"
                         FontSize="16"
                         HeightRequest="40"
@@ -85,13 +86,13 @@
                         <Label Grid.Row="0" Grid.Column="0" Text="{Binding SelectedClassName}"
                                FontSize="22"
                                FontAttributes="Bold"
-                               TextColor="DeepSkyBlue"/>
+                               TextColor="{DynamicResource ThemeDetailBorderColor1}"/>
                         <Label Grid.Row="0" Grid.Column="1" Text="Level-Up Allocation Requirement:"
                                FontSize="14"
                                FontAttributes="Bold"
                                HorizontalOptions="Center"
                                VerticalTextAlignment="Center"
-                               TextColor="DeepSkyBlue"  
+                               TextColor="{DynamicResource ThemeDetailBorderColor1}"  
                                ToolTipProperties.Text="The Ability Score points you must receive on level-up to get a feature from this class."/>
                         <Label Grid.Row="0" Grid.Column="2" Text="{Binding SelectedClassLevelingSkillBonus}"
                                FontSize="14"
@@ -101,14 +102,14 @@
                                TextColor="White" />
                     </Grid>
 
-                    <BoxView HeightRequest="2" Color="#3498db" />
+                    <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}" />
 
                     <!-- Recurring Benefit-->
                     <Grid RowDefinitions="Auto,*,*" Padding="3">
                         <Label Grid.Row="0" Grid.Column="0" Text="Recurring Benefit"
                                FontSize="16"
                                FontAttributes="Bold"
-                               TextColor="DeepSkyBlue" />
+                               TextColor="{DynamicResource ThemeDetailBorderColor1}" />
                         <Label Grid.Row="1" Grid.Column="0" Text="{Binding SelectedClassRecurringBenefit}"
                                FontSize="13"
                                TextColor="White" />
@@ -117,15 +118,15 @@
                                TextColor="White" />
                     </Grid>
 
-                    <BoxView HeightRequest="2" Color="#3498db" />
+                    <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}" />
 
                     <!-- Class Description -->
                     <Label Text="{Binding SelectedClassDescription}"
                            FontSize="13"
                            LineBreakMode="WordWrap" />
 
-                    <BoxView HeightRequest="2" Color="#3498db" />
-                    
+                    <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}" />
+
                     <!-- Class Detail Table -->
                     <Grid RowDefinitions="Auto, *"
                         Padding="15"
@@ -137,27 +138,27 @@
                             <Label Text="Trait List"
                    FontSize="28"
                    FontAttributes="Bold"
-                   TextColor="DeepSkyBlue"
+                   TextColor="{DynamicResource ThemeDetailBorderColor1}"
                    HorizontalOptions="Center" />
                             <Label Text="Select traits based on your Polymorph Dice (PD) investment"
                    FontSize="14"
                    TextColor="#aaaaaa"
                    HorizontalOptions="Center" />
-                            <BoxView HeightRequest="2" Color="#3498db" />
+                            <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}" />
                         </VerticalStackLayout>
 
                         <!-- Table Header -->
                         <Border Grid.Row="1"
-                Stroke="#3498db"
+                Stroke="{DynamicResource ThemeDetailBorderColor1}"
                 StrokeThickness="1"
                 StrokeShape="RoundRectangle 8"
                 Padding="0"
-                BackgroundColor="#16213e">
+                BackgroundColor="{DynamicResource ThemePanelBackgroundColor}">
                             <Grid RowDefinitions="Auto, *">
 
                                 <!-- Header Row -->
                                 <Border Grid.Row="0"
-                        BackgroundColor="#2a2a3e"
+                        BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}"
                         StrokeThickness="0"
                         StrokeShape="RoundRectangle 8"
                         Padding="10,8">
@@ -167,19 +168,19 @@
                                Text="PD"
                                FontAttributes="Bold"
                                FontSize="14"
-                               TextColor="#f39c12"
+                               TextColor="{DynamicResource ThemeWarningButtonColor}"
                                HorizontalOptions="Center" />
                                         <Label Grid.Column="1"
                                Text="Trait"
                                FontAttributes="Bold"
                                FontSize="14"
-                               TextColor="#f39c12"
+                               TextColor="{DynamicResource ThemeWarningButtonColor}"
                                HorizontalOptions="Start" />
                                         <Label Grid.Column="2"
                                Text="Effect"
                                FontAttributes="Bold"
                                FontSize="14"
-                               TextColor="#f39c12"
+                               TextColor="{DynamicResource ThemeWarningButtonColor}"
                                HorizontalOptions="Start" />
                                     </Grid>
                                 </Border>
@@ -241,7 +242,7 @@
                     <Label Text="Class Features"
                             FontSize="16"
                             FontAttributes="Bold"
-                            TextColor="DeepSkyBlue"
+                            TextColor="{DynamicResource ThemeDetailBorderColor1}"
                             IsVisible="{Binding HasFeatures}" />
 
                     <CollectionView x:Name="FeaturesCollectionView"
@@ -253,7 +254,7 @@
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
                                 <Grid Padding="3,2">
-                                    <Border Stroke="#95a5a6"
+                                    <Border Stroke="{DynamicResource ThemeSectionBorderColor}"
                                             StrokeThickness="1"
                                             StrokeShape="RoundRectangle 5"
                                             Padding="8">
@@ -281,7 +282,7 @@
                     </CollectionView>
 
                     <!-- Selected Feature Description -->
-                    <Border Stroke="#2ecc71"
+                    <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
                             StrokeThickness="1"
                             StrokeShape="RoundRectangle 8"
                             Padding="8"
@@ -298,13 +299,13 @@
 
                     <!-- ===== SUB-FEATURE UNLOCK SECTION ===== -->
                     <BoxView HeightRequest="2" 
-                             Color="#3498db" 
+                             Color="{DynamicResource ThemeDetailBorderColor1}" 
                              IsVisible="{Binding HasAnyUnlockableTypes}" />
 
                     <Label Text="Unlock Sub-Features"
                             FontSize="16"
                             FontAttributes="Bold"
-                            TextColor="DeepSkyBlue"
+                            TextColor="{DynamicResource ThemeDetailBorderColor1}"
                             IsVisible="{Binding HasAnyUnlockableTypes}" />
 
                     <Grid RowDefinitions="Auto"
@@ -317,29 +318,29 @@
                         <VerticalStackLayout Grid.Row="0" Grid.Column="0" Spacing="2">
                             <Label Text="{Binding SelectedBlueprintNames}" 
                                    FontSize="11" 
-                                   TextColor="#27ae60"
+                                   TextColor="{StaticResource BlueprintColor}"
                                    LineBreakMode="WordWrap" />
                             <Button Text="📜 Unlock Blueprint"
-                                    BackgroundColor="#27ae60"
+                                    BackgroundColor="{StaticResource BlueprintColor}"
                                     TextColor="White"
                                     CornerRadius="8"
                                     FontSize="12"
                                     IsEnabled="{Binding CanUnlockBlueprints}"
                                     Command="{Binding UnlockBlueprintsCommand}">
-                                    <Button.Triggers>
-                                        <DataTrigger TargetType="Button"
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button"
                                              Binding="{Binding CanUnlockBlueprints}"
                                              Value="False">
-                                            <Setter Property="BackgroundColor" Value="#555555" />
-                                        </DataTrigger>
-                                    </Button.Triggers>
+                                        <Setter Property="BackgroundColor" Value="#555555" />
+                                    </DataTrigger>
+                                </Button.Triggers>
                             </Button>
                             <Label Text="{Binding SelectedQuipNames}" 
                                     FontSize="11" 
-                                    TextColor="#9b59b6"
+                                    TextColor="{StaticResource QuipColor}"
                                     LineBreakMode="WordWrap" />
                             <Button Text="⚡ Unlock Quip"
-                                    BackgroundColor="#9b59b6"
+                                    BackgroundColor="{StaticResource QuipColor}"
                                     TextColor="White"
                                     CornerRadius="8"
                                     FontSize="12"
@@ -360,49 +361,49 @@
                         <VerticalStackLayout Grid.Row="0" Grid.Column="1" Spacing="2">
                             <Label Text="{Binding SelectedSpellNames}" 
                                     FontSize="11" 
-                                    TextColor="#3498db"
+                                    TextColor="{StaticResource SpellColor}"
                                     LineBreakMode="WordWrap" />
                             <Button Text="🔮 Unlock Spell"
-                                    BackgroundColor="#3498db"
+                                    BackgroundColor="{StaticResource SpellColor}"
                                     TextColor="White"
                                     CornerRadius="8"
                                     HeightRequest="35"
                                     FontSize="12"
                                     IsEnabled="{Binding CanUnlockSpells}"
                                     Command="{Binding UnlockSpellsCommand}" >
-                                    <Button.Triggers>
-                                        <DataTrigger TargetType="Button"
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button"
                                         Binding="{Binding CanUnlockSpells}"
                                         Value="False">
-                                            <Setter Property="BackgroundColor" Value="#555555" />
-                                        </DataTrigger>
-                                    </Button.Triggers>
+                                        <Setter Property="BackgroundColor" Value="#555555" />
+                                    </DataTrigger>
+                                </Button.Triggers>
                             </Button>
                             <Label  Text="{Binding SelectedTechniqueNames}" 
                                     FontSize="11" 
-                                    TextColor="#e67e22"
+                                    TextColor="{StaticResource TechniqueColor}"
                                     LineBreakMode="WordWrap" />
                             <Button Text="⚔️ Unlock Technique"
-                                    BackgroundColor="#e67e22"
+                                    BackgroundColor="{StaticResource TechniqueColor}"
                                     TextColor="White"
                                     CornerRadius="8"
                                     HeightRequest="35"
                                     FontSize="12"
                                     IsEnabled="{Binding CanUnlockTechniques}"
                                     Command="{Binding UnlockTechniquesCommand}" >
-                                    <Button.Triggers>
-                                        <DataTrigger TargetType="Button"
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button"
                                             Binding="{Binding CanUnlockTechniques}"
                                             Value="False">
-                                            <Setter Property="BackgroundColor" Value="#555555" />
-                                        </DataTrigger>
-                                    </Button.Triggers>
+                                        <Setter Property="BackgroundColor" Value="#555555" />
+                                    </DataTrigger>
+                                </Button.Triggers>
                             </Button>
                         </VerticalStackLayout>
                     </Grid>
 
                     <BoxView HeightRequest="2" 
-                             Color="#3498db" 
+                             Color="{DynamicResource ThemeDetailBorderColor1}" 
                              IsVisible="{Binding HasAnyUnlockableTypes}" />
 
                     <!-- ===== BUTTON ROW: Select This Class + Clear All ===== -->
@@ -412,7 +413,7 @@
 
                         <Button Grid.Row="0" Grid.Column="0"
                                 Text="{Binding SelectClassButtonText}"
-                                BackgroundColor="LimeGreen"
+                                BackgroundColor="{DynamicResource ThemeConfirmButtonColor}"
                                 TextColor="White"
                                 CornerRadius="8"
                                 HeightRequest="40"
@@ -421,7 +422,7 @@
 
                         <Button Grid.Row="0" Grid.Column="1"
                                 Text="🗑️ Clear Sub-Features"
-                                BackgroundColor="#e74c3c"
+                                BackgroundColor="{DynamicResource ThemeDangerButtonColor}"
                                 TextColor="White"
                                 CornerRadius="8"
                                 HeightRequest="40"
@@ -434,7 +435,7 @@
                     <!-- Fallback for when no class is selected -->
                     <Button Grid.Row="0" Grid.Column="0"
                             Text="Select a Class to Continue"
-                            BackgroundColor="#95a5a6"
+                            BackgroundColor="{DynamicResource ThemeNeutralButtonColor}"
                             TextColor="White"
                             CornerRadius="8"
                             HeightRequest="40"

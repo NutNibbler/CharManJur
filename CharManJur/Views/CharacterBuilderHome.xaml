@@ -10,11 +10,11 @@
             FontSize="48"
             FontAttributes="Bold"
             HorizontalOptions="Center"/>
-        
+
         <!--=====Builder Page Main Body=====-->
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="40" />
+                <RowDefinition Height="70" />
                 <RowDefinition Height="*" />
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="50"/>
@@ -26,7 +26,7 @@
             </Grid.ColumnDefinitions>
 
             <!--=====Campaign Information Header=====-->
-            <Border Grid.Row="0" Grid.ColumnSpan="3" Stroke="Tan" StrokeThickness="3">
+            <Border Grid.Row="0" Grid.ColumnSpan="3" Stroke="{DynamicResource ThemeSectionBorderColor}" StrokeThickness="3" StrokeShape="RoundRectangle 8" Padding="10">
                 <Grid ColumnDefinitions="*,*,*">
                     <Border Grid.Row="0" Grid.Column="0">
                         <Label x:Name="lblCampaignType" Margin="5" Text="[Not Set]" FontSize="22" HorizontalOptions="Start" VerticalTextAlignment="Center"/>
@@ -41,7 +41,7 @@
             </Border>
 
             <!--=====Character Stats=====-->
-            <Border Grid.Row="1" Grid.Column="0" Stroke="Tan" StrokeThickness="3">
+            <Border Grid.Row="1" Grid.Column="0" Stroke="{DynamicResource ThemeSectionBorderColor}" StrokeThickness="3" StrokeShape="RoundRectangle 8" Padding="10">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition/>
@@ -59,54 +59,54 @@
                     <Border Grid.Row="0" Grid.Column="0">
                         <Label Text="Character Stats" FontSize="26" HorizontalOptions="Center" VerticalTextAlignment="Center"/>
                     </Border>
-                    <Border Grid.Row="1" Grid.Column="0" Stroke="Red" StrokeThickness="3">
+                    <Border Grid.Row="1" Grid.Column="0" Stroke="{StaticResource VigorColor}" StrokeThickness="3">
                         <Grid RowDefinitions="Auto" ColumnDefinitions="60,*,70">
                             <Label Grid.Column="0" Text="💪" FontSize="36" HorizontalOptions="Center" VerticalTextAlignment="Center" HeightRequest="40"/>
                             <Label Grid.Column="1" Text="Vigor" FontSize="24" HorizontalOptions="Center" VerticalTextAlignment="Center" HeightRequest="40" ToolTipProperties.Text="Vigor influences the following skills: Athletics, Constitution, Grapple, Presence, and Ride, more on this later."/>
-                            <Entry Grid.Column="2" TextColor="Black" BackgroundColor="Red" FontSize="36" HorizontalTextAlignment="Center" x:Name="entryStatVigor" Keyboard="Numeric" TextChanged="OnVigorChanged"/>
+                            <Entry Grid.Column="2" TextColor="Black" BackgroundColor="{StaticResource VigorColor}" FontSize="36" HorizontalTextAlignment="Center" x:Name="entryStatVigor" Keyboard="Numeric" TextChanged="OnVigorChanged"/>
                         </Grid>
                     </Border>
-                    <Border Grid.Row="2" Grid.Column="0" Stroke="Green" StrokeThickness="3">
+                    <Border Grid.Row="2" Grid.Column="0" Stroke="{StaticResource AgilityColor}" StrokeThickness="3">
                         <Grid RowDefinitions="Auto" ColumnDefinitions="60,*,70">
                             <Label Grid.Column="0" Text="💨" FontSize="36" HorizontalOptions="Center" VerticalTextAlignment="Center" HeightRequest="40"/>
                             <Label Grid.Column="1" Text="Agility" FontSize="24" HorizontalOptions="Center" VerticalTextAlignment="Center" HeightRequest="40" ToolTipProperties.Text="Agility influences the following skills: Acrobatics, Aim, Drive, Stealth, and Thief, more on this later."/>
-                            <Entry Grid.Column="2" TextColor="Black" BackgroundColor="Green" FontSize="36" HorizontalTextAlignment="Center" x:Name="entryStatAgility" Keyboard="Numeric" TextChanged="OnAgilityChanged"/>
+                            <Entry Grid.Column="2" TextColor="Black" BackgroundColor="{StaticResource AgilityColor}" FontSize="36" HorizontalTextAlignment="Center" x:Name="entryStatAgility" Keyboard="Numeric" TextChanged="OnAgilityChanged"/>
                         </Grid>
                     </Border>
-                    <Border Grid.Row="3" Grid.Column="0" Stroke="Orange" StrokeThickness="3">
+                    <Border Grid.Row="3" Grid.Column="0" Stroke="{StaticResource MindColor}" StrokeThickness="3">
                         <Grid RowDefinitions="Auto" ColumnDefinitions="60,*,70">
                             <Label Grid.Column="0" Text="🧠" FontSize="36" HorizontalOptions="Center" VerticalTextAlignment="Center" HeightRequest="40"/>
                             <Label Grid.Column="1" Text="Mind" FontSize="24" HorizontalOptions="Center" VerticalTextAlignment="Center" HeightRequest="40" ToolTipProperties.Text="Mind influences the following skills: Arcana, Artifice, Heal, Investigate, and Lore, more on this later."/>
-                            <Entry Grid.Column="2" TextColor="Black" BackgroundColor="Orange" FontSize="36" HorizontalTextAlignment="Center" x:Name="entryStatMind" Keyboard="Numeric" TextChanged="OnMindChanged"/>
+                            <Entry Grid.Column="2" TextColor="Black" BackgroundColor="{StaticResource MindColor}" FontSize="36" HorizontalTextAlignment="Center" x:Name="entryStatMind" Keyboard="Numeric" TextChanged="OnMindChanged"/>
                         </Grid>
                     </Border>
-                    <Border Grid.Row="4" Grid.Column="0" Stroke="Aqua" StrokeThickness="3">
+                    <Border Grid.Row="4" Grid.Column="0" Stroke="{StaticResource SpiritColor}" StrokeThickness="3">
                         <Grid RowDefinitions="Auto" ColumnDefinitions="60,*,70">
                             <Label Grid.Column="0" Text="👻" FontSize="36" HorizontalOptions="Center" VerticalTextAlignment="Center" HeightRequest="40"/>
                             <Label Grid.Column="1" Text="Spirit" FontSize="24" HorizontalOptions="Center" VerticalTextAlignment="Center" HeightRequest="40" ToolTipProperties.Text="Spirit influences the following skills: Commune, Deception, Diplomacy, Sight, and Survival, more on this later."/>
-                            <Entry Grid.Column="2" TextColor="Black" BackgroundColor="Aqua" FontSize="36" HorizontalTextAlignment="Center" x:Name="entryStatSpirit" Keyboard="Numeric" TextChanged="OnSpiritChanged"/>
+                            <Entry Grid.Column="2" TextColor="Black" BackgroundColor="{StaticResource SpiritColor}" FontSize="36" HorizontalTextAlignment="Center" x:Name="entryStatSpirit" Keyboard="Numeric" TextChanged="OnSpiritChanged"/>
                         </Grid>
                     </Border>
-                    <Border Grid.Row="5" Grid.Column="0" Stroke="Silver" StrokeThickness="3">
+                    <Border Grid.Row="5" Grid.Column="0" Stroke="{StaticResource HitpointsColor}" StrokeThickness="3">
                         <Grid RowDefinitions="Auto" ColumnDefinitions="60,*,70">
                             <Label Grid.Column="0" Text="🛡️" FontSize="36" HorizontalOptions="Center" VerticalTextAlignment="Center" HeightRequest="40"/>
                             <Label Grid.Column="1" Text="Hit Protection" FontSize="16" HorizontalOptions="Center" VerticalTextAlignment="Center" HeightRequest="40" ToolTipProperties.Text="Hit Protection is the barrier between your Vigor health and incoming damage, more on this later."/>
-                            <Label Grid.Column="2" x:Name="lblHitProtection" TextColor="Black" BackgroundColor="Silver" FontSize="36" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" Text="1"/>
+                            <Label Grid.Column="2" x:Name="lblHitProtection" TextColor="Black" BackgroundColor="{StaticResource HitpointsColor}" FontSize="36" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" Text="1"/>
                         </Grid>
                     </Border>
                     <Border Grid.Row="0" Grid.Column="1">
                         <Label Text="ASM" FontSize="24" HorizontalOptions="Center" VerticalTextAlignment="Center"/>
                     </Border>
-                    <Border Grid.Row="1" Grid.Column="1" Stroke="Red" StrokeThickness="3">
+                    <Border Grid.Row="1" Grid.Column="1" Stroke="{StaticResource VigorColor}" StrokeThickness="3">
                         <Label x:Name="lblVigorModifier" Text="0" FontSize="32" HorizontalTextAlignment="Center" VerticalTextAlignment="Center"/>
                     </Border>
-                    <Border Grid.Row="2" Grid.Column="1" Stroke="Green" StrokeThickness="3">
+                    <Border Grid.Row="2" Grid.Column="1" Stroke="{StaticResource AgilityColor}" StrokeThickness="3">
                         <Label x:Name="lblAgilityModifier" Text="0" FontSize="32" HorizontalTextAlignment="Center" VerticalTextAlignment="Center"/>
                     </Border>
-                    <Border Grid.Row="3" Grid.Column="1" Stroke="Orange" StrokeThickness="3">
+                    <Border Grid.Row="3" Grid.Column="1" Stroke="{StaticResource MindColor}" StrokeThickness="3">
                         <Label x:Name="lblMindModifier" Text="0" FontSize="32" HorizontalTextAlignment="Center" VerticalTextAlignment="Center"/>
                     </Border>
-                    <Border Grid.Row="4" Grid.Column="1" Stroke="Aqua" StrokeThickness="3">
+                    <Border Grid.Row="4" Grid.Column="1" Stroke="{StaticResource SpiritColor}" StrokeThickness="3">
                         <Label x:Name="lblSpiritModifier" Text="0" FontSize="32" HorizontalTextAlignment="Center" VerticalTextAlignment="Center"/>
                     </Border>
                 </Grid>
@@ -114,7 +114,7 @@
 
             <!-- =====Character Stats Guildeines=====-->
             <Grid Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2">
-                <Border Stroke="Tan" StrokeThickness="3">
+                <Border Stroke="{DynamicResource ThemeSectionBorderColor}" StrokeThickness="3" StrokeShape="RoundRectangle 8" Padding="10">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*"/>
@@ -134,10 +134,10 @@
                     </Grid>
                 </Border>
             </Grid>
-            
+
             <!-- =====ASM MODIFIER TABLE===== -->
             <Grid Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3">
-                <Border Stroke="Tan" StrokeThickness="3">
+                <Border Stroke="{DynamicResource ThemeSectionBorderColor}" StrokeThickness="3" StrokeShape="RoundRectangle 8" Padding="10">
                     <Grid RowDefinitions="*,*,*" ColumnDefinitions="100,*,*,*,*,*,*,*,*,*,*,*">
                         <Border Grid.ColumnSpan="12">
                             <Label Text="Ability Score Modifier Table" FontSize="20" HorizontalTextAlignment="Center"/>
@@ -219,10 +219,10 @@
             </Grid>
 
             <!-- =====Interface Transition Buttons=====-->
-            <Grid Grid.Row="3" ColumnDefinitions="*,80,80,*" Grid.ColumnSpan="2">
+            <Grid Grid.Row="3" ColumnDefinitions="*,*,*,*" Grid.ColumnSpan="2">
                 <Button Grid.Column="0"
                     Text="Next: Select Kin"
-                    BackgroundColor="DeepSkyBlue"
+                    BackgroundColor="{DynamicResource ThemeConfirmButtonColor}"
                     TextColor="White"
                     FontSize="16"
                     HeightRequest="50"
@@ -230,7 +230,7 @@
                     Clicked="OnKinClicked"/>
                 <Button Grid.Column="1"
                     Text="← Back"
-                    BackgroundColor="{AppThemeBinding Light=#95a5a6, Dark=#7f8c8d}"
+                    BackgroundColor="{DynamicResource ThemeNeutralButtonColor}"
                     TextColor="White"
                     FontSize="16"
                     HeightRequest="50"
@@ -238,7 +238,7 @@
                     Clicked="OnBackClicked"/>
                 <Button Grid.Column="2" 
                     Text="Cancel"
-                    BackgroundColor="{AppThemeBinding Light=#95a5a6, Dark=#7f8c8d}"
+                    BackgroundColor="{DynamicResource ThemeDangerButtonColor}"
                     TextColor="White"
                     FontSize="16"
                     HeightRequest="50"
@@ -246,7 +246,7 @@
                     Clicked="OnCancelClicked"/>
                 <Button Grid.Column="3"
                     Text="💾 Save For Later"
-                    BackgroundColor="#f39c12"
+                    BackgroundColor="{DynamicResource ThemeWarningButtonColor}"
                     TextColor="White"
                     FontSize="16"
                     HeightRequest="50"
