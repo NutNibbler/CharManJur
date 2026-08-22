@@ -19,6 +19,11 @@ public partial class CustomItemCreatorPage : ContentPage
 
         // Set default category selection to trigger visibility
         pickerCategory.SelectedIndex = 0;
+
+        if (_viewModel.IsEditMode)
+        {
+            PopulateFormForEdit();
+        }
     }
 
     private void PopulatePickers()
@@ -42,6 +47,39 @@ public partial class CustomItemCreatorPage : ContentPage
 
         // Weapon Effects
         cvWeaponEffects.ItemsSource = _viewModel.WeaponEffects;
+    }
+
+    private void PopulateFormForEdit()
+    {
+        entryName.Text = _viewModel.Name;
+        editorDescription.Text = _viewModel.Description;
+
+        if (_viewModel.ValueInChips.HasValue) entryValue.Text = _viewModel.ValueInChips.Value.ToString();
+        if (_viewModel.QtyLimit.HasValue) entryQtyLimit.Text = _viewModel.QtyLimit.Value.ToString();
+        if (_viewModel.Uses.HasValue) entryUses.Text = _viewModel.Uses.Value.ToString();
+        if (_viewModel.ArmorValue.HasValue) entryArmorValue.Text = _viewModel.ArmorValue.Value.ToString();
+
+        chkStackable.IsChecked = _viewModel.IsStackable;
+
+        if (_viewModel.Category.HasValue)
+            pickerCategory.SelectedIndex = _viewModel.Categories.IndexOf(_viewModel.Category.Value.ToString());
+
+        pickerSize.SelectedIndex = _viewModel.Sizes.IndexOf(_viewModel.Size.ToString());
+
+        if (_viewModel.Rarity.HasValue)
+            pickerRarity.SelectedIndex = _viewModel.Rarity.Value - 1;
+
+        if (_viewModel.WeaponCategory.HasValue)
+            pickerWeaponCategory.SelectedIndex = _viewModel.WeaponCategories.IndexOf(_viewModel.WeaponCategory.Value.ToString());
+
+        if (_viewModel.WeaponDamage.HasValue)
+            pickerWeaponDamage.SelectedIndex = _viewModel.WeaponDamageDice.IndexOf(_viewModel.WeaponDamage.Value.ToString());
+
+        if (_viewModel.WeaponSpeed.HasValue)
+            pickerWeaponSpeed.SelectedIndex = _viewModel.WeaponSpeeds.IndexOf(_viewModel.WeaponSpeed.Value.ToString());
+
+        if (_viewModel.ArmorType.HasValue)
+            pickerArmorType.SelectedIndex = _viewModel.ArmorTypes.IndexOf(_viewModel.ArmorType.Value.ToString());
     }
 
     private async void OnCreateClicked(object sender, EventArgs e)

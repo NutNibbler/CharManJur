@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.Json.Serialization;
 
 namespace CharManJur.Models;
 
@@ -14,6 +15,7 @@ public class CharacterItem
 
     // === REFERENCE ===
     public int TemplateId { get; set; }
+    public Guid? TemplateGuid { get; set; }
 
     // === CHARACTER OWNERSHIP ===
     public int CharacterId { get; set; }
@@ -67,6 +69,7 @@ public class CharacterItem
     public Guid? PlayerId { get; set; }
 
     // === RESOLVED TEMPLATE (loaded at runtime) ===
+    [JsonIgnore]
     public Item? Template { get; set; }
 
     // === HELPER PROPERTIES ===

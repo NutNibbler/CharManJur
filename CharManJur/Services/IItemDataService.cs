@@ -11,6 +11,8 @@ public interface IItemDataService
 
     Task<Item?> GetItemByIdAsync(int id);
 
+    Task<Item?> GetItemByGuidAsync(Guid guid);
+
     // Updated to use ItemCategory enum
     Task<List<Item>> GetItemsByCategoryAsync(ItemCategory? category);
 
@@ -26,8 +28,12 @@ public interface IItemDataService
     Task<bool> UpdateItemAsync(Item item);
 
     // === DELETION METHODS ===
-    Task<bool> DeleteItemAsync(int id);
+    Task<bool> DeleteItemAsync(Guid guid);
 
     // == CUSTOM ITEM TRACKER ===
     Task<List<Item>> GetCustomItemsAsync();
+
+    // === LOADER METHODS ===
+    Task<bool> LoadItemAsync(Guid guid);
+    Task<bool> UnloadItemAsync(Guid guid);
 }

@@ -9,6 +9,6 @@ public interface ICustomItemStorageService
     Task<List<Item>> LoadCustomItemsAsync();
     Task SaveCustomItemAsync(Item item);
     Task SaveCustomItemsAsync(List<Item> items);
-    Task<bool> DeleteCustomItemAsync(int id);
+    Task<bool> DeleteCustomItemAsync(Guid guid);
     Task<string> GetStoragePathAsync();
 }

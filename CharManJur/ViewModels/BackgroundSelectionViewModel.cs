@@ -185,6 +185,16 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
 
     public void RestoreSelectedBackground()
     {
+        if (_charDataService.SelectedBackgroundId.HasValue)
+        {
+            var byId = Backgrounds.FirstOrDefault(b => b.Id == _charDataService.SelectedBackgroundId.Value);
+            if (byId != null)
+            {
+                SelectedBackground = byId;
+                return;
+            }
+        }
+
         if (string.IsNullOrEmpty(_charDataService.SelectedBackgroundName))
         {
             SelectedBackground = null;
@@ -755,6 +765,7 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
             }
         }
 
+        _charDataService.SelectedBackgroundId = SelectedBackground.Id;
         _charDataService.SelectedBackgroundName = SelectedBackground.Name;
         _charDataService.SelectedBackgroundDescription = SelectedBackground.Description;
 

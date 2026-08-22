@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CharManJur.Views.PackEditPopup"
+             Shell.NavBarIsVisible="False"
+             Title="Edit Pack">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
+
+            <Label Text="Edit Asset Pack" FontSize="24" FontAttributes="Bold" HorizontalOptions="Center"/>
+
+            <Label Text="Name" FontAttributes="Bold"/>
+            <Entry x:Name="entryName" Placeholder="Pack name"/>
+
+            <Label Text="Description (short, shown under the pack name)" FontAttributes="Bold"/>
+            <Entry x:Name="editorDescription" Placeholder="One-line summary"/>
+
+            <Label Text="Details (long-form, shown when expanded)" FontAttributes="Bold"/>
+            <Editor x:Name="editorDetails" Placeholder="Full details about this pack" HeightRequest="120" AutoSize="TextChanges"/>
+
+            <BoxView HeightRequest="2" Color="Gray" Margin="0,10"/>
+
+            <Label Text="Update Assets (optional)" FontSize="18" FontAttributes="Bold"/>
+            <Label Text="Choose at most one. Leave 'Don't update assets' selected to only save the fields above."
+                   FontSize="12" TextColor="Gray"/>
+
+            <RadioButton x:Name="radioNone" GroupName="AssetSync" Content="Don't update assets" IsChecked="True"/>
+            <RadioButton x:Name="radioOverwriteOnly" GroupName="AssetSync" Content="Overwrite Only — resync this pack's own items to their current state"/>
+            <RadioButton x:Name="radioAddOverwrite" GroupName="AssetSync" Content="Add/Overwrite — fold in all currently loaded items"/>
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,15,0,0">
+                <Button Grid.Column="0" Text="Cancel"
+                        BackgroundColor="{DynamicResource ThemeNeutralButtonColor}"
+                        TextColor="White" CornerRadius="8" HeightRequest="45"
+                        Clicked="OnCancelClicked"/>
+                <Button Grid.Column="1" Text="Save"
+                        BackgroundColor="{DynamicResource ThemeConfirmButtonColor}"
+                        TextColor="White" CornerRadius="8" HeightRequest="45"
+                        Clicked="OnSaveClicked"/>
+            </Grid>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

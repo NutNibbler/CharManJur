@@ -3,14 +3,35 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
+using System.Runtime.CompilerServices;
 
 namespace CharManJur.Models;
 
-public class Item
+public class Item : INotifyPropertyChanged
 {
     // === CUSTOM ITEM ID CONSTANTS ===
     public const int CUSTOM_ITEM_BASE = 9900000;  // Base for custom item IDs
     public const int CUSTOM_ITEM_START = 9900001; // First custom item ID
+
+    // === CUSTOM ITEM ATTRIBUTES ===
+    public Guid Guid { get; set; } = Guid.Empty;  // permanent identity — never changes, this is what actually gets referenced
+
+    private bool _isLoaded = true;
+    public bool IsLoaded
+    {
+        get => _isLoaded;
+        set
+        {
+            if (_isLoaded != value)
+            {
+                _isLoaded = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public string SourcePackId { get; set; } = "Local";
+    public DateTime LastModified { get; set; } = DateTime.UtcNow;
 
     // === GENERAL ITEM ATTRIBUTES ===
     public int Id { get; set; }
@@ -93,6 +114,12 @@ public class Item
             return quantity > QtyLimit.Value;
 
         return false;
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+    protected void OnPropertyChanged([CallerMemberName] string propertyName = "")
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
 

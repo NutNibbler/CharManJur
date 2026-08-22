@@ -94,6 +94,7 @@ public class CharacterData
     public List<Technique> AcquiredTechniques { get; set; } = new();
 
     // ===== BACKGROUND DATA =====
+    public int? SelectedBackgroundId { get; set; }
     public string SelectedBackgroundName { get; set; } = string.Empty;
     public string SelectedBackgroundDescription { get; set; } = string.Empty;
     public List<StartingItem> SelectedStartingItems { get; set; } = new();

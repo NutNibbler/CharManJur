@@ -98,5 +98,10 @@
         Title="BestowItemPage" 
         ContentTemplate="{DataTemplate livegame:BestowItemPage}" 
         Route="BestowItemPage" />
-    
+
+    <!-- Asset Manager Routes -->
+    <ShellContent 
+        Route="ItemAssetManagerPage" 
+        ContentTemplate="{DataTemplate views:ItemAssetManagerPage}" />
+
 </Shell>

@@ -1,9 +1,16 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:CharManJur.Converters"
              x:Class="CharManJur.Views.SettingsPage"
              Shell.NavBarIsVisible="False"
              Title="Settings">
+
+    <ContentPage.Resources>
+        <converters:LoadedButtonTextConverter x:Key="LoadedButtonTextConverter" />
+        <converters:IsNotLocalPackConverter x:Key="IsNotLocalPackConverter" />
+    </ContentPage.Resources>
+    
     <ScrollView>
         <VerticalStackLayout Padding="0" Spacing="0">
 
@@ -14,7 +21,7 @@
                Margin="0,15"/>
         
         <!-- ===== Tab Header ===== -->
-        <Grid ColumnDefinitions="*,*" ColumnSpacing="2" Padding="10,0">
+        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="2" Padding="10,0">
             <Button Grid.Column="0"
                     Text="General"
                     TextColor="White"
@@ -46,7 +53,23 @@
                     </DataTrigger>
                 </Button.Triggers>
             </Button>
-        </Grid>
+
+                <Button Grid.Column="2"
+                    Text="Asset Manager"
+                    TextColor="White"
+                    CornerRadius="8"
+                    HeightRequest="45"
+                    Command="{Binding SelectAssetManagerTabCommand}">
+                    <Button.Triggers>
+                        <DataTrigger TargetType="Button" Binding="{Binding IsAssetManagerTabSelected}" Value="True">
+                            <Setter Property="BackgroundColor" Value="{DynamicResource ThemePrimaryButtonColor}"/>
+                        </DataTrigger>
+                        <DataTrigger TargetType="Button" Binding="{Binding IsAssetManagerTabSelected}" Value="False">
+                            <Setter Property="BackgroundColor" Value="{DynamicResource ThemeNeutralButtonColor}"/>
+                        </DataTrigger>
+                    </Button.Triggers>
+                </Button>
+            </Grid>
 
         <!-- ===== Save Changes bar (applies to whichever tab has pending edits) ===== -->
         <Grid ColumnDefinitions="*" Padding="10" ColumnSpacing="10">
@@ -145,6 +168,87 @@
                                             Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteThemeCommand}"
                                             CommandParameter="{Binding .}"/>
                                 </Grid>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+
+                </VerticalStackLayout>
+
+                <!-- ===== ASSET MANAGER TAB ===== -->
+                <VerticalStackLayout IsVisible="{Binding IsAssetManagerTabSelected}" Spacing="15">
+
+                    <Button Text="🗃️ Item Manager"
+                        BackgroundColor="{DynamicResource ThemePrimaryButtonColor}"
+                        TextColor="White"
+                        CornerRadius="8"
+                        HeightRequest="45"
+                        Command="{Binding OpenItemManagerCommand}"/>
+
+                    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                        <Button Grid.Column="0" Text="📤 Save Pack"
+                            BackgroundColor="{DynamicResource ThemeWarningButtonColor}"
+                            TextColor="White" CornerRadius="8" HeightRequest="45"
+                            Command="{Binding ExportCommand}"/>
+                        <Button Grid.Column="1" Text="📥 Import Pack"
+                            BackgroundColor="{DynamicResource ThemeConfirmButtonColor}"
+                            TextColor="White" CornerRadius="8" HeightRequest="45"
+                            Command="{Binding ImportCommand}"/>
+                        <Button Grid.Column="2" Text="📋 Copy To"
+                            BackgroundColor="{DynamicResource ThemeCreateButtonColor}"
+                            TextColor="White" CornerRadius="8" HeightRequest="45"
+                            Command="{Binding CopyToCommand}"/>
+                    </Grid>
+
+                    <Label Text="Installed Packs" FontSize="20" FontAttributes="Bold"/>
+
+                    <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding InstalledPacks}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate>
+                                <Border Stroke="{DynamicResource ThemeSectionBorderColor}" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="8">
+                                    <VerticalStackLayout Spacing="4">
+                                        <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" ColumnSpacing="6">
+                                            <Label Grid.Column="0" Text="{Binding Name}" FontSize="16" FontAttributes="Bold" VerticalTextAlignment="Center"/>
+
+                                            <Button Grid.Column="1" Text="▾"
+                                                FontSize="14" BackgroundColor="{DynamicResource ThemeNeutralButtonColor}"
+                                                TextColor="White" CornerRadius="6" WidthRequest="36" HeightRequest="36" Padding="0"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.ToggleExpandedCommand}"
+                                                CommandParameter="{Binding .}"/>
+
+                                            <Button Grid.Column="2"
+                                                Text="{Binding IsLoaded, Converter={StaticResource LoadedButtonTextConverter}}"
+                                                FontSize="12" BackgroundColor="{DynamicResource ThemeConfirmButtonColor}"
+                                                TextColor="White" CornerRadius="6" HeightRequest="36"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.TogglePackLoadedCommand}"
+                                                CommandParameter="{Binding .}"/>
+
+                                            <Button Grid.Column="3" Text="Update"
+                                                FontSize="12" BackgroundColor="{DynamicResource ThemePrimaryButtonColor}"
+                                                TextColor="White" CornerRadius="6" HeightRequest="36"
+                                                IsVisible="{Binding PackId, Converter={StaticResource IsNotLocalPackConverter}}"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.UpdatePackCommand}"
+                                                CommandParameter="{Binding .}"/>
+
+                                            <Button Grid.Column="4" Text="Delete"
+                                                FontSize="12" BackgroundColor="{DynamicResource ThemeDangerButtonColor}"
+                                                TextColor="White" CornerRadius="6" HeightRequest="36"
+                                                IsVisible="{Binding PackId, Converter={StaticResource IsNotLocalPackConverter}}"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeletePackCommand}"
+                                                CommandParameter="{Binding .}"/>
+                                        </Grid>
+
+                                        <Label Text="{Binding Description}" FontSize="12" TextColor="Gray"
+                                            IsVisible="{Binding Description, Converter={StaticResource IsNotNullConverter}}"/>
+
+                                        <Label Text="{Binding ItemCount, StringFormat='{0} custom asset(s)'}" FontSize="12" TextColor="Gray"/>
+
+                                        <VerticalStackLayout IsVisible="{Binding IsExpanded}" Spacing="4" Margin="0,4,0,0">
+                                            <BoxView HeightRequest="1" Color="Gray"/>
+                                            <Label Text="{Binding Details}" FontSize="13" LineBreakMode="WordWrap"
+                                                IsVisible="{Binding Details, Converter={StaticResource IsNotNullConverter}}"/>
+                                        </VerticalStackLayout>
+                                    </VerticalStackLayout>
+                                </Border>
                             </DataTemplate>
                         </BindableLayout.ItemTemplate>
                     </VerticalStackLayout>

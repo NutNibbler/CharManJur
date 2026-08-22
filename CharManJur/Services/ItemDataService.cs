@@ -1412,7 +1412,30 @@ public class ItemDataService : IItemDataService
         try
         {
             var customItems = await _customStorageService.LoadCustomItemsAsync();
-            _items.AddRange(customItems);
+            bool needsMigrationSave = false;
+
+            foreach (var item in customItems)
+            {
+                if (item.Guid == Guid.Empty)
+                {
+                    item.Guid = Guid.NewGuid();
+                    needsMigrationSave = true;
+                }
+
+                if (item.IsLoaded)
+                {
+                    item.Id = AssignNextLoadedCustomItemId();
+                }
+
+                _items.Add(item);
+            }
+
+            if (needsMigrationSave)
+            {
+                await _customStorageService.SaveCustomItemsAsync(customItems);
+                System.Diagnostics.Debug.WriteLine("Migrated existing custom items to include a permanent Guid.");
+            }
+
             System.Diagnostics.Debug.WriteLine($"Loaded {customItems.Count} custom items from JSON.");
         }
         catch (Exception ex)
@@ -1427,12 +1450,19 @@ public class ItemDataService : IItemDataService
 
     public Task<List<Item>> GetAllItemsAsync()
     {
-        return Task.FromResult(_items);
+        var result = _items.Where(i => i.IsLoaded).ToList();
+        return Task.FromResult(result);
     }
 
     public Task<Item?> GetItemByIdAsync(int id)
     {
         var result = _items.FirstOrDefault(i => i.Id == id);
+        return Task.FromResult(result);
+    }
+
+    public Task<Item?> GetItemByGuidAsync(Guid guid)
+    {
+        var result = _items.FirstOrDefault(i => i.Guid == guid);
         return Task.FromResult(result);
     }
 
@@ -1459,7 +1489,7 @@ public class ItemDataService : IItemDataService
 
     public Task<List<Item>> QueryItemsAsync(ItemQueryCriteria criteria)
     {
-        var query = _items.AsQueryable();
+        var query = _items.Where(i => i.IsLoaded).AsQueryable();
 
         // === CATEGORY FILTER ===
         if (criteria.Category != null)
@@ -1546,7 +1576,11 @@ public class ItemDataService : IItemDataService
 
         var newItem = new Item
         {
-            Id = newId,
+            Guid = Guid.NewGuid(),
+            Id = AssignNextLoadedCustomItemId(),
+            IsLoaded = true,
+            SourcePackId = "Local",
+            LastModified = DateTime.UtcNow,
             Name = request.Name,
             Category = request.Category,
             BaseDescription = request.BaseDescription,
@@ -1618,7 +1652,7 @@ public class ItemDataService : IItemDataService
         {
             try
             {
-                Task.Run(() => _customStorageService.DeleteCustomItemAsync(id));
+                Task.Run(() => _customStorageService.DeleteCustomItemAsync(item.Guid));
                 System.Diagnostics.Debug.WriteLine($"Custom item deleted from JSON: {item.Name} (ID: {item.Id})");
             }
             catch (Exception ex)
@@ -1630,9 +1664,73 @@ public class ItemDataService : IItemDataService
         return Task.FromResult(true);
     }
 
+    public async Task<bool> DeleteItemAsync(Guid guid)
+    {
+        var item = _items.FirstOrDefault(i => i.Guid == guid);
+        if (item == null) return false;
+
+        _items.Remove(item);
+
+        if (item.IsPlayerCreated)
+        {
+            try
+            {
+                await _customStorageService.DeleteCustomItemAsync(item.Guid);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error deleting custom item from JSON: {ex.Message}");
+            }
+        }
+
+        return true;
+    }
+
     public Task<List<Item>> GetCustomItemsAsync()
     {
         var result = _items.Where(i => i.IsPlayerCreated).ToList();
         return Task.FromResult(result);
+    }
+
+    private int AssignNextLoadedCustomItemId()
+    {
+        int newId = 9900001;
+
+        var maxLoadedCustomId = _items
+            .Where(i => i.IsPlayerCreated && i.IsLoaded)
+            .Select(i => i.Id)
+            .DefaultIfEmpty(9900000)
+            .Max();
+
+        if (maxLoadedCustomId >= 9900001)
+        {
+            newId = maxLoadedCustomId + 1;
+        }
+
+        return newId;
+    }
+
+    public async Task<bool> LoadItemAsync(Guid guid)
+    {
+        var item = _items.FirstOrDefault(i => i.Guid == guid);
+        if (item == null || !item.IsPlayerCreated) return false;
+
+        item.IsLoaded = true;
+        item.Id = AssignNextLoadedCustomItemId();
+
+        await _customStorageService.SaveCustomItemAsync(item);
+        return true;
+    }
+
+    public async Task<bool> UnloadItemAsync(Guid guid)
+    {
+        var item = _items.FirstOrDefault(i => i.Guid == guid);
+        if (item == null || !item.IsPlayerCreated) return false;
+
+        item.IsLoaded = false;
+        item.Id = 0;
+
+        await _customStorageService.SaveCustomItemAsync(item);
+        return true;
     }
 }

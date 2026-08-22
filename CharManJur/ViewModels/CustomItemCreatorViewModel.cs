@@ -141,82 +141,124 @@ public class CustomItemCreatorViewModel : INotifyPropertyChanged
     public ICommand CreateCommand { get; }
     public ICommand CancelCommand { get; }
 
+
+    private Item? _itemBeingEdited;
+    public bool IsEditMode => _itemBeingEdited != null;
+
     public CustomItemCreatorViewModel(
-        IItemDataService itemDataService,
-        Action<Item>? onItemCreated = null,
-        bool isLiveGame = false)
+    IItemDataService itemDataService,
+    Action<Item>? onItemCreated = null,
+    bool isLiveGame = false,
+    Item? itemToEdit = null)
     {
         _itemDataService = itemDataService;
         _onItemCreated = onItemCreated;
         _isLiveGame = isLiveGame;
+        _itemBeingEdited = itemToEdit;
 
-        // Initialize weapon effects
         foreach (WeaponEffectType effect in Enum.GetValues(typeof(WeaponEffectType)))
         {
-            _weaponEffects.Add(new SelectableWeaponEffect { Effect = effect, IsSelected = false });
+            bool isSelected = itemToEdit?.WeaponEffects?.Contains(effect) ?? false;
+            _weaponEffects.Add(new SelectableWeaponEffect { Effect = effect, IsSelected = isSelected });
         }
 
-        CreateCommand = new Command(async () => await CreateItemAsync());
-        CancelCommand = new Command(OnCancel);
+        if (itemToEdit != null)
+        {
+            Name = itemToEdit.Name;
+            Description = itemToEdit.BaseDescription;
+            Category = itemToEdit.Category;
+            Size = itemToEdit.Size;
+            ValueInChips = itemToEdit.ValueInChips;
+            Rarity = itemToEdit.Rarity;
+            QtyLimit = itemToEdit.QtyLimit;
+            IsStackable = itemToEdit.IsStackable ?? true;
+            Uses = itemToEdit.Uses;
+            WeaponCategory = itemToEdit.WeaponCategory;
+            WeaponDamage = itemToEdit.WeaponDamage;
+            WeaponSpeed = itemToEdit.WeaponSpeed;
+            ArmorType = itemToEdit.ArmorType;
+            ArmorValue = itemToEdit.ArmorValue;
+        }
+
+        CreateCommand = new Command(async () => await SaveItemAsync());
+        CancelCommand = new Command(async () => await DismissAsync());
     }
 
-    private async Task CreateItemAsync()
+    private async Task SaveItemAsync()
     {
-        // Validate
         if (string.IsNullOrWhiteSpace(Name))
         {
             await Application.Current.MainPage.DisplayAlertAsync("Error", "Please enter an item name.", "OK");
             return;
         }
 
-        System.Diagnostics.Debug.WriteLine($"=== Creating Item ===");
-        System.Diagnostics.Debug.WriteLine($"Name: {Name}");
-        System.Diagnostics.Debug.WriteLine($"Category: {Category}");
-        System.Diagnostics.Debug.WriteLine($"Size: {Size}");
-        System.Diagnostics.Debug.WriteLine($"IsLiveGame: {_isLiveGame}");
-
-        var request = new CreateCustomItemRequest
-        {
-            Name = Name,
-            Category = Category,
-            BaseDescription = Description,
-            Size = Size,
-            ValueInChips = ValueInChips,
-            Rarity = Rarity,
-            QtyLimit = QtyLimit,
-            IsStackable = IsStackable,
-            Uses = Uses,
-            WeaponCategory = WeaponCategory,
-            WeaponDamage = WeaponDamage,
-            WeaponSpeed = WeaponSpeed,
-            WeaponEffects = WeaponEffects.Where(e => e.IsSelected).Select(e => e.Effect).ToList(),
-            ArmorType = ArmorType,
-            ArmorValue = ArmorValue,
-            IsPlayerCreated = true
-        };
-
         try
         {
-            var newItem = await _itemDataService.CreateCustomItemAsync(request);
-            System.Diagnostics.Debug.WriteLine($"=== Item Created Successfully! ID: {newItem.Id} ===");
+            Item savedItem;
 
-            _onItemCreated?.Invoke(newItem);
+            if (_itemBeingEdited != null)
+            {
+                _itemBeingEdited.Name = Name;
+                _itemBeingEdited.BaseDescription = Description;
+                _itemBeingEdited.Category = Category;
+                _itemBeingEdited.Size = Size;
+                _itemBeingEdited.ValueInChips = ValueInChips;
+                _itemBeingEdited.Rarity = Rarity;
+                _itemBeingEdited.QtyLimit = QtyLimit;
+                _itemBeingEdited.IsStackable = IsStackable;
+                _itemBeingEdited.Uses = Uses;
+                _itemBeingEdited.WeaponCategory = WeaponCategory;
+                _itemBeingEdited.WeaponDamage = WeaponDamage;
+                _itemBeingEdited.WeaponSpeed = WeaponSpeed;
+                _itemBeingEdited.WeaponEffects = WeaponEffects.Where(e => e.IsSelected).Select(e => e.Effect).ToList();
+                _itemBeingEdited.ArmorType = ArmorType;
+                _itemBeingEdited.ArmorValue = ArmorValue;
+                _itemBeingEdited.LastModified = DateTime.UtcNow;
 
-            await Application.Current.MainPage.DisplayAlertAsync("Success!",
-                $"Item '{newItem.Name}' created with ID {newItem.Id}", "OK");
+                await _itemDataService.UpdateItemAsync(_itemBeingEdited);
+                savedItem = _itemBeingEdited;
 
-            await Shell.Current.GoToAsync("..");
+                await Application.Current.MainPage.DisplayAlertAsync("Saved!", $"'{savedItem.Name}' updated.", "OK");
+            }
+            else
+            {
+                var request = new CreateCustomItemRequest
+                {
+                    Name = Name,
+                    Category = Category,
+                    BaseDescription = Description,
+                    Size = Size,
+                    ValueInChips = ValueInChips,
+                    Rarity = Rarity,
+                    QtyLimit = QtyLimit,
+                    IsStackable = IsStackable,
+                    Uses = Uses,
+                    WeaponCategory = WeaponCategory,
+                    WeaponDamage = WeaponDamage,
+                    WeaponSpeed = WeaponSpeed,
+                    WeaponEffects = WeaponEffects.Where(e => e.IsSelected).Select(e => e.Effect).ToList(),
+                    ArmorType = ArmorType,
+                    ArmorValue = ArmorValue,
+                    IsPlayerCreated = true
+                };
+
+                savedItem = await _itemDataService.CreateCustomItemAsync(request);
+                await Application.Current.MainPage.DisplayAlertAsync("Success!", $"Item '{savedItem.Name}' created with ID {savedItem.Id}", "OK");
+            }
+
+            _onItemCreated?.Invoke(savedItem);
+            await DismissAsync();
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"=== ERROR Creating Item: {ex.Message} ===");
-            await Application.Current.MainPage.DisplayAlertAsync("Error", $"Failed to create item: {ex.Message}", "OK");
+            System.Diagnostics.Debug.WriteLine($"=== ERROR Saving Item: {ex.Message} ===");
+            await Application.Current.MainPage.DisplayAlertAsync("Error", $"Failed to save item: {ex.Message}", "OK");
         }
     }
 
     private async void OnCancel()
     {
-        await Shell.Current.GoToAsync("..");
+        await DismissAsync();
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -224,6 +266,19 @@ public class CustomItemCreatorViewModel : INotifyPropertyChanged
     protected void OnPropertyChanged([CallerMemberName] string propertyName = "")
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    private async Task DismissAsync()
+    {
+        var mainPage = Application.Current?.MainPage;
+        if (mainPage?.Navigation?.ModalStack?.Count > 0)
+        {
+            await mainPage.Navigation.PopModalAsync();
+        }
+        else
+        {
+            await Shell.Current.GoToAsync("..");
+        }
     }
 }
 

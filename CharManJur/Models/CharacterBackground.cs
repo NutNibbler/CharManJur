@@ -63,6 +63,7 @@ public class CharacterBackground
                 ? new ObservableCollection<StartingItem>(StartingItems.Select(si => new StartingItem
                 {
                     ItemId = si.ItemId,
+                    ItemGuid = si.ItemGuid,
                     Quantity = si.Quantity,
                     PlayerNote = si.PlayerNote,
                     ItemDetails = si.ItemDetails
@@ -79,6 +80,7 @@ public class StartingItem : INotifyPropertyChanged
 {
     private Item? _itemDetails;
 
+    public Guid? ItemGuid { get; set; }
     public int ItemId { get; set; }
     public int Quantity { get; set; }
     public string? PlayerNote { get; set; }

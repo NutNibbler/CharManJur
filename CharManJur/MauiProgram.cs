@@ -41,6 +41,11 @@ namespace CharManJur
             builder.Services.AddTransient<SettingsViewModel>();
             builder.Services.AddTransient<SettingsPage>();
 
+            //ASSET MANAGER REGISTERS
+            builder.Services.AddTransient<ItemAssetManagerViewModel>();
+            builder.Services.AddTransient<ItemAssetManagerPage>();
+            builder.Services.AddSingleton<IAssetPackService, AssetPackService>();
+
             //CUSTOM HINDERANCE REGISTERS
             builder.Services.AddSingleton<ICustomHinderanceStorageService, CustomHinderanceStorageService>();
             builder.Services.AddTransient<Godrick_CustomHinderanceCreator>();

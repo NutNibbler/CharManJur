@@ -106,7 +106,7 @@ public class LoadCharacterViewModel : INotifyPropertyChanged
         var saveData = await _persistenceService.LoadCharacterAsync(SelectedCharacter.FileName);
         if (saveData != null)
         {
-            _charDataService.PopulateFromSaveData(saveData);
+            await _charDataService.PopulateFromSaveDataAsync(saveData);
             _globalMenuDataService.CharBuilderLoadRequest();
             _globalMenuDataService.SetCharacterCreationMode(true);
 

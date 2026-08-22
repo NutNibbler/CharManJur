@@ -34,6 +34,7 @@ public interface ICharAttribDataService
     void ApplyHinderanceReward();
 
     // === BACKGROUND DATA ===
+    int? SelectedBackgroundId { get; set; }
     string SelectedBackgroundName { get; set; }
     string SelectedBackgroundDescription { get; set; }
 
@@ -223,7 +224,7 @@ public interface ICharAttribDataService
     void MarkCharacterUnsaved();
 
     // === CHARACTER SAVE/LOAD ===
-    void PopulateFromSaveData(CharacterSaveData saveData);
+    Task PopulateFromSaveDataAsync(CharacterSaveData saveData);
     CharacterSaveData CreateSaveData();
 
     // ====================================== LIVE GAME SERVICES ====================================== //
@@ -236,8 +237,6 @@ public interface ICharAttribDataService
     CharacterItem? GetEquippedHandSlot(int slot);
     CharacterItem? GetEquippedBeltSlot(int slot);
     CharacterItem? GetEquippedArmor();
-
-    CharacterItem AddItemToInventory(int templateId, int quantity = 1);
     CharacterItem AddItemToInventory(Item template, int quantity = 1);
     void RemoveItemFromInventory(int characterItemId);
     void UpdateItemUses(int characterItemId, int usesRemaining);
@@ -480,6 +479,7 @@ public class CharAttribDataService : ICharAttribDataService
     }
 
     // === BACKGROUND DATA ===
+    public int? SelectedBackgroundId { get; set; }
     public string SelectedBackgroundName { get; set; } = string.Empty;
     public string SelectedBackgroundDescription { get; set; } = string.Empty;
     public List<StartingItem> SelectedStartingItems { get; set; } = new();
@@ -1169,34 +1169,6 @@ public class CharAttribDataService : ICharAttribDataService
         return _inventory.FirstOrDefault(i => i.IsEquipped && i.EquipmentSlot == EquipmentSlotType.Armor);
     }
 
-    public CharacterItem AddItemToInventory(int templateId, int quantity = 1)
-    {
-        var existingStack = _inventory.FirstOrDefault(i =>
-            i.TemplateId == templateId &&
-            !i.IsEquipped &&
-            !i.IsEmpty &&
-            i.Quantity < 99);
-
-        if (existingStack != null)
-        {
-            existingStack.Quantity += quantity;
-            existingStack.LastModified = DateTime.Now;
-            return existingStack;
-        }
-
-        var newItem = new CharacterItem
-        {
-            Id = GetNextCharacterItemId(),
-            TemplateId = templateId,
-            Quantity = quantity,
-            RemainingUses = 0,
-            AcquiredAt = DateTime.Now
-        };
-
-        _inventory.Add(newItem);
-        return newItem;
-    }
-
     public CharacterItem AddItemToInventory(Item template, int quantity = 1)
     {
         if (template == null) return null;
@@ -1204,7 +1176,7 @@ public class CharAttribDataService : ICharAttribDataService
         if (template.IsStackableItem)
         {
             var existingStack = _inventory.FirstOrDefault(i =>
-                i.TemplateId == template.Id &&
+                (template.IsPlayerCreated ? i.TemplateGuid == template.Guid : i.TemplateId == template.Id) &&
                 !i.IsEquipped &&
                 !i.IsEmpty &&
                 i.Quantity < 99);
@@ -1229,6 +1201,7 @@ public class CharAttribDataService : ICharAttribDataService
         {
             Id = newId,
             TemplateId = template.Id,
+            TemplateGuid = template.IsPlayerCreated ? template.Guid : null,
             Template = template,
             Quantity = quantity,
             RemainingUses = remainingUses,
@@ -1921,6 +1894,18 @@ public class CharAttribDataService : ICharAttribDataService
             {
                 template = startingItem.ItemDetails;
             }
+            else if (startingItem.ItemGuid.HasValue)
+            {
+                try
+                {
+                    var task = _itemDataService?.GetItemByGuidAsync(startingItem.ItemGuid.Value);
+                    template = task?.Result;
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error resolving item {startingItem.ItemGuid}: {ex.Message}");
+                }
+            }
             else
             {
                 try
@@ -2081,6 +2066,7 @@ public class CharAttribDataService : ICharAttribDataService
                     AcquiredTechniques = new List<Technique>(AcquiredTechniques),
 
                     // ===== BACKGROUND DATA =====
+                    SelectedBackgroundId = SelectedBackgroundId,
                     SelectedBackgroundName = SelectedBackgroundName,
                     SelectedBackgroundDescription = SelectedBackgroundDescription,
                     BackgroundVigorBonus = BGVigorBonus,
@@ -2120,7 +2106,7 @@ public class CharAttribDataService : ICharAttribDataService
     }
 
     // === POPULATE FROM SAVE DATA ===
-    public void PopulateFromSaveData(CharacterSaveData saveData)
+    public async Task PopulateFromSaveDataAsync(CharacterSaveData saveData)
     {
         if (saveData?.Data == null) return;
 
@@ -2192,6 +2178,7 @@ public class CharAttribDataService : ICharAttribDataService
         AcquiredTechniques = saveData.Data.AcquiredTechniques ?? new List<Technique>();
 
         // ===== BACKGROUND DATA =====
+        SelectedBackgroundId = saveData.Data.SelectedBackgroundId;
         SelectedBackgroundName = saveData.Data.SelectedBackgroundName ?? string.Empty;
         SelectedBackgroundDescription = saveData.Data.SelectedBackgroundDescription ?? string.Empty;
         BackgroundVigorBonus = saveData.Data.BackgroundVigorBonus;
@@ -2246,6 +2233,25 @@ public class CharAttribDataService : ICharAttribDataService
 
         // ===== INVENTORY =====
         Inventory = saveData.Data.Inventory ?? new List<CharacterItem>();
+
+        foreach (var item in Inventory)
+        {
+            try
+            {
+                item.Template = item.TemplateGuid.HasValue
+                    ? await _itemDataService.GetItemByGuidAsync(item.TemplateGuid.Value)
+                    : await _itemDataService.GetItemByIdAsync(item.TemplateId);
+
+                if (!item.TemplateGuid.HasValue && item.Template != null && item.Template.IsPlayerCreated)
+                {
+                    item.TemplateGuid = item.Template.Guid;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error resolving item template for {item.TemplateId}/{item.TemplateGuid}: {ex.Message}");
+            }
+        }
 
         // Persistence flags
         IsCharacterComplete = saveData.IsComplete;
@@ -2335,6 +2341,7 @@ public class CharAttribDataService : ICharAttribDataService
         SaveFileName = null;
 
         // === BACKGROUND INFORMATION ===
+        SelectedBackgroundId = null;
         SelectedBackgroundName = string.Empty;
         SelectedBackgroundDescription = string.Empty;
         SelectedStartingItems.Clear();

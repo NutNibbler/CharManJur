@@ -76,8 +76,7 @@ public class CustomItemStorageService : ICustomItemStorageService
     {
         var items = await LoadCustomItemsAsync();
 
-        // Check if item already exists (update) or add new
-        var existing = items.FirstOrDefault(i => i.Id == item.Id);
+        var existing = items.FirstOrDefault(i => i.Guid == item.Guid);
         if (existing != null)
         {
             var index = items.IndexOf(existing);
@@ -108,10 +107,10 @@ public class CustomItemStorageService : ICustomItemStorageService
         }
     }
 
-    public async Task<bool> DeleteCustomItemAsync(int id)
+    public async Task<bool> DeleteCustomItemAsync(Guid guid)
     {
         var items = await LoadCustomItemsAsync();
-        var item = items.FirstOrDefault(i => i.Id == id);
+        var item = items.FirstOrDefault(i => i.Guid == guid);
         if (item == null) return false;
 
         items.Remove(item);
