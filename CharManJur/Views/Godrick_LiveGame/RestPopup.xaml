@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.Godrick_LiveGame.RestPopup"
+             Title="Rest"
+             Shell.NavBarIsVisible="False">
+
+    <Grid Padding="20" RowDefinitions="Auto, *, Auto" MaximumWidthRequest="1000">
+
+        <!-- Header -->
+        <VerticalStackLayout Grid.Row="0" Spacing="5">
+            <Label Text="🏕️ Rest"
+                   FontSize="24"
+                   FontAttributes="Bold"
+                   TextColor="{DynamicResource ThemeDetailBorderColor1}"
+                   HorizontalOptions="Center" />
+            <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}" />
+        </VerticalStackLayout>
+
+        <!-- Rest Options -->
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Spacing="12">
+
+                <!-- Short Rest -->
+                <skin:SkinPanel StrokeColor="{DynamicResource ThemeDetailBorderColor2}"
+                                StrokeThickness="1"
+                                CornerRadius="8"
+                                ContentPadding="12">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Short Rest" FontSize="16" FontAttributes="Bold" />
+                        <Label Text="Restores Hit Protection. Common after combat or a draining moment."
+                               FontSize="12" TextColor="Gray" />
+                        <skin:SkinHost SkinKey="primary" FallbackColor="{DynamicResource ThemePrimaryButtonColor}">
+                            <Button Text="Take Short Rest"
+                                    TextColor="White"
+                                    CornerRadius="6"
+                                    HeightRequest="40"
+                                    Padding="14,0"
+                                    Clicked="OnShortRestClicked" />
+                        </skin:SkinHost>
+                    </VerticalStackLayout>
+                </skin:SkinPanel>
+
+                <!-- Long Rest: Perilous -->
+                <skin:SkinPanel StrokeColor="{DynamicResource ThemeDetailBorderColor2}"
+                                StrokeThickness="1"
+                                CornerRadius="8"
+                                ContentPadding="12">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Long Rest — Perilous" FontSize="16" FontAttributes="Bold" />
+                        <Label Text="A dangerous or uncomfortable place to sleep. Restores Hit Protection and clears deprivation; nothing else."
+                               FontSize="12" TextColor="Gray" />
+                        <skin:SkinHost SkinKey="warning" FallbackColor="{DynamicResource ThemeWarningButtonColor}">
+                            <Button Text="Take Perilous Rest"
+                                    TextColor="White"
+                                    CornerRadius="6"
+                                    HeightRequest="40"
+                                    Padding="14,0"
+                                    Clicked="OnLongPerilousClicked" />
+                        </skin:SkinHost>
+                    </VerticalStackLayout>
+                </skin:SkinPanel>
+
+                <!-- Long Rest: Normal -->
+                <skin:SkinPanel StrokeColor="{DynamicResource ThemeDetailBorderColor2}"
+                                StrokeThickness="1"
+                                CornerRadius="8"
+                                ContentPadding="12">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Long Rest — Normal" FontSize="16" FontAttributes="Bold" />
+                        <Label Text="A proper camp or an inn. Restores Hit Protection, clears deprivation, and removes all Fatigue."
+                               FontSize="12" TextColor="Gray" />
+                        <skin:SkinHost SkinKey="confirm" FallbackColor="{DynamicResource ThemeConfirmButtonColor}">
+                            <Button Text="Take Normal Rest"
+                                    TextColor="White"
+                                    CornerRadius="6"
+                                    HeightRequest="40"
+                                    Padding="14,0"
+                                    Clicked="OnLongNormalClicked" />
+                        </skin:SkinHost>
+                    </VerticalStackLayout>
+                </skin:SkinPanel>
+
+                <!-- Long Rest: Comfortable -->
+                <skin:SkinPanel StrokeColor="{DynamicResource ThemeDetailBorderColor2}"
+                                StrokeThickness="1"
+                                CornerRadius="8"
+                                ContentPadding="12">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="Long Rest — Comfortable" FontSize="16" FontAttributes="Bold" />
+                        <Label Text="A luxurious chamber or similar. Restores Hit Protection, clears deprivation, removes Fatigue, and rolls a six-sided die to restore all ability scores by that amount."
+                               FontSize="12" TextColor="Gray" />
+
+                        <HorizontalStackLayout Spacing="20">
+                            <RadioButton x:Name="ComfortableManualRadio" GroupName="ComfortableRollMode" Content="Manual Entry" IsChecked="True" CheckedChanged="OnComfortableRollModeChanged" />
+                            <RadioButton x:Name="ComfortableRollForMeRadio" GroupName="ComfortableRollMode" Content="Roll for Me" CheckedChanged="OnComfortableRollModeChanged" />
+                        </HorizontalStackLayout>
+
+                        <Border x:Name="ComfortableManualSection" Stroke="{DynamicResource ThemeDetailBorderColor2}" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
+                            <Entry x:Name="ComfortableManualEntry" Placeholder="d6 result (1-6)" Keyboard="Numeric" PlaceholderColor="Gray" BackgroundColor="Transparent" HorizontalTextAlignment="Center" />
+                        </Border>
+
+                        <VerticalStackLayout x:Name="ComfortableRollForMeSection" Spacing="8" IsVisible="False">
+                            <skin:SkinHost SkinKey="primary" FallbackColor="{DynamicResource ThemePrimaryButtonColor}">
+                                <Button Text="🎲 Roll d6" TextColor="White" CornerRadius="6" HeightRequest="35" Padding="14,0" Clicked="OnComfortableRollClicked" />
+                            </skin:SkinHost>
+                            <Label x:Name="ComfortableRollResultLabel" FontSize="13" FontAttributes="Bold" HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+
+                        <skin:SkinHost SkinKey="summary" FallbackColor="{DynamicResource ThemeSummaryButtonColor}">
+                            <Button Text="Take Comfortable Rest"
+                                    TextColor="White"
+                                    CornerRadius="6"
+                                    HeightRequest="40"
+                                    Padding="14,0"
+                                    Clicked="OnLongComfortableClicked" />
+                        </skin:SkinHost>
+                    </VerticalStackLayout>
+                </skin:SkinPanel>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Close -->
+        <skin:SkinHost Grid.Row="2" MaximumWidthRequest="800"
+                       SkinKey="neutral"
+                       FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
+                       Margin="0,15,0,0">
+            <Button Text="Close"
+                    TextColor="White"
+                    CornerRadius="8"
+                    HeightRequest="45"
+                    Padding="14,0"
+                    Clicked="OnCloseClicked" />
+        </skin:SkinHost>
+
+    </Grid>
+</ContentPage>

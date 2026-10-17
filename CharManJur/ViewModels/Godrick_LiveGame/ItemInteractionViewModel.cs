@@ -62,43 +62,11 @@ public class ItemInteractionViewModel : INotifyPropertyChanged
         }
     }
 
-    public bool CanEquipHand
-    {
-        get
-        {
-            if (_characterItem.IsJewelry) return false;
-            if (_characterItem.IsEquipped) return false;
-            if (_characterItem.IsArmor && !_characterItem.IsShield) return false;
+    public bool CanEquipHand => EquipmentActionHelper.CanEquipToHand(_characterItem, _charDataService);
 
-            // Check if we have enough hand slots available
-            if (_characterItem.SlotsRequired > AvailableHandSlots) return false;
+    public bool CanEquipBelt => EquipmentActionHelper.CanEquipToBelt(_characterItem, _charDataService);
 
-            return true;
-        }
-    }
-
-    public bool CanEquipBelt
-    {
-        get
-        {
-            if (_characterItem.IsJewelry) return false;
-            if (_characterItem.IsEquipped) return false;
-            if (_characterItem.IsArmor && !_characterItem.IsShield) return false;
-            return true;
-        }
-    }
-
-    public bool CanEquipArmor
-    {
-        get
-        {
-            if (_characterItem.IsEmpty) return false;
-            if (!_characterItem.IsArmor) return false;
-            if (_characterItem.IsShield) return false;
-            if (_characterItem.IsEquipped) return false;
-            return true;
-        }
-    }
+    public bool CanEquipArmor => EquipmentActionHelper.CanEquipAsArmor(_characterItem, _charDataService);
 
     // ===== COMMANDS =====
 
@@ -119,109 +87,12 @@ public class ItemInteractionViewModel : INotifyPropertyChanged
 
         try
         {
-            // ===== TWO-HANDED ITEM EQUIPPING =====
-            if (_characterItem.SlotsRequired > 1)
+            bool success = await EquipmentActionHelper.EquipToHandAsync(_characterItem, _charDataService);
+            if (success)
             {
-                // Check if the item can be equipped as two-handed
-                if (!_charDataService.CanEquipTwoHandedItem(_characterItem.Id))
-                {
-                    await Application.Current.MainPage.DisplayAlertAsync(
-                        "Cannot Equip",
-                        "This item requires two hands. No free paired limb set available.",
-                        "OK");
-                    return;
-                }
-
-                // Find available limb sets
-                var limbSets = _charDataService.LimbSets
-                    .Where(l => l.PairType == LimbPairType.Paired && !l.IsOccupiedByTwoHandedItem)
-                    .ToList();
-
-                // Check if all slots are free for each set
-                var availableSets = limbSets.Where(l =>
-                    l.SlotIndices.All(slotIndex =>
-                        _charDataService.GetEquippedHandSlot(slotIndex + 1) == null)).ToList();
-
-                if (availableSets.Count == 0)
-                {
-                    await Application.Current.MainPage.DisplayAlertAsync(
-                        "Cannot Equip",
-                        "No free paired limb sets available.",
-                        "OK");
-                    return;
-                }
-
-                if (availableSets.Count == 1)
-                {
-                    // If only one limb set available, use it directly
-                    _charDataService.EquipTwoHandedItem(_characterItem.Id, availableSets.First().Id);
-                    _onInteractionComplete?.Invoke();
-                    await Application.Current.MainPage.Navigation.PopModalAsync();
-                    return;
-                }
-
-                // Multiple limb sets - let user choose
-                var options = availableSets.Select(l => l.DisplayName).ToList();
-                options.Add("Cancel");
-
-                string selected = await Application.Current.MainPage.DisplayActionSheetAsync(
-                    "Select Limb Set",
-                    "Cancel",
-                    null,
-                    options.ToArray());
-
-                if (selected != null && selected != "Cancel")
-                {
-                    var selectedSet = availableSets.FirstOrDefault(l => l.DisplayName == selected);
-                    if (selectedSet != null)
-                    {
-                        _charDataService.EquipTwoHandedItem(_characterItem.Id, selectedSet.Id);
-                        _onInteractionComplete?.Invoke();
-                        await Application.Current.MainPage.Navigation.PopModalAsync();
-                    }
-                }
-                return;
+                _onInteractionComplete?.Invoke();
+                await Application.Current.MainPage.Navigation.PopModalAsync();
             }
-
-            // ===== SINGLE-HANDED ITEM EQUIPPING =====
-            int totalSlots = TotalHandSlots;
-
-            if (AvailableHandSlots < 1)
-            {
-                await Application.Current.MainPage.DisplayAlertAsync(
-                    "Not Enough Slots",
-                    $"You have no free hand slots. Available: {AvailableHandSlots}/{TotalHandSlots}",
-                    "OK");
-                return;
-            }
-
-            int targetSlot = -1;
-            for (int i = 1; i <= totalSlots; i++)
-            {
-                if (_charDataService.GetEquippedHandSlot(i) == null)
-                {
-                    targetSlot = i;
-                    break;
-                }
-            }
-
-            if (targetSlot == -1)
-            {
-                await Application.Current.MainPage.DisplayAlertAsync(
-                    "No Slots Available",
-                    "No free hand slots available.",
-                    "OK");
-                return;
-            }
-
-            if (_characterItem.IsEquipped)
-            {
-                _charDataService.UnequipItem(_characterItem.Id);
-            }
-
-            _charDataService.EquipItem(_characterItem.Id, targetSlot);
-            _onInteractionComplete?.Invoke();
-            await Application.Current.MainPage.Navigation.PopModalAsync();
         }
         finally
         {
@@ -236,71 +107,12 @@ public class ItemInteractionViewModel : INotifyPropertyChanged
 
         try
         {
-            int slotsNeeded = _characterItem.SlotsRequired;
-
-            // Count used belt slots
-            int usedSlots = 0;
-            for (int i = 1; i <= 4; i++)
+            bool success = await EquipmentActionHelper.EquipToBeltAsync(_characterItem, _charDataService);
+            if (success)
             {
-                var existing = _charDataService.GetEquippedBeltSlot(i);
-                if (existing != null) usedSlots += existing.SlotsRequired;
+                _onInteractionComplete?.Invoke();
+                await Application.Current.MainPage.Navigation.PopModalAsync();
             }
-
-            if (usedSlots + slotsNeeded > 4)
-            {
-                await Application.Current.MainPage.DisplayAlertAsync(
-                    "Not Enough Slots",
-                    $"This item requires {slotsNeeded} belt slot(s). You have {4 - usedSlots} available.",
-                    "OK");
-                return;
-            }
-
-            // Find first available slot
-            int targetSlot = -1;
-            bool found = false;
-
-            if (slotsNeeded == 1)
-            {
-                for (int i = 1; i <= 4; i++)
-                {
-                    if (_charDataService.GetEquippedBeltSlot(i) == null)
-                    {
-                        targetSlot = i;
-                        found = true;
-                        break;
-                    }
-                }
-            }
-            else if (slotsNeeded == 2)
-            {
-                // Find two consecutive free slots
-                for (int i = 1; i <= 3; i++)
-                {
-                    if (_charDataService.GetEquippedBeltSlot(i) == null &&
-                        _charDataService.GetEquippedBeltSlot(i + 1) == null)
-                    {
-                        targetSlot = i;
-                        found = true;
-                        break;
-                    }
-                }
-            }
-
-            if (!found)
-            {
-                await Application.Current.MainPage.DisplayAlertAsync(
-                    "No Slots Available",
-                    "Could not find enough consecutive belt slots.",
-                    "OK");
-                return;
-            }
-
-            // Belt slots start after hand slots
-            // If total hand slots = 4, belt slot 1 = slot 5
-            int beltStartSlot = TotalHandSlots;
-            _charDataService.EquipItem(_characterItem.Id, beltStartSlot + targetSlot);
-            _onInteractionComplete?.Invoke();
-            await Application.Current.MainPage.Navigation.PopModalAsync();
         }
         finally
         {
@@ -315,21 +127,11 @@ public class ItemInteractionViewModel : INotifyPropertyChanged
 
         try
         {
-            var existingArmor = _charDataService.GetEquippedArmor();
-            if (existingArmor != null)
+            if (await EquipmentActionHelper.EquipAsArmorAsync(_characterItem, _charDataService))
             {
-                bool replace = await Application.Current.MainPage.DisplayAlertAsync(
-                    "Armor Slot Occupied",
-                    $"You already have '{existingArmor.DisplayName}' equipped. Replace it?",
-                    "Yes, Replace",
-                    "Cancel");
-
-                if (!replace) return;
+                _onInteractionComplete?.Invoke();
+                await Application.Current.MainPage.Navigation.PopModalAsync();
             }
-
-            _charDataService.EquipItemAsArmor(_characterItem.Id);
-            _onInteractionComplete?.Invoke();
-            await Application.Current.MainPage.Navigation.PopModalAsync();
         }
         finally
         {
@@ -344,9 +146,11 @@ public class ItemInteractionViewModel : INotifyPropertyChanged
 
         try
         {
-            _charDataService.UnequipItem(_characterItem.Id);
-            _onInteractionComplete?.Invoke();
-            await Application.Current.MainPage.Navigation.PopModalAsync();
+            if (await EquipmentActionHelper.UnequipAsync(_characterItem, _charDataService))
+            {
+                _onInteractionComplete?.Invoke();
+                await Application.Current.MainPage.Navigation.PopModalAsync();
+            }
         }
         finally
         {
@@ -361,15 +165,8 @@ public class ItemInteractionViewModel : INotifyPropertyChanged
 
         try
         {
-            bool confirm = await Application.Current.MainPage.DisplayAlertAsync(
-                "Drop Item",
-                $"Are you sure you want to drop '{_characterItem.DisplayName}'?",
-                "Yes, Drop",
-                "Cancel");
-
-            if (confirm)
+            if (await ItemDropHelper.DropAsync(_characterItem, _charDataService))
             {
-                _charDataService.DropItem(_characterItem.Id);
                 _onInteractionComplete?.Invoke();
                 await Application.Current.MainPage.Navigation.PopModalAsync();
             }
@@ -387,10 +184,11 @@ public class ItemInteractionViewModel : INotifyPropertyChanged
 
         try
         {
-            await Application.Current.MainPage.DisplayAlertAsync(
-                "Transfer Not Implemented",
-                "Item transfer to other players will be available in a future update.",
-                "OK");
+            if (await ItemTransferHelper.TransferAsync(_characterItem, _charDataService))
+            {
+                _onInteractionComplete?.Invoke();
+                await Application.Current!.MainPage!.Navigation.PopModalAsync();
+            }
         }
         finally
         {

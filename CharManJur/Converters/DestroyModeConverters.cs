@@ -9,7 +9,7 @@ public class DropModeBorderColorConverter : IValueConverter
     {
         if (value is bool isDropMode && isDropMode)
             return Colors.Red;
-        return Color.FromArgb("#3498db");
+        return ThemeColorLookup.Get("ThemeSectionBorderColor", Color.FromArgb("#3498db"));
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -39,7 +39,7 @@ public class DropModeBackgroundConverter : IValueConverter
     {
         if (value is bool isDropMode && isDropMode)
             return Color.FromArgb("#2a0a0a");
-        return Color.FromArgb("#16213e");
+        return ThemeColorLookup.Get("ThemePanelBackgroundColor", Color.FromArgb("#16213e"));
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -99,7 +99,7 @@ public class DropModeItemBorderConverter : IValueConverter
     {
         if (value is bool isDropMode && isDropMode)
             return Colors.Red;
-        return Color.FromArgb("#444444");
+        return ThemeColorLookup.Get("ThemeDetailBorderColor2", Color.FromArgb("#444444"));
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

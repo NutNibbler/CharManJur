@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.Godrick_LiveGame.Controls.FeaturePanelView">
+
+    <Grid RowDefinitions="Auto, *, Auto" RowSpacing="8">
+
+        <!-- Row 0: Favour (Shaman), dice pools, days -->
+        <FlexLayout Grid.Row="0" Wrap="Wrap" Direction="Row" AlignItems="Center">
+            <HorizontalStackLayout Spacing="6" Margin="0,0,18,4" IsVisible="{Binding HasFavour}">
+                <Label Text="🙏 Favour" FontSize="13" FontAttributes="Bold" VerticalOptions="Center" />
+                <skin:SkinHost SkinKey="generic_small"
+                               FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
+                               VerticalOptions="Center">
+                    <Button Text="−" TextColor="White" CornerRadius="4" WidthRequest="30" HeightRequest="28"
+                            Padding="0" FontSize="14" Command="{Binding FavourDownCommand}" />
+                </skin:SkinHost>
+                <Label Text="{Binding FavourText}" FontSize="15" FontAttributes="Bold" WidthRequest="30"
+                       HorizontalTextAlignment="Center" VerticalOptions="Center" />
+                <skin:SkinHost SkinKey="generic_small"
+                               FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
+                               VerticalOptions="Center">
+                    <Button Text="+" TextColor="White" CornerRadius="4" WidthRequest="30" HeightRequest="28"
+                            Padding="0" FontSize="14" Command="{Binding FavourUpCommand}" />
+                </skin:SkinHost>
+            </HorizontalStackLayout>
+
+            <Label Text="{Binding PoolsText}" FontSize="13" Margin="0,0,18,4" VerticalOptions="Center"
+                   IsVisible="{Binding HasPools}" />
+
+            <Label Text="{Binding DaysText}" FontSize="12" TextColor="Gray" Margin="0,0,10,4" VerticalOptions="Center" />
+
+            <skin:SkinHost SkinKey="neutral"
+                           FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
+                           VerticalOptions="Center"
+                           Margin="0,0,0,4">
+                <Button Text="☀️ Pass a Day" TextColor="White" CornerRadius="6" WidthRequest="130" HeightRequest="30"
+                        Padding="10,0" FontSize="11" Command="{Binding PassDayCommand}" />
+            </skin:SkinHost>
+        </FlexLayout>
+
+        <!-- Row 1: list | details -->
+        <Grid Grid.Row="1" ColumnDefinitions="0.45*, 0.55*" ColumnSpacing="10">
+
+            <Grid Grid.Column="0">
+                <CollectionView ItemsSource="{Binding Rows}"
+                                SelectionMode="Single"
+                                SelectedItem="{Binding SelectedRow, Mode=TwoWay}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                    StrokeThickness="0.5"
+                                    StrokeShape="RoundRectangle 4"
+                                    Padding="8"
+                                    Margin="2">
+                                <VerticalStackLayout Spacing="0">
+                                    <Label Text="{Binding Name}"
+                                           FontSize="13"
+                                           FontAttributes="Bold"
+                                           LineBreakMode="TailTruncation" />
+                                    <Label Text="{Binding ClassName}" FontSize="10" TextColor="Gray" />
+                                    <Label Text="{Binding StatusText}"
+                                           FontSize="10"
+                                           TextColor="{DynamicResource ThemeWarningButtonColor}" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <Label Text="No features yet."
+                       FontSize="13"
+                       TextColor="Gray"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"
+                       IsVisible="{Binding HasNoRows}" />
+            </Grid>
+
+            <Border Grid.Column="1"
+                    StrokeShape="RoundRectangle 6"
+                    StrokeThickness="1"
+                    Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                    BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}"
+                    Padding="10">
+                <Grid RowDefinitions="*, Auto" RowSpacing="8">
+
+                    <ScrollView Grid.Row="0" IsVisible="{Binding HasSelection}">
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="{Binding SelectedName}"
+                                   FontSize="18"
+                                   FontAttributes="Bold"
+                                   TextColor="{DynamicResource ThemeDetailBorderColor1}" />
+                            <Label Text="{Binding SelectedClassName}" FontSize="11" TextColor="Gray" />
+                            <Label Text="{Binding SelectedStatus}"
+                                   FontSize="12"
+                                   TextColor="{DynamicResource ThemeWarningButtonColor}" />
+                            <Label Text="{Binding SelectedDescription}"
+                                   FontSize="13"
+                                   LineBreakMode="WordWrap" />
+                            <Label Text="{Binding RulesText}"
+                                   FontSize="12"
+                                   TextColor="Gray"
+                                   LineBreakMode="WordWrap" />
+                            <Label Text="{Binding ResultText}"
+                                   FontSize="12"
+                                   FontAttributes="Bold"
+                                   TextColor="{DynamicResource ThemeConfirmButtonColor}"
+                                   LineBreakMode="WordWrap"
+                                   IsVisible="{Binding HasResult}" />
+                        </VerticalStackLayout>
+                    </ScrollView>
+
+                    <VerticalStackLayout Grid.Row="0"
+                                         Spacing="8"
+                                         HorizontalOptions="Center"
+                                         VerticalOptions="Center"
+                                         IsVisible="{Binding HasNoSelection}">
+                        <Label Text="Select a feature to see its details."
+                               FontSize="13"
+                               TextColor="Gray"
+                               HorizontalTextAlignment="Center" />
+                        <Label Text="{Binding ResultText}"
+                               FontSize="12"
+                               FontAttributes="Bold"
+                               TextColor="{DynamicResource ThemeConfirmButtonColor}"
+                               HorizontalTextAlignment="Center"
+                               LineBreakMode="WordWrap"
+                               IsVisible="{Binding HasResult}" />
+                    </VerticalStackLayout>
+
+                    <skin:SkinHost Grid.Row="1"
+                                   SkinKey="primary"
+                                   FallbackColor="{DynamicResource ThemePrimaryButtonColor}"
+                                   HorizontalOptions="Start"
+                                   IsVisible="{Binding CanUse}">
+                        <Button Text="{Binding UseText}"
+                                TextColor="White"
+                                CornerRadius="6"
+                                WidthRequest="150"
+                                HeightRequest="36"
+                                Padding="14,0"
+                                FontSize="12"
+                                IsVisible="{Binding CanUse}"
+                                Command="{Binding UseCommand}" />
+                    </skin:SkinHost>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Row 2 -->
+        <Label Grid.Row="2"
+               Text="Limits and requirements are guidelines: you can use a feature outside them, and the Event Tray flags it as rule skating."
+               FontSize="10"
+               TextColor="Gray"
+               LineBreakMode="WordWrap" />
+    </Grid>
+</ContentView>

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.Godrick_LiveGame.ApplyDamagePopup"
+             Title="Apply Damage"
+             Shell.NavBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="12" MaximumWidthRequest="1000">
+
+            <Label Text="⚔️ Apply Damage"
+                   FontSize="24"
+                   FontAttributes="Bold"
+                   TextColor="{DynamicResource ThemeDetailBorderColor1}"
+                   HorizontalOptions="Center" />
+            <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}" />
+
+            <Label Text="Damage Type" FontSize="13" TextColor="Gray" />
+            <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 8"
+                    BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
+                <Picker x:Name="TypePicker"
+                        TitleColor="Gray"
+                        BackgroundColor="Transparent"
+                        SelectedIndexChanged="OnTypeChanged">
+                    <Picker.Items>
+                        <x:String>Hitpoints</x:String>
+                        <x:String>Vigor</x:String>
+                        <x:String>Agility</x:String>
+                        <x:String>Mind</x:String>
+                        <x:String>Spirit</x:String>
+                    </Picker.Items>
+                </Picker>
+            </Border>
+
+            <!-- Combat Reactions — only relevant to a physical Hitpoints attack -->
+            <VerticalStackLayout x:Name="ReactionSection" Spacing="8">
+                <Label Text="Reaction" FontSize="13" TextColor="Gray" />
+                <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 8"
+                        BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
+                    <Picker x:Name="ReactionPicker"
+                            BackgroundColor="Transparent"
+                            SelectedIndexChanged="OnReactionChanged">
+                        <Picker.Items>
+                            <x:String>None</x:String>
+                            <x:String>Riposte</x:String>
+                            <x:String>Block</x:String>
+                            <x:String>Dodge</x:String>
+                            <x:String>Parry</x:String>
+                        </Picker.Items>
+                    </Picker>
+                </Border>
+
+                <Label x:Name="ReactionDescriptionLabel" FontSize="11" TextColor="Gray" />
+                <Label x:Name="ReactionNoteLabel" FontSize="11" TextColor="{DynamicResource ThemeWarningButtonColor}" IsVisible="False" />
+            </VerticalStackLayout>
+
+            <!-- Parry — its own resolution, bypasses the normal Amount flow -->
+            <VerticalStackLayout x:Name="ParrySection" Spacing="8" IsVisible="False">
+                <Label Text="Your Parry Roll" FontSize="13" TextColor="Gray" />
+                <HorizontalStackLayout Spacing="20">
+                    <RadioButton x:Name="ParryManualRadio" GroupName="ParryRollMode" Content="Manual Entry" IsChecked="True" CheckedChanged="OnParryRollModeChanged" />
+                    <RadioButton x:Name="ParryRollForMeRadio" GroupName="ParryRollMode" Content="Roll for Me" CheckedChanged="OnParryRollModeChanged" />
+                </HorizontalStackLayout>
+
+                <Border x:Name="ParryManualSection" Stroke="{DynamicResource ThemeDetailBorderColor2}" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
+                    <Entry x:Name="ParryManualEntry" Placeholder="Your roll" Keyboard="Numeric" PlaceholderColor="Gray" BackgroundColor="Transparent" HorizontalTextAlignment="Center" />
+                </Border>
+
+                <VerticalStackLayout x:Name="ParryRollForMeSection" Spacing="8" IsVisible="False">
+                    <Border Stroke="{DynamicResource ThemeDetailBorderColor2}" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
+                        <Picker x:Name="ParryDiePicker" BackgroundColor="Transparent">
+                            <Picker.Items>
+                                <x:String>D4</x:String>
+                                <x:String>D6</x:String>
+                                <x:String>D8</x:String>
+                                <x:String>D10</x:String>
+                                <x:String>D12</x:String>
+                                <x:String>D20</x:String>
+                            </Picker.Items>
+                        </Picker>
+                    </Border>
+                    <skin:SkinHost SkinKey="primary" FallbackColor="{DynamicResource ThemePrimaryButtonColor}">
+                        <Button Text="🎲 Roll" TextColor="White" CornerRadius="6" HeightRequest="35" Padding="14,0" Clicked="OnParryRollClicked" />
+                    </skin:SkinHost>
+                    <Label x:Name="ParryRollResultLabel" FontSize="13" FontAttributes="Bold" HorizontalOptions="Center" />
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+
+            <Label x:Name="AmountLabel" Text="Amount" FontSize="13" TextColor="Gray" />
+            <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 8"
+                    BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
+                <Entry x:Name="AmountEntry"
+                       Text="1"
+                       Keyboard="Numeric"
+                       BackgroundColor="Transparent"
+                       HorizontalTextAlignment="Center" />
+            </Border>
+
+            <Label x:Name="NoteLabel"
+                   Text="Hitpoints damage beyond remaining HP overflows to Vigor, per the rulebook."
+                   FontSize="11"
+                   TextColor="Gray" />
+
+            <Grid ColumnDefinitions="*, *" ColumnSpacing="10" Margin="0,10,0,0" MaximumWidthRequest="800">
+                <skin:SkinHost Grid.Column="0" SkinKey="confirm" FallbackColor="{DynamicResource ThemeConfirmButtonColor}">
+                    <Button Text="Apply"
+                            TextColor="White"
+                            CornerRadius="8"
+                            HeightRequest="45"
+                            Padding="14,0"
+                            Clicked="OnApplyClicked" />
+                </skin:SkinHost>
+                <skin:SkinHost Grid.Column="1" SkinKey="neutral" FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                    <Button Text="Cancel"
+                            TextColor="White"
+                            CornerRadius="8"
+                            HeightRequest="45"
+                            Padding="14,0"
+                            Clicked="OnCancelClicked" />
+                </skin:SkinHost>
+            </Grid>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

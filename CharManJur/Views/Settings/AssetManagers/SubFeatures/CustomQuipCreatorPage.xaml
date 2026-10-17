@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.CustomQuipCreatorPage"
+             Shell.NavBarIsVisible="False"
+             Title="Create Custom Quip">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
+
+            <Label Text="🪄 Create Custom Quip" FontSize="24" FontAttributes="Bold" HorizontalOptions="Center"/>
+
+            <Label Text="Name" FontAttributes="Bold"/>
+            <Entry x:Name="entryName" Placeholder="Quip name"/>
+
+            <Label Text="Description" FontAttributes="Bold"/>
+            <Editor x:Name="editorDescription" Placeholder="What does this quip do?" HeightRequest="120" AutoSize="TextChanges"/>
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,15,0,0">
+                <skin:SkinHost Grid.Column="0" SkinKey="neutral"
+                               FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                    <Button Text="Cancel"
+                            TextColor="White" CornerRadius="8" HeightRequest="45"
+                            Clicked="OnCancelClicked"/>
+                </skin:SkinHost>
+                <skin:SkinHost Grid.Column="1" SkinKey="create"
+                               FallbackColor="{DynamicResource ThemeCreateButtonColor}">
+                    <Button x:Name="btnSave"
+                            Text="Create Quip"
+                            TextColor="White" CornerRadius="8" HeightRequest="45"
+                            Clicked="OnCreateClicked"/>
+                </skin:SkinHost>
+            </Grid>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

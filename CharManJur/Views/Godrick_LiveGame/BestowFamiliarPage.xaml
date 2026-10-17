@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.Godrick_LiveGame.BestowFamiliarPage"
+             Title="Bestow Familiar"
+             Shell.NavBarIsVisible="False">
+
+    <Grid RowDefinitions="Auto, *, Auto" Padding="20" RowSpacing="10">
+
+        <VerticalStackLayout Grid.Row="0" Spacing="6">
+            <Label Text="Bestow Familiar or Construct"
+                   FontSize="24"
+                   FontAttributes="Bold"
+                   TextColor="{DynamicResource ThemeDetailBorderColor1}"
+                   HorizontalOptions="Center" />
+            <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}" />
+        </VerticalStackLayout>
+
+        <CollectionView x:Name="FamiliarList"
+                        Grid.Row="1"
+                        SelectionMode="Single">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 8"
+                            BackgroundColor="{DynamicResource ThemePanelBackgroundColor}"
+                            Padding="10"
+                            Margin="0,0,0,6">
+                        <VerticalStackLayout Spacing="2">
+                            <Label Text="{Binding Name}" FontSize="16" FontAttributes="Bold" />
+                            <Label Text="{Binding Subtitle}" FontSize="12" TextColor="Gray" />
+                            <Label Text="{Binding Stats}" FontSize="11" TextColor="{DynamicResource ThemeWarningButtonColor}" />
+                        </VerticalStackLayout>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <VerticalStackLayout Grid.Row="2" Spacing="8">
+            <skin:SkinHost SkinKey="create" FallbackColor="{DynamicResource ThemeCreateButtonColor}">
+                <Button Text="Create Custom Familiar or Construct"
+                        TextColor="White"
+                        CornerRadius="8"
+                        HeightRequest="42"
+                        Padding="14,0"
+                        Clicked="OnCreateCustomClicked" />
+            </skin:SkinHost>
+
+            <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
+                <skin:SkinHost Grid.Column="0" SkinKey="neutral" FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                    <Button Text="Cancel"
+                            TextColor="White"
+                            CornerRadius="8"
+                            HeightRequest="45"
+                            Padding="14,0"
+                            Clicked="OnCancelClicked" />
+                </skin:SkinHost>
+                <skin:SkinHost Grid.Column="1" SkinKey="confirm" FallbackColor="{DynamicResource ThemeConfirmButtonColor}">
+                    <Button Text="Bestow Selected"
+                            TextColor="White"
+                            CornerRadius="8"
+                            HeightRequest="45"
+                            Padding="14,0"
+                            FontAttributes="Bold"
+                            Clicked="OnBestowClicked" />
+                </skin:SkinHost>
+            </Grid>
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>

@@ -2,275 +2,618 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:converters="clr-namespace:CharManJur.Converters"
+             xmlns:models="clr-namespace:CharManJur.Models"
              xmlns:viewmodels="clr-namespace:CharManJur.ViewModels.Godrick_LiveGame"
+             xmlns:controls="clr-namespace:CharManJur.Views.Godrick_LiveGame.Controls"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
              x:Class="CharManJur.Views.Godrick_LiveGame.CharacterHomePage"
              Title="Character Home"
-             Shell.NavBarIsVisible="False"
-             BackgroundColor="#1a1a2e">
+             Shell.NavBarIsVisible="False">
 
-    <Grid RowDefinitions="Auto, Auto, *, Auto"
+    <ContentPage.Resources>
+        <converters:RatioToStarConverter x:Key="RatioToStarConverter" />
+    </ContentPage.Resources>
+
+    <Grid x:Name="PageHost">
+        <Grid x:Name="PageRoot"
+          RowDefinitions="Auto, *, Auto"
           Padding="15"
           RowSpacing="10">
 
-        <!-- ===== HEADER SECTION - Row 0 ===== -->
-        <Border Grid.Row="0"
-                Stroke="#3498db"
-                StrokeThickness="1"
-                StrokeShape="RoundRectangle 8"
-                Padding="10"
-                BackgroundColor="#16213e">
-            <Grid ColumnDefinitions="Auto, *, Auto, Auto, Auto, Auto, Auto"
-                  RowDefinitions="Auto, Auto"
-                  ColumnSpacing="10"
-                  RowSpacing="5">
+            <!-- ===== DASHBOARD - Row 0 ===== -->
+        <skin:SkinPanel Grid.Row="0"
+                        StrokeColor="{DynamicResource ThemeSectionBorderColor}"
+                        StrokeThickness="1"
+                        CornerRadius="8"
+                        ContentPadding="12">
+            <VerticalStackLayout Spacing="10">
 
-                <Label Grid.Row="0" Grid.Column="0"
-                       Text="{Binding CharacterName}"
-                       FontSize="20"
-                       FontAttributes="Bold"
-                       TextColor="White" />
+                <!-- Name header + Race info + Bio/Rest buttons -->
+                <Grid ColumnDefinitions="Auto, *, 140, 110, 110" ColumnSpacing="8">
+                    <VerticalStackLayout Grid.Column="0" Spacing="0" VerticalOptions="Start">
+                        <Label Text="{Binding CharacterName}"
+                               FontSize="20"
+                               FontAttributes="Bold" />
+                        <Label Text="{Binding PlayerName}"
+                               FontSize="16"
+                               TextColor="Gray" />
+                    </VerticalStackLayout>
 
-                <Label Grid.Row="0" Grid.Column="1"
-                       Text="HP"
-                       FontSize="14"
-                       TextColor="#888888"
-                       HorizontalOptions="End" />
-                <Label Grid.Row="0" Grid.Column="2"
-                       Text="{Binding CurrentHP}"
-                       FontSize="16"
-                       FontAttributes="Bold"
-                       TextColor="#2ecc71" />
-                <Label Grid.Row="0" Grid.Column="3"
-                       Text="/"
-                       FontSize="14"
-                       TextColor="#888888" />
-                <Label Grid.Row="0" Grid.Column="4"
-                       Text="{Binding MaxHP}"
-                       FontSize="16"
-                       TextColor="#888888" />
+                    <!-- Race, race feature (scrolls if long), languages -->
+                    <Border Grid.Column="1"
+                            Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                            StrokeThickness="0.5"
+                            StrokeShape="RoundRectangle 6"
+                            Padding="8,4"
+                            VerticalOptions="Start"
+                            IsVisible="{Binding HasRaceInfo}">
+                        <VerticalStackLayout Spacing="2">
+                            <HorizontalStackLayout Spacing="6">
+                                <Label Text="{Binding CharacterRace}"
+                                       FontSize="16"
+                                       FontAttributes="Bold"
+                                       TextColor="{DynamicResource ThemeDetailBorderColor1}" />
+                                <Label Text="{Binding RaceFeatureName, StringFormat='• {0}'}"
+                                       FontSize="14"
+                                       FontAttributes="Bold"
+                                       TextColor="{DynamicResource ThemeWarningButtonColor}"
+                                       IsVisible="{Binding HasRaceFeature}" />
+                            </HorizontalStackLayout>
 
-                <Label Grid.Row="0" Grid.Column="5"
-                       Text="Hands"
-                       FontSize="14"
-                       TextColor="#888888"
-                       HorizontalOptions="End" />
-                <Label Grid.Row="0" Grid.Column="6"
-                       Text="{Binding EquippedHands}"
-                       FontSize="14"
-                       TextColor="#f39c12" />
+                            <ScrollView MaximumHeightRequest="40"
+                                        IsVisible="{Binding HasRaceFeatureDescription}">
+                                <Label Text="{Binding RaceFeatureDescription}"
+                                       FontSize="14"
+                                       TextColor="Gray"
+                                       LineBreakMode="WordWrap" />
+                            </ScrollView>
 
-                <Label Grid.Row="1" Grid.Column="0"
-                       Text="{Binding PlayerName}"
-                       FontSize="14"
-                       TextColor="#aaaaaa" />
+                            <Label Text="{Binding LanguagesText}"
+                                   FontSize="12"
+                                   TextColor="Gray"
+                                   MaxLines="2"
+                                   LineBreakMode="TailTruncation"
+                                   IsVisible="{Binding HasLanguages}" />
+                        </VerticalStackLayout>
+                    </Border>
 
-                <Label Grid.Row="1" Grid.Column="1"
-                       Text="Languages"
-                       FontSize="14"
-                       TextColor="#888888"
-                       HorizontalOptions="End" />
-                <Label Grid.Row="1" Grid.Column="2"
-                       Text="{Binding Languages}"
-                       FontSize="14"
-                       TextColor="#aaaaaa"
-                       Grid.ColumnSpan="3" />
+                    <!-- Bio & Rest: Summary category -->
+                    <!-- Event Tray -->
+                    <skin:SkinHost Grid.Column="2"
+                                   SkinKey="generic"
+                                   FallbackColor="#1abc9c"
+                                   VerticalOptions="Start">
+                        <Button x:Name="EventTrayButton"
+                                Text="🔔 Event Tray"
+                                TextColor="White"
+                                CornerRadius="6"
+                                HeightRequest="35"
+                                Padding="14,0"
+                                FontSize="12"
+                                Clicked="OnEventTrayClicked" />
+                    </skin:SkinHost>
+                    
+                    <skin:SkinHost Grid.Column="3"
+                                   SkinKey="summary"
+                                   FallbackColor="{DynamicResource ThemeSummaryButtonColor}"
+                                   VerticalOptions="Start">
+                        <Button Text="📖 Bio"
+                                TextColor="White"
+                                CornerRadius="6"
+                                HeightRequest="35"
+                                Padding="14,0"
+                                FontSize="12"
+                                Command="{Binding OpenBioCommand}" />
+                    </skin:SkinHost>
 
-                <Label Grid.Row="1" Grid.Column="5"
-                       Text="Belt"
-                       FontSize="14"
-                       TextColor="#888888"
-                       HorizontalOptions="End" />
-                <Label Grid.Row="1" Grid.Column="6"
-                       Text="{Binding EquippedBelt}"
-                       FontSize="14"
-                       TextColor="#f39c12" />
-
-            </Grid>
-        </Border>
-
-        <!-- ===== STAT SUMMARY SECTION - Row 1 ===== -->
-        <Border Grid.Row="1"
-        Stroke="#3498db"
-        StrokeThickness="1"
-        StrokeShape="RoundRectangle 8"
-        Padding="10"
-        BackgroundColor="#16213e">
-            <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto, Auto, Auto, Auto" ColumnSpacing="15">
-
-                <Label Grid.Row="0" Grid.Column="0" Text="Vigor" FontSize="12" TextColor="#e74c3c" FontAttributes="Bold" />
-                <Label Grid.Row="0" Grid.Column="1" Text="Agility" FontSize="12" TextColor="#f39c12" FontAttributes="Bold" />
-
-                <Grid Grid.Row="1" Grid.Column="0" ColumnDefinitions="Auto, Auto, Auto" ColumnSpacing="5">
-                    <Label Grid.Row="0" Grid.Column="0" Text="{Binding StatVigor}" FontSize="18" FontAttributes="Bold" TextColor="White" />
-                    <Label Grid.Row="0" Grid.Column="1" Text="ASM:" FontSize="12" TextColor="#888888" />
-                    <Label Grid.Row="0" Grid.Column="2" Text="{Binding ASMStatVigor}" FontSize="16" TextColor="#4fc3f7" />
+                    <skin:SkinHost Grid.Column="4"
+                                   SkinKey="generic"
+                                   FallbackColor="#2ecc71"
+                                   VerticalOptions="Start">
+                        <Button Text="🏕️ Rest"
+                                TextColor="White"
+                                CornerRadius="6"
+                                HeightRequest="35"
+                                Padding="14,0"
+                                FontSize="12"
+                                Command="{Binding OpenRestCommand}" />
+                    </skin:SkinHost>
                 </Grid>
-                <Grid Grid.Row="1" Grid.Column="1" ColumnDefinitions="Auto, Auto, Auto" ColumnSpacing="5">
-                    <Label Grid.Row="0" Grid.Column="0" Text="{Binding StatAgility}" FontSize="18" FontAttributes="Bold" TextColor="White" />
-                    <Label Grid.Row="0" Grid.Column="1" Text="ASM:" FontSize="12" TextColor="#888888" />
-                    <Label Grid.Row="0" Grid.Column="2" Text="{Binding ASMStatAgility}" FontSize="16" TextColor="#4fc3f7" />
+
+                <BoxView HeightRequest="1" Color="{DynamicResource ThemeDetailBorderColor1}" />
+
+                <!-- HP bar + Armor + Apply Damage / Apply Effect / Roll Die-->
+                <Grid ColumnDefinitions="Auto, Auto, Auto, Auto, Auto" ColumnSpacing="10">
+                    <controls:StatBarView Grid.Column="0"
+                                          StatLabel="Hit Protection"
+                                          CurrentValue="{Binding CurrentHP}"
+                                          MaxValue="{Binding MaxHP}"
+                                          MaxValueColor="{Binding MaxHPColor}"
+                                          BarColor="{StaticResource HitpointsColor}"
+                                          BarWidth="150" />
+
+                    <VerticalStackLayout Grid.Column="1" Spacing="0" VerticalOptions="Center" HorizontalOptions="Center">
+                        <Label Text="Armor" FontSize="10" TextColor="Gray" HorizontalOptions="Center" />
+                        <Label Text="{Binding ArmorRating}" FontSize="16" FontAttributes="Bold" HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+
+                    <skin:SkinHost Grid.Column="2"
+                                   SkinKey="danger"
+                                   FallbackColor="#e74c3c"
+                                   VerticalOptions="Center"
+                                   HorizontalOptions="Center">
+                        <Button Text="⚔️ Apply Damage"
+                                TextColor="White"
+                                CornerRadius="6"
+                                HeightRequest="35"
+                                WidthRequest="140"
+                                Padding="14,0"
+                                FontSize="11"
+                                Command="{Binding OpenApplyDamageCommand}" />
+                    </skin:SkinHost>
+
+                    <skin:SkinHost Grid.Column="3"
+                                   SkinKey="summary"
+                                   FallbackColor="#8e44ad"
+                                   VerticalOptions="Center"
+                                   HorizontalOptions="Center">
+                        <Button Text="✨ Apply Effect"
+                                TextColor="White"
+                                CornerRadius="6"
+                                HeightRequest="35"
+                                WidthRequest="140"
+                                Padding="14,0"
+                                FontSize="11"
+                                Command="{Binding OpenApplyEffectCommand}" />
+                    </skin:SkinHost>
+
+                    <skin:SkinHost Grid.Column="4"
+                                   SkinKey="create"
+                                   FallbackColor="#16a085"
+                                   VerticalOptions="Center"
+                                   HorizontalOptions="Center">
+                        <Button Text="🎲 Roll Die"
+                                TextColor="White"
+                                CornerRadius="6"
+                                HeightRequest="35"
+                                WidthRequest="140"
+                                Padding="14,0"
+                                FontSize="11"
+                                Command="{Binding OpenRollDieCommand}" />
+                    </skin:SkinHost>
                 </Grid>
 
-                <Label Grid.Row="2" Grid.Column="0" Text="Mind" FontSize="12" TextColor="#3498db" FontAttributes="Bold" Margin="0,5,0,0" />
-                <Label Grid.Row="2" Grid.Column="1" Text="Spirit" FontSize="12" TextColor="#9b59b6" FontAttributes="Bold" Margin="0,5,0,0" />
-
-                <Grid Grid.Row="3" Grid.Column="0" ColumnDefinitions="Auto, Auto, Auto" ColumnSpacing="5">
-                    <Label Grid.Row="0" Grid.Column="0" Text="{Binding StatMind}" FontSize="18" FontAttributes="Bold" TextColor="White" />
-                    <Label Grid.Row="0" Grid.Column="1" Text="ASM:" FontSize="12" TextColor="#888888" />
-                    <Label Grid.Row="0" Grid.Column="2" Text="{Binding ASMStatMind}" FontSize="16" TextColor="#4fc3f7" />
+                <!-- Ability score bars: single row -->
+                <Grid ColumnDefinitions="Auto, Auto, Auto, Auto" RowDefinitions="Auto" ColumnSpacing="15" RowSpacing="8">
+                    <controls:StatBarView Grid.Row="0" Grid.Column="0"
+                                          StatLabel="Vigor"
+                                          Badge="{Binding VigorFormBadge}"
+                                          CurrentValue="{Binding CurrentVigor}"
+                                          MaxValue="{Binding StatVigor}"
+                                          MaxValueColor="{Binding VigorMaxColor}"
+                                          BarColor="{StaticResource VigorColor}"
+                                          BarWidth="150" />
+                    <controls:StatBarView Grid.Row="0" Grid.Column="1"
+                                          StatLabel="Agility"
+                                          Badge="{Binding AgilityFormBadge}"
+                                          CurrentValue="{Binding CurrentAgility}"
+                                          MaxValue="{Binding StatAgility}"
+                                          MaxValueColor="{Binding AgilityMaxColor}"
+                                          BarColor="{StaticResource AgilityColor}"
+                                          BarWidth="150" />
+                    <controls:StatBarView Grid.Row="0" Grid.Column="2"
+                                          StatLabel="Mind"
+                                          CurrentValue="{Binding CurrentMind}"
+                                          MaxValue="{Binding StatMind}"
+                                          MaxValueColor="{Binding MindMaxColor}"
+                                          BarColor="{StaticResource MindColor}"
+                                          BarWidth="150" />
+                    <controls:StatBarView Grid.Row="0" Grid.Column="3"
+                                          StatLabel="Spirit"
+                                          CurrentValue="{Binding CurrentSpirit}"
+                                          MaxValue="{Binding StatSpirit}"
+                                          MaxValueColor="{Binding SpiritMaxColor}"
+                                          BarColor="{StaticResource SpiritColor}"
+                                          BarWidth="150" />
                 </Grid>
-                <Grid Grid.Row="3" Grid.Column="1" ColumnDefinitions="Auto, Auto, Auto" ColumnSpacing="5">
-                    <Label Grid.Row="0" Grid.Column="0" Text="{Binding StatSpirit}" FontSize="18" FontAttributes="Bold" TextColor="White" />
-                    <Label Grid.Row="0" Grid.Column="1" Text="ASM:" FontSize="12" TextColor="#888888" />
-                    <Label Grid.Row="0" Grid.Column="2" Text="{Binding ASMStatSpirit}" FontSize="16" TextColor="#4fc3f7" />
-                </Grid>
-            </Grid>
-        </Border>
 
-        <!-- ===== EQUIPMENT & INVENTORY SECTION - Row 2 ===== -->
-        <Grid Grid.Row="2" ColumnDefinitions="0.35*, 0.65*" ColumnSpacing="10">
+                <!-- Active Effects — persistent reminder, tap to clear -->
+                <!-- Effects area: the Encumbered chip first (tap for why), then the active effects -->
+                <Grid ColumnDefinitions="Auto, *" Margin="0,2,0,0">
+                    <Border Grid.Column="0"
+                            Stroke="{DynamicResource ThemeDangerButtonColor}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 12"
+                            BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}"
+                            Padding="8,3"
+                            Margin="0,0,5,5"
+                            VerticalOptions="Start"
+                            IsVisible="{Binding IsEncumbered}">
+                        <Label Text="ENCUMBERED ⓘ"
+                               FontSize="10"
+                               FontAttributes="Bold"
+                               TextColor="{DynamicResource ThemeDangerButtonColor}" />
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ExplainEncumbranceCommand}" />
+                        </Border.GestureRecognizers>
+                    </Border>
+
+                    <FlexLayout Grid.Column="1"
+                                BindableLayout.ItemsSource="{Binding ActiveEffects}"
+                                Wrap="Wrap"
+                                Direction="Row">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate>
+                                <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                        StrokeThickness="1"
+                                        StrokeShape="RoundRectangle 12"
+                                        BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}"
+                                        Padding="8,3"
+                                        Margin="0,0,5,5">
+                                    <Label Text="{Binding Name}" FontSize="10" TextColor="{DynamicResource ThemeWarningButtonColor}">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding HardcodedType}" Value="{x:Static models:HardcodedEffectType.VigorSave}">
+                                                <Setter Property="TextColor" Value="{DynamicResource ThemeDangerButtonColor}" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Label" Binding="{Binding HardcodedType}" Value="{x:Static models:HardcodedEffectType.DeathsDoor}">
+                                                <Setter Property="TextColor" Value="#8b0000" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.RemoveEffectCommand}"
+                                            CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </FlexLayout>
+                </Grid>
+
+                <BoxView HeightRequest="1" Color="{DynamicResource ThemeDetailBorderColor1}" />
+
+                <!-- Numeric row: Hand / Belt / Pack + Fatigue bar -->
+                    <Grid ColumnDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto" ColumnSpacing="25">
+                        <VerticalStackLayout Grid.Column="0" Spacing="0" HorizontalOptions="Center" VerticalOptions="Center">
+                        <Label Text="Hands" FontSize="10" TextColor="Gray" HorizontalOptions="Center" />
+                        <Label Text="{Binding EquippedHands}" FontSize="13" HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="1" Spacing="0" HorizontalOptions="Center" VerticalOptions="Center">
+                        <Label Text="Belt" FontSize="10" TextColor="Gray" HorizontalOptions="Center" />
+                        <Label Text="{Binding EquippedBelt}" FontSize="13" HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="2" Spacing="0" HorizontalOptions="Center" VerticalOptions="Center">
+                        <Label Text="Pack" FontSize="10" TextColor="Gray" HorizontalOptions="Center" />
+                        <HorizontalStackLayout Spacing="0" HorizontalOptions="Center">
+                            <Label Text="{Binding InventorySlotsUsed}" FontSize="13" />
+                            <Label Text=" / " FontSize="13" />
+                            <Label Text="{Binding InventorySlotsTotal}" FontSize="13" TextColor="{Binding PackTotalColor}" />
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                    <!-- Currency: total in chips, then each denomination owned -->
+                    <VerticalStackLayout Grid.Column="3" Spacing="1" HorizontalOptions="Center" VerticalOptions="Center">
+                        <Label Text="Currency" FontSize="10" TextColor="Gray" HorizontalOptions="Center" />
+                        <HorizontalStackLayout Spacing="3" HorizontalOptions="Center">
+                            <Label Text="{Binding CurrencyUnitIcon}" FontSize="12" TextColor="{Binding CurrencyUnitColor}" VerticalOptions="Center" />
+                            <Label Text="{Binding CurrencyTotalText}" FontSize="13" FontAttributes="Bold" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout BindableLayout.ItemsSource="{Binding CurrencyBreakdown}"
+                                               Spacing="8"
+                                               HorizontalOptions="Center">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate>
+                                    <HorizontalStackLayout Spacing="2">
+                                        <Label Text="{Binding Icon}" TextColor="{Binding IconColor}" FontSize="11" VerticalOptions="Center" />
+                                        <Label Text="{Binding CountText}" FontSize="10" TextColor="Gray" VerticalOptions="Center" />
+                                    </HorizontalStackLayout>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                    <controls:StatBarView Grid.Column="4"
+                                          StatLabel="Fatigue"
+                                          CurrentValue="{Binding FatigueBarUsed}"
+                                          MaxValue="{Binding FatigueBarMax}"
+                                          MaxValueColor="{Binding FatigueMaxColor}"
+                                          BarColor="#e67e22"
+                                          BarWidth="150" />
+                        <HorizontalStackLayout Grid.Column="5" Spacing="5" VerticalOptions="Start" HorizontalOptions="Center">
+                            <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 12"
+                                BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}"
+                                Padding="8,3"
+                                Margin="0,0,0,5"
+                                IsVisible="{Binding HasFatigueOverflow}">
+                                <Label Text="OVER-FATIGUED" FontSize="10" FontAttributes="Bold" TextColor="{DynamicResource ThemeDangerButtonColor}" />
+                            </Border>
+
+                            <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 12"
+                                BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}"
+                                Padding="8,3"
+                                Margin="0,0,0,5"
+                                IsVisible="{Binding IsPackDropped}">
+                                <Label Text="PACK DROPPED" FontSize="10" FontAttributes="Bold" TextColor="{DynamicResource ThemeWarningButtonColor}" />
+                            </Border>
+                        </HorizontalStackLayout>
+                        <!-- Favour: only for characters who have picked Shaman -->
+                        <VerticalStackLayout Grid.Column="6" Spacing="1" HorizontalOptions="Center" VerticalOptions="Center"
+                                         IsVisible="{Binding HasFavour}">
+                            <Label Text="Favour" FontSize="10" TextColor="Gray" HorizontalOptions="Center" />
+                            <HorizontalStackLayout Spacing="4" HorizontalOptions="Center">
+                                <skin:SkinHost SkinKey="generic_small"
+                                           FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
+                                           VerticalOptions="Center">
+                                    <Button Text="−" TextColor="White" CornerRadius="4" WidthRequest="26" HeightRequest="24"
+                                        Padding="0" FontSize="13" Command="{Binding FavourDownCommand}" />
+                                </skin:SkinHost>
+                                <Label Text="{Binding FavourAmount}" FontSize="14" FontAttributes="Bold" WidthRequest="26"
+                                   HorizontalTextAlignment="Center" VerticalOptions="Center" />
+                                <skin:SkinHost SkinKey="generic_small"
+                                           FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
+                                           VerticalOptions="Center">
+                                    <Button Text="+" TextColor="White" CornerRadius="4" WidthRequest="26" HeightRequest="24"
+                                        Padding="0" FontSize="13" Command="{Binding FavourUpCommand}" />
+                                </skin:SkinHost>
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </Grid>
+
+            </VerticalStackLayout>
+        </skin:SkinPanel>
+
+        <!-- ===== EQUIPMENT & INVENTORY SECTION - Row 1 ===== -->
+        <Grid x:Name="EquipInvGrid" Grid.Row="1" ColumnDefinitions="0.35*, 0.65*" ColumnSpacing="10">
 
             <!-- LEFT: Equipment Summary - Column 0 -->
-            <Border Grid.Row="0" Grid.Column="0"
-        Stroke="#3498db"
-        StrokeThickness="1"
-        StrokeShape="RoundRectangle 8"
-        Padding="10"
-        BackgroundColor="#16213e">
+            <skin:SkinPanel Grid.Row="0" Grid.Column="0"
+                            StrokeColor="{DynamicResource ThemeSectionBorderColor}"
+                            StrokeThickness="1"
+                            CornerRadius="8"
+                            ContentPadding="10">
                 <ScrollView>
                     <VerticalStackLayout Spacing="8">
+
+                        <!-- ===== WIELDED WEAPONS (mini equipment dashboard) ===== -->
+                        <Label Text="🗡️ Wielded Weapons"
+                               FontAttributes="Bold"
+                               FontSize="13"
+                               TextColor="{DynamicResource ThemeWarningButtonColor}" />
+
+                        <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                StrokeThickness="0.5"
+                                StrokeShape="RoundRectangle 6"
+                                Padding="8,5">
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="No weapons equipped"
+                                       FontSize="10"
+                                       TextColor="Gray"
+                                       IsVisible="{Binding HasNoEquippedWeapons}" />
+
+                                <VerticalStackLayout BindableLayout.ItemsSource="{Binding EquippedWeapons}"
+                                                     Spacing="5"
+                                                     IsVisible="{Binding HasEquippedWeapons}">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate>
+                                            <VerticalStackLayout Spacing="0">
+                                                <Grid ColumnDefinitions="*, Auto" ColumnSpacing="6">
+                                                    <Label Grid.Column="0"
+                                                        Text="{Binding Name}"
+                                                        FontSize="12"
+                                                        FontAttributes="Bold"
+                                                        LineBreakMode="TailTruncation" />
+                                                    <Label Grid.Column="1"
+                                                        Text="{Binding Location}"
+                                                        FontSize="9"
+                                                        TextColor="Gray"
+                                                        VerticalOptions="Center" />
+                                                </Grid>
+                                                <Label Text="{Binding Summary}" FontSize="10" TextColor="{DynamicResource ThemeDetailBorderColor1}" />
+                                                <Label Text="{Binding EffectsText}"
+                                                    FontSize="10"
+                                                    TextColor="{DynamicResource ThemeWarningButtonColor}"
+                                                    LineBreakMode="WordWrap"
+                                                    IsVisible="{Binding HasEffects}" />
+                                            </VerticalStackLayout>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </Border>
 
                         <!-- ===== HAND SLOTS (Dynamic based on limb system) ===== -->
                         <Label Text="⚔️ Hand Slots"
                            FontAttributes="Bold"
                            FontSize="13"
-                           TextColor="#f39c12" />
+                           TextColor="{DynamicResource ThemeWarningButtonColor}" />
 
                         <!-- ===== LIMB SETS (Grouped by Pair) ===== -->
-                        <Label Text="🫳 Prehensile Limbs"
-                           FontAttributes="Bold"
-                           FontSize="13"
-                           TextColor="#f39c12" />
-
                         <Grid x:Name="LimbSetsGrid"
                           ColumnDefinitions="*"
                           RowSpacing="5">
                             <!-- Limb sets generated dynamically in code-behind -->
                         </Grid>
 
-                        <!-- Show combined label when bulky item equipped in hands -->
-                        <Label Text="{Binding HandSlotsBulkyLabel}"
-                           FontSize="10"
-                           FontAttributes="Bold"
-                           TextColor="#f39c12"
-                           HorizontalOptions="Center"
-                           IsVisible="{Binding HasBulkyInHands}" />
-
-                        <!-- Show combined label when bulky item equipped in hands -->
-                        <Label Text="{Binding HandSlotsBulkyLabel}"
-                           FontSize="10"
-                           FontAttributes="Bold"
-                           TextColor="#f39c12"
-                           HorizontalOptions="Center"
-                           IsVisible="{Binding HasBulkyInHands}" />
-
                         <!-- ===== BELT SLOTS ===== -->
                         <Label Text="🪢 Belt Slots"
-       FontAttributes="Bold"
-       FontSize="13"
-       TextColor="#f39c12"
-       Margin="0,5,0,0" />
+                           FontAttributes="Bold"
+                           FontSize="13"
+                           TextColor="{DynamicResource ThemeWarningButtonColor}"
+                           Margin="0,5,0,0" />
 
-                        <Grid ColumnDefinitions="*, *" RowDefinitions=" *,*" ColumnSpacing="5" RowSpacing="3">
-                            <!-- Belt Slot 1 -->
-                            <Border Grid.Row="0" Grid.Column="0" 
-            Stroke="{Binding BeltSlot1Bulky, Converter={StaticResource BulkyBorderConverter}}"
-            StrokeThickness="{Binding BeltSlot1Bulky, Converter={StaticResource BulkyBorderThicknessConverter}}"
-            StrokeShape="RoundRectangle 4" 
-            Padding="4"
-            BackgroundColor="{Binding BeltSlot1Bulky, Converter={StaticResource BulkyBackgroundConverter}}">
-                                <Label Text="{Binding BeltSlot1}" 
-               FontSize="12" 
-               TextColor="White"
-               HorizontalOptions="Center" />
-                            </Border>
-
-                            <!-- Belt Slot 2 -->
-                            <Border Grid.Row="0" Grid.Column="1" 
-            Stroke="{Binding BeltSlot2Bulky, Converter={StaticResource BulkyBorderConverter}}"
-            StrokeThickness="{Binding BeltSlot2Bulky, Converter={StaticResource BulkyBorderThicknessConverter}}"
-            StrokeShape="RoundRectangle 4" 
-            Padding="4"
-            BackgroundColor="{Binding BeltSlot2Bulky, Converter={StaticResource BulkyBackgroundConverter}}">
-                                <Label Text="{Binding BeltSlot2}" 
-               FontSize="12" 
-               TextColor="White"
-               HorizontalOptions="Center" />
-                            </Border>
-
-                            <!-- Belt Slot 3 -->
-                            <Border Grid.Row="1" Grid.Column="0" 
-            Stroke="{Binding BeltSlot3Bulky, Converter={StaticResource BulkyBorderConverter}}"
-            StrokeThickness="{Binding BeltSlot3Bulky, Converter={StaticResource BulkyBorderThicknessConverter}}"
-            StrokeShape="RoundRectangle 4" 
-            Padding="4"
-            BackgroundColor="{Binding BeltSlot3Bulky, Converter={StaticResource BulkyBackgroundConverter}}">
-                                <Label Text="{Binding BeltSlot3}" 
-               FontSize="12" 
-               TextColor="White"
-               HorizontalOptions="Center" />
-                            </Border>
-
-                            <!-- Belt Slot 4 -->
-                            <Border Grid.Row="1" Grid.Column="1" 
-            Stroke="{Binding BeltSlot4Bulky, Converter={StaticResource BulkyBorderConverter}}"
-            StrokeThickness="{Binding BeltSlot4Bulky, Converter={StaticResource BulkyBorderThicknessConverter}}"
-            StrokeShape="RoundRectangle 4" 
-            Padding="4"
-            BackgroundColor="{Binding BeltSlot4Bulky, Converter={StaticResource BulkyBackgroundConverter}}">
-                                <Label Text="{Binding BeltSlot4}" 
-               FontSize="12" 
-               TextColor="White"
-               HorizontalOptions="Center" />
-                            </Border>
+                        <Grid x:Name="BeltSlotsGrid"
+                              ColumnDefinitions="*,*,*,*"
+                              ColumnSpacing="5">
+                            <!-- Belt slots generated dynamically in code-behind -->
                         </Grid>
 
-                        <!-- Show combined label when bulky item equipped in belt -->
-                        <Label Text="{Binding BeltSlotsBulkyLabel}"
-                           FontSize="10"
-                           FontAttributes="Bold"
-                           TextColor="#f39c12"
-                           HorizontalOptions="Center"
-                           IsVisible="{Binding HasBulkyInBelt}" />
-
-                        <BoxView HeightRequest="1" Color="#333333" />
+                        <BoxView HeightRequest="1" Color="{DynamicResource ThemeDetailBorderColor1}" />
 
                         <!-- ===== ARMOR ===== -->
                         <Label Text="🛡️ Armor"
                            FontAttributes="Bold"
                            FontSize="13"
-                           TextColor="#f39c12" />
+                           TextColor="{DynamicResource ThemeWarningButtonColor}" />
 
-                        <Border Stroke="#444444" StrokeThickness="0.5" StrokeShape="RoundRectangle 4" Padding="5">
-                            <Grid ColumnDefinitions="*, *">
-                                <Label Grid.Row="0" Grid.Column="0" Text="{Binding EquippedArmor}" FontSize="12" TextColor="White" />
-                                <Label Grid.Row="0" Grid.Column="1" Text="Fatigue:" FontSize="11" TextColor="#888888" HorizontalOptions="End" />
-                                <Label Grid.Row="0" Grid.Column="2" Text="{Binding Fatigue}" FontSize="12" TextColor="#e74c3c" />
+                        <Border x:Name="ArmorBorder"
+                                StrokeShape="RoundRectangle 4"
+                                Padding="8">
+                            <Border.Triggers>
+                                <DataTrigger TargetType="Border" Binding="{Binding HasEquippedArmor}" Value="True">
+                                    <Setter Property="Stroke" Value="{DynamicResource ThemeConfirmButtonColor}" />
+                                    <Setter Property="StrokeThickness" Value="2" />
+                                    <Setter Property="BackgroundColor" Value="{DynamicResource ThemePanelHeaderBackgroundColor}" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding HasEquippedArmor}" Value="False">
+                                    <Setter Property="Stroke" Value="{DynamicResource ThemeDetailBorderColor2}" />
+                                    <Setter Property="StrokeThickness" Value="0.5" />
+                                    <Setter Property="BackgroundColor" Value="Transparent" />
+                                </DataTrigger>
+                            </Border.Triggers>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnArmorTapped" />
+                            </Border.GestureRecognizers>
+
+                            <Grid ColumnDefinitions="*, Auto">
+                                <Label Grid.Column="0"
+                                       Text="{Binding EquippedArmor}"
+                                       FontSize="16"
+                                       FontAttributes="Bold"
+                                       VerticalOptions="Center"
+                                       LineBreakMode="TailTruncation" />
+
+                                <Label Grid.Column="1"
+                                       Text="{Binding ArmorChevronsDisplay}"
+                                       FontSize="16"
+                                       TextColor="{DynamicResource ThemeWarningButtonColor}"
+                                       VerticalOptions="Center" />
                             </Grid>
                         </Border>
 
-                    </VerticalStackLayout>
-                </ScrollView>
-            </Border>
+                        <!-- ===== FAMILIARS ===== -->
+                        <BoxView HeightRequest="1"
+                                 Color="{DynamicResource ThemeDetailBorderColor1}"
+                                 IsVisible="{Binding HasFamiliars}" />
 
-            <!-- RIGHT: Inventory Panel - Column 1 -->
-            <Border Grid.Row="0" Grid.Column="1"
-                    x:Name="InventoryBorder"
-                    Stroke="{Binding IsDropModeActive, Converter={StaticResource DropModeBorderColorConverter}}"
-                    StrokeThickness="{Binding IsDropModeActive, Converter={StaticResource DropModeBorderThicknessConverter}}"
-                    StrokeShape="RoundRectangle 8"
-                    Padding="10"
-                    BackgroundColor="{Binding IsDropModeActive, Converter={StaticResource DropModeBackgroundConverter}}">
+                        <Label Text="🐾⚙️ Familiars &amp; Constructs"
+                               FontAttributes="Bold"
+                               FontSize="13"
+                               TextColor="{DynamicResource ThemeWarningButtonColor}"
+                               IsVisible="{Binding HasFamiliars}" />
+
+                            <ScrollView MaximumHeightRequest="240" IsVisible="{Binding HasFamiliars}">
+                                <VerticalStackLayout BindableLayout.ItemsSource="{Binding FamiliarStrip}" Spacing="5">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border HandlerChanged="OnFamiliarStripHandlerChanged"
+                                                Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                                StrokeThickness="0.5"
+                                                StrokeShape="RoundRectangle 6"
+                                                Padding="8,4">
+                                                <VerticalStackLayout Spacing="2">
+
+                                                    <!-- Name, then HP with its ticker on the same line -->
+                                                    <Grid ColumnDefinitions="*, Auto, Auto, Auto" ColumnSpacing="4">
+                                                        <Label Grid.Column="0"
+                                                           Text="{Binding DisplayLabel}"
+                                                           FontSize="20"
+                                                           FontAttributes="Bold"
+                                                           LineBreakMode="TailTruncation"
+                                                           VerticalOptions="Center" />
+
+                                                        <Label Grid.Column="1"
+                                                           Text="{Binding HpText, StringFormat='HP: {0}'}"
+                                                           FontSize="20"
+                                                           VerticalOptions="Center"
+                                                           IsVisible="{Binding ShowHp}" />
+
+                                                        <skin:SkinHost Grid.Column="2"
+                                                                   SkinKey="generic_small"
+                                                                   FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
+                                                                   VerticalOptions="Center"
+                                                                   IsVisible="{Binding ShowHp}">
+                                                            <Button Text="−"
+                                                                TextColor="White"
+                                                                CornerRadius="4"
+                                                                WidthRequest="26"
+                                                                HeightRequest="24"
+                                                                Padding="0"
+                                                                FontSize="13"
+                                                                IsVisible="{Binding ShowHp}"
+                                                                Command="{Binding HpDownCommand}" />
+                                                        </skin:SkinHost>
+
+                                                        <skin:SkinHost Grid.Column="3"
+                                                                   SkinKey="generic_small"
+                                                                   FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
+                                                                   VerticalOptions="Center"
+                                                                   IsVisible="{Binding ShowHp}">
+                                                            <Button Text="+"
+                                                                TextColor="White"
+                                                                CornerRadius="4"
+                                                                WidthRequest="26"
+                                                                HeightRequest="24"
+                                                                Padding="0"
+                                                                FontSize="13"
+                                                                IsVisible="{Binding ShowHp}"
+                                                                Command="{Binding HpUpCommand}" />
+                                                        </skin:SkinHost>
+
+                                                        <Label Grid.Column="1"
+                                                           Grid.ColumnSpan="3"
+                                                           Text="☠ Dead"
+                                                           FontSize="10"
+                                                           FontAttributes="Bold"
+                                                           HorizontalOptions="End"
+                                                           VerticalOptions="Center"
+                                                           TextColor="{DynamicResource ThemeDangerButtonColor}"
+                                                           IsVisible="{Binding IsDead}" />
+                                                    </Grid>
+
+                                                    <!-- Pack: used / capacity -->
+                                                    <HorizontalStackLayout Spacing="4">
+                                                        <Label Text="🎒" FontSize="11" VerticalOptions="Center" />
+                                                        <Label Text="{Binding PackText}" FontSize="11" VerticalOptions="Center">
+                                                            <Label.Triggers>
+                                                                <DataTrigger TargetType="Label" Binding="{Binding IsEncumbered}" Value="True">
+                                                                    <Setter Property="TextColor" Value="{DynamicResource ThemeDangerButtonColor}" />
+                                                                </DataTrigger>
+                                                            </Label.Triggers>
+                                                        </Label>
+                                                        <Label Text="ENCUMBERED"
+                                                           FontSize="9"
+                                                           FontAttributes="Bold"
+                                                           TextColor="{DynamicResource ThemeDangerButtonColor}"
+                                                           VerticalOptions="Center"
+                                                           IsVisible="{Binding IsEncumbered}" />
+                                                    </HorizontalStackLayout>
+                                                </VerticalStackLayout>
+                                            </Border>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </VerticalStackLayout>
+                            </ScrollView>
+
+                        </VerticalStackLayout>
+                    </ScrollView>
+                </skin:SkinPanel>
+            <!-- RIGHT: Inventory Panel - Column 1
+                 Stays a plain Border: its stroke/fill are driven by drop-mode converters. -->
+            <skin:SkinPanel Grid.Row="0" Grid.Column="1"
+                            x:Name="InventoryBorder"
+                            StrokeColor="{DynamicResource ThemeSectionBorderColor}"
+                            StrokeThickness="1"
+                            CornerRadius="8"
+                            ContentPadding="10">
+                <skin:SkinPanel.Triggers>
+                    <DataTrigger TargetType="skin:SkinPanel" Binding="{Binding IsDropModeActive}" Value="True">
+                        <Setter Property="StrokeColor" Value="{DynamicResource ThemeDangerButtonColor}" />
+                        <Setter Property="StrokeThickness" Value="3" />
+                    </DataTrigger>
+                </skin:SkinPanel.Triggers>
                 <Grid RowDefinitions="Auto, *, Auto, Auto"
                       RowSpacing="5">
 
@@ -284,15 +627,15 @@
 
                         <HorizontalStackLayout Grid.Row="0" Grid.Column="1" Spacing="8">
                             <Label Text="{Binding InventorySlotsUsed, StringFormat='Slots: {0}'}"
-                                   FontSize="11"
-                                   TextColor="#aaaaaa" />
-                            <Label Text="{Binding InventorySlotsTotal, StringFormat='/{0}'}"
-                                   FontSize="11"
-                                   TextColor="#aaaaaa" />
+                                   FontSize="18"
+                                   TextColor="Gray" />
+                            <Label Text="{Binding InventorySlotsTotal, StringFormat='/ {0}'}"
+                                   FontSize="18"
+                                   TextColor="{Binding PackTotalColor}" />
                             <Label Text="⚠️ ENCUMBERED"
-                                   FontSize="11"
+                                   FontSize="18"
                                    FontAttributes="Bold"
-                                   TextColor="#e74c3c"
+                                   TextColor="{DynamicResource ThemeDangerButtonColor}"
                                    IsVisible="{Binding IsEncumbered}" />
 
                             <Border BackgroundColor="#ff000033"
@@ -308,54 +651,121 @@
                         </HorizontalStackLayout>
                     </Grid>
 
-                    <!-- Inventory Grid - Row 1 -->
+                    <!-- Inventory Grid - Row 1 (fills the space left by the details pane; scrolls) -->
                     <CollectionView Grid.Row="1"
                         x:Name="InventoryCollectionView"
                         ItemsSource="{Binding InventoryItems}"
                         SelectionMode="Single"
                         SelectedItem="{Binding SelectedInventoryItem, Mode=TwoWay}"
                         ItemsLayout="VerticalGrid, 3">
+                        <CollectionView.Triggers>
+                            <DataTrigger TargetType="CollectionView" Binding="{Binding IsPackDropped}" Value="True">
+                                <Setter Property="Opacity" Value="0.4" />
+                            </DataTrigger>
+                        </CollectionView.Triggers>
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
-                                <Border Stroke="{Binding IsDropMode, Converter={StaticResource DropModeItemBorderConverter}}"
+                                <!-- Outer border: drop-mode highlight + gestures. Inner border: rarity color. -->
+                                <Border HandlerChanged="OnPackTileHandlerChanged"
+                                        Stroke="{Binding IsDropMode, Converter={StaticResource DropModeItemBorderConverter}}"
                                         StrokeThickness="{Binding IsDropMode, Converter={StaticResource DropModeItemBorderThicknessConverter}}"
                                         StrokeShape="RoundRectangle 4"
-                                        Padding="6"
+                                        Padding="2"
                                         Margin="2"
+                                        HeightRequest="64"
                                         BackgroundColor="{Binding IsEmpty, Converter={StaticResource EmptyItemColorConverter}}">
-                                    <VerticalStackLayout Spacing="1">
-                                        <Label Text="{Binding DisplayName}"
-                                               FontSize="11"
-                                               FontAttributes="Bold"
-                                               TextColor="White"
-                                               LineBreakMode="TailTruncation" />
-                                        <Label Text="{Binding Quantity, StringFormat='x{0}'}"
-                                               FontSize="9"
-                                               TextColor="#888888"
-                                               IsVisible="{Binding Quantity, Converter={StaticResource IsGreaterThanOneConverter}}" />
-                                        <Label Text="⚠️ Empty"
-                                               FontSize="9"
-                                               TextColor="#e74c3c"
-                                               IsVisible="{Binding IsEmpty}" />
-                                        <Label Text="{Binding EquipmentState}"
-                                               FontSize="8"
-                                               TextColor="{Binding EquipmentState, Converter={StaticResource EquipmentStateColorConverter}}"
-                                               IsVisible="{Binding IsEquipped}" />
+                                    <Border Stroke="{Binding RarityBrush}"
+                                            StrokeThickness="{Binding RarityThickness}"
+                                            StrokeShape="RoundRectangle 3"
+                                            Padding="4"
+                                            BackgroundColor="Transparent">
+                                        <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto, Auto" ColumnSpacing="6" RowSpacing="1">
 
-                                        <Border BackgroundColor="#ff000033"
-                                                Padding="3,1"
-                                                StrokeThickness="0"
-                                                StrokeShape="RoundRectangle 2"
-                                                IsVisible="{Binding IsDropMode}">
-                                            <Label Text="🫳Drop"
-                                                   FontSize="8"
-                                                   FontAttributes="Bold"
-                                                   TextColor="#ff4444" />
-                                        </Border>
-                                    </VerticalStackLayout>
+                                            <!-- Name + Equipped/Belted label to its right -->
+                                            <Grid Grid.Row="0" Grid.Column="0" ColumnDefinitions="*, Auto" ColumnSpacing="4">
+                                                <Label Grid.Column="0"
+                                                    Text="{Binding DisplayName}"
+                                                    FontSize="11"
+                                                    FontAttributes="Bold"
+                                                    VerticalOptions="Center"
+                                                    LineBreakMode="TailTruncation" />
+                                                <Label Grid.Column="1"
+                                                    Text="{Binding EquipmentState}"
+                                                    FontSize="8"
+                                                    VerticalOptions="Center"
+                                                    TextColor="{Binding EquipmentState, Converter={StaticResource EquipmentStateColorConverter}}"
+                                                    IsVisible="{Binding IsEquipped}" />
+                                            </Grid>
+
+                                            <!-- Quantity top-right, size label directly beneath it -->
+                                            <VerticalStackLayout Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" Spacing="0" HorizontalOptions="End">
+                                                <Label Text="{Binding Quantity, StringFormat='x{0}'}"
+                                                    FontSize="10"
+                                                    TextColor="Gray"
+                                                    HorizontalOptions="End"
+                                                    IsVisible="{Binding Quantity, Converter={StaticResource IsGreaterThanOneConverter}}" />
+                                                <Label Text="{Binding SizeLabel}"
+                                                    FontSize="9"
+                                                    FontAttributes="Italic"
+                                                    TextColor="Gray"
+                                                    HorizontalOptions="End"
+                                                    IsVisible="{Binding HasSizeLabel}" />
+                                            </VerticalStackLayout>
+
+                                            <!-- Status badges under the name -->
+                                            <HorizontalStackLayout Grid.Row="1" Grid.Column="0" Spacing="4">
+                                                <Label Text="⚠️ Empty"
+                                                   FontSize="9"
+                                                   TextColor="{DynamicResource ThemeDangerButtonColor}"
+                                                   IsVisible="{Binding IsEmpty}" />
+                                                <Border BackgroundColor="#ff000033"
+                                                    Padding="3,1"
+                                                    StrokeThickness="0"
+                                                    StrokeShape="RoundRectangle 2"
+                                                    IsVisible="{Binding IsDropMode}">
+                                                    <Label Text="🫳Drop"
+                                                       FontSize="8"
+                                                       FontAttributes="Bold"
+                                                       TextColor="#ff4444" />
+                                                </Border>
+                                            </HorizontalStackLayout>
+
+                                            <!-- Uses: "2/3" + bar (only for items with uses) -->
+                                            <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                                                  ColumnDefinitions="Auto, *"
+                                                  ColumnSpacing="5"
+                                                  IsVisible="{Binding HasUses}">
+                                                <Label Grid.Column="0"
+                                                       Text="{Binding UsesText}"
+                                                       FontSize="9"
+                                                       TextColor="Gray"
+                                                       VerticalOptions="Center" />
+                                                <Border Grid.Column="1"
+                                                        HeightRequest="6"
+                                                        Padding="0"
+                                                        StrokeThickness="1"
+                                                        Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                                        BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}"
+                                                        StrokeShape="RoundRectangle 3"
+                                                        VerticalOptions="Center">
+                                                    <Grid ColumnSpacing="0">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="{Binding UsesFillRatio, Converter={StaticResource RatioToStarConverter}}" />
+                                                            <ColumnDefinition Width="{Binding UsesFillRatio, Converter={StaticResource RatioToStarConverter}, ConverterParameter=invert}" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <BoxView Grid.Column="0" Color="#1abc9c" />
+                                                        <BoxView Grid.Column="1" Color="Transparent" />
+                                                    </Grid>
+                                                </Border>
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
                                     <Border.GestureRecognizers>
-                                        <TapGestureRecognizer Tapped="OnDropItemTapped"
+                                        <TapGestureRecognizer Tapped="OnInventoryTileTapped"
                                                               NumberOfTapsRequired="1" />
+                                        <DragGestureRecognizer CanDrag="True"
+                                                               DragStarting="OnPackTileDragStarting"
+                                                               DropCompleted="OnPackTileDropCompleted" />
                                     </Border.GestureRecognizers>
                                 </Border>
                             </DataTemplate>
@@ -364,220 +774,471 @@
 
                     <!-- Item Details Panel - Row 2 -->
                     <Border Grid.Row="2"
-                        Stroke="#444444"
+                        Stroke="{DynamicResource ThemeDetailBorderColor2}"
                         StrokeThickness="0.5"
                         StrokeShape="RoundRectangle 4"
                         Padding="8"
                         IsVisible="{Binding HasSelectedItem}">
-                        <Grid ColumnDefinitions="*, Auto" ColumnSpacing="8">
+                        <Grid ColumnDefinitions="*, Auto, Auto" ColumnSpacing="8">
 
-                            <VerticalStackLayout Grid.Row="0" Grid.Column="0" Spacing="2">
-                                <Label Text="{Binding SelectedItemName}" 
-                   FontSize="13" 
-                   FontAttributes="Bold" 
-                   TextColor="#4fc3f7" />
-                                <Label Text="{Binding SelectedItemDescription}" 
-                   FontSize="11" 
-                   TextColor="#aaaaaa" 
-                   LineBreakMode="WordWrap" />
-                                <Label Text="{Binding SelectedItemDetails}" 
-                   FontSize="10" 
-                   TextColor="#888888" />
-                                <Label Text="{Binding SelectedItemPlayerNote}" 
-                   FontSize="10" 
-                   TextColor="#f39c12" 
-                   IsVisible="{Binding HasPlayerNote}" />
-                                <Label Text="🔒 Equipped"
-                   FontSize="10"
-                   TextColor="#4fc3f7"
-                   IsVisible="{Binding SelectedItemIsEquipped}" />
-                            </VerticalStackLayout>
+                            <!-- Info: scrolls when long, so the pane can't take over the inventory grid -->
+                            <ScrollView Grid.Column="0" MaximumHeightRequest="170">
+                                <VerticalStackLayout Spacing="2">
+                                    <Label Text="{Binding SelectedItemName}"
+                                           FontSize="13"
+                                           FontAttributes="Bold"
+                                           TextColor="{DynamicResource ThemeDetailBorderColor1}" />
+                                    <Label Text="{Binding SelectedItemDescription}"
+                                           FontSize="11"
+                                           TextColor="Gray"
+                                           LineBreakMode="WordWrap" />
 
-                            <VerticalStackLayout Grid.Row="0" Grid.Column="1" Spacing="4" HorizontalOptions="Center">
+                                    <!-- Item variables -->
+                                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding SelectedItemDetailRows}"
+                                                         Spacing="0"
+                                                         Margin="0,3,0,0">
+                                        <BindableLayout.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid ColumnDefinitions="95, *" ColumnSpacing="6">
+                                                    <Label Grid.Column="0" Text="{Binding Label}" FontSize="10" TextColor="Gray" />
+                                                    <Label Grid.Column="1" Text="{Binding Value}" FontSize="10" LineBreakMode="WordWrap" />
+                                                </Grid>
+                                            </DataTemplate>
+                                        </BindableLayout.ItemTemplate>
+                                    </VerticalStackLayout>
+
+                                    <!-- Weapon effects with descriptions -->
+                                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding SelectedItemEffectRows}"
+                                                         Spacing="3"
+                                                         Margin="0,4,0,0"
+                                                         IsVisible="{Binding HasSelectedItemEffects}">
+                                        <BindableLayout.ItemTemplate>
+                                            <DataTemplate>
+                                                <VerticalStackLayout Spacing="0">
+                                                    <Label Text="{Binding Name}" FontSize="10" FontAttributes="Bold" TextColor="{DynamicResource ThemeWarningButtonColor}" />
+                                                    <Label Text="{Binding Description}" FontSize="10" TextColor="Gray" LineBreakMode="WordWrap" />
+                                                </VerticalStackLayout>
+                                            </DataTemplate>
+                                        </BindableLayout.ItemTemplate>
+                                    </VerticalStackLayout>
+
+                                    <Label Text="{Binding SelectedItemPlayerNote}"
+                                           FontSize="10"
+                                           TextColor="{DynamicResource ThemeWarningButtonColor}"
+                                           Margin="0,4,0,0"
+                                           IsVisible="{Binding HasPlayerNote}" />
+                                    <Label Text="🔒 Equipped"
+                                           FontSize="10"
+                                           TextColor="{DynamicResource ThemeDetailBorderColor1}"
+                                           IsVisible="{Binding SelectedItemIsEquipped}" />
+                                    <Label Text="⚠️ EMPTY"
+                                           FontSize="10"
+                                           FontAttributes="Bold"
+                                           TextColor="{DynamicResource ThemeDangerButtonColor}"
+                                           IsVisible="{Binding SelectedItemIsEmpty}" />
+                                </VerticalStackLayout>
+                            </ScrollView>
+
+                            <!-- Action buttons -->
+                            <VerticalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Start" HorizontalOptions="Center">
                                 <!-- Interact Button -->
-                                <Button Text="⚙️"
-                    BackgroundColor="#3498db"
-                    TextColor="White"
-                    CornerRadius="6"
-                    WidthRequest="40"
-                    HeightRequest="35"
-                    FontSize="14"
-                    Command="{Binding InteractCommand}" />
+                                <skin:SkinHost SkinKey="generic" FallbackColor="#3498db">
+                                    <Button Text="⚙️ Options"
+                                        TextColor="White"
+                                        CornerRadius="6"
+                                        WidthRequest="120"
+                                        MinimumHeightRequest="25"
+                                        FontSize="10"
+                                        Command="{Binding InteractCommand}" />
+                                </skin:SkinHost>
 
                                 <!-- Make a Note Button -->
-                                <Button Text="📝"
-                    BackgroundColor="#9b59b6"
-                    TextColor="White"
-                    CornerRadius="6"
-                    WidthRequest="40"
-                    HeightRequest="35"
-                    FontSize="14"
-                    Command="{Binding EditNoteCommand}" />
+                                <skin:SkinHost SkinKey="generic" FallbackColor="#9b59b6">
+                                    <Button Text="📝 Edit Item"
+                                        TextColor="White"
+                                        CornerRadius="6"
+                                        WidthRequest="120"
+                                        MinimumHeightRequest="25"
+                                        FontSize="10"
+                                        Command="{Binding EditNoteCommand}" />
+                                </skin:SkinHost>
 
-                                <!-- Uses Adjuster -->
-                                <VerticalStackLayout Spacing="1" 
-                                 IsVisible="{Binding HasUses}"
-                                 HorizontalOptions="Center">
-                                    <Label Text="Uses:"
-                       FontSize="8"
-                       TextColor="#888888"
-                       HorizontalOptions="Center" />
-                                    <Grid ColumnDefinitions="Auto, Auto, Auto" ColumnSpacing="3">
-                                        <Button Grid.Row="0" Grid.Column="0"
-                            Text="−"
-                            BackgroundColor="#e74c3c"
-                            TextColor="White"
-                            CornerRadius="3"
-                            WidthRequest="18"
-                            HeightRequest="18"
-                            FontSize="10"
-                            Command="{Binding DecrementUsesCommand}" />
-                                        <Label Grid.Row="0" Grid.Column="1"
-                           Text="{Binding SelectedItemRemainingUses}"
-                           FontSize="12"
-                           FontAttributes="Bold"
-                           TextColor="White"
-                           HorizontalOptions="Center"
-                           WidthRequest="24"
-                           HorizontalTextAlignment="Center" />
-                                        <Button Grid.Row="0" Grid.Column="2"
-                            Text="+"
-                            BackgroundColor="#2ecc71"
-                            TextColor="White"
-                            CornerRadius="3"
-                            WidthRequest="18"
-                            HeightRequest="18"
-                            FontSize="10"
-                            Command="{Binding IncrementUsesCommand}" />
-                                    </Grid>
-                                </VerticalStackLayout>
+                                <!-- Hand slot: Move to Hands, or Unequip when it's in a hand -->
+                                <skin:SkinHost SkinKey="generic" FallbackColor="#3498db"
+                                               IsVisible="{Binding CanEquipSelectedToHand}">
+                                    <Button Text="🖐️ Move to Hands"
+                                        TextColor="White"
+                                        CornerRadius="6"
+                                        WidthRequest="120"
+                                        MinimumHeightRequest="25"
+                                        FontSize="10"
+                                        IsVisible="{Binding CanEquipSelectedToHand}"
+                                        Command="{Binding EquipSelectedToHandCommand}" />
+                                </skin:SkinHost>
+                                <skin:SkinHost SkinKey="generic" FallbackColor="#c0392b"
+                                               IsVisible="{Binding IsSelectedEquippedInHand}">
+                                    <Button Text="⏏️ Unequip"
+                                        TextColor="White"
+                                        CornerRadius="6"
+                                        WidthRequest="120"
+                                        MinimumHeightRequest="25"
+                                        FontSize="10"
+                                        IsVisible="{Binding IsSelectedEquippedInHand}"
+                                        Command="{Binding UnequipSelectedCommand}" />
+                                </skin:SkinHost>
 
-                                <Label Text="⚠️ EMPTY"
-                   FontSize="10"
-                   FontAttributes="Bold"
-                   TextColor="#e74c3c"
-                   HorizontalOptions="Center"
-                   IsVisible="{Binding SelectedItemIsEmpty}" />
+                                <!-- Belt slot: Move to Belt, or Unequip when it's on the belt -->
+                                <skin:SkinHost SkinKey="generic" FallbackColor="#f39c12"
+                                               IsVisible="{Binding CanEquipSelectedToBelt}">
+                                    <Button Text="🪢 Move to Belt"
+                                        TextColor="White"
+                                        CornerRadius="6"
+                                        WidthRequest="120"
+                                        MinimumHeightRequest="25"
+                                        FontSize="10"
+                                        IsVisible="{Binding CanEquipSelectedToBelt}"
+                                        Command="{Binding EquipSelectedToBeltCommand}" />
+                                </skin:SkinHost>
+                                <skin:SkinHost SkinKey="generic" FallbackColor="#c0392b"
+                                               IsVisible="{Binding IsSelectedEquippedOnBelt}">
+                                    <Button Text="⏏️ Unequip"
+                                        TextColor="White"
+                                        CornerRadius="6"
+                                        WidthRequest="120"
+                                        MinimumHeightRequest="25"
+                                        FontSize="10"
+                                        IsVisible="{Binding IsSelectedEquippedOnBelt}"
+                                        Command="{Binding UnequipSelectedCommand}" />
+                                </skin:SkinHost>
+
+                                <!-- Armor slot: Equip as Armor, or Unequip when it's worn -->
+                                <skin:SkinHost SkinKey="generic" FallbackColor="#27ae60"
+                                               IsVisible="{Binding CanEquipSelectedAsArmor}">
+                                    <Button Text="🛡️ Equip as Armor"
+                                        TextColor="White"
+                                        CornerRadius="6"
+                                        WidthRequest="120"
+                                        MinimumHeightRequest="25"
+                                        FontSize="10"
+                                        IsVisible="{Binding CanEquipSelectedAsArmor}"
+                                        Command="{Binding EquipSelectedAsArmorCommand}" />
+                                </skin:SkinHost>
+                                <skin:SkinHost SkinKey="generic" FallbackColor="#c0392b"
+                                               IsVisible="{Binding IsSelectedEquippedAsArmor}">
+                                    <Button Text="⏏️ Unequip"
+                                        TextColor="White"
+                                        CornerRadius="6"
+                                        WidthRequest="120"
+                                        MinimumHeightRequest="25"
+                                        FontSize="10"
+                                        IsVisible="{Binding IsSelectedEquippedAsArmor}"
+                                        Command="{Binding UnequipSelectedCommand}" />
+                                </skin:SkinHost>
+
+                                <!-- Hand to Familiar -->
+                                <skin:SkinHost SkinKey="generic" FallbackColor="#d35400"
+                                               IsVisible="{Binding CanHandSelectedToFamiliar}">
+                                    <Button Text="🐾 Hand to Familiar"
+                                        TextColor="White"
+                                        CornerRadius="6"
+                                        WidthRequest="120"
+                                        MinimumHeightRequest="25"
+                                        FontSize="10"
+                                        IsVisible="{Binding CanHandSelectedToFamiliar}"
+                                        Command="{Binding HandToFamiliarCommand}" />
+                                </skin:SkinHost>
+                            </VerticalStackLayout>
+
+                            <!-- Uses ticker: vertical, + / value / -, all the same size -->
+                            <VerticalStackLayout Grid.Column="2"
+                                                 Spacing="2"
+                                                 VerticalOptions="Start"
+                                                 HorizontalOptions="Center"
+                                                 IsVisible="{Binding HasUses}">
+                                <Label Text="Uses"
+                                       FontSize="8"
+                                       TextColor="Gray"
+                                       HorizontalOptions="Center" />
+                                <skin:SkinHost SkinKey="generic_small" FallbackColor="#2ecc71">
+                                    <Button Text="+"
+                                            TextColor="White"
+                                            CornerRadius="4"
+                                            WidthRequest="34"
+                                            HeightRequest="34"
+                                            Padding="0"
+                                            FontSize="16"
+                                            IsEnabled="{Binding CanAdjustSelectedUses}"
+                                            Command="{Binding IncrementUsesCommand}" />
+                                </skin:SkinHost>
+                                <Label Text="{Binding SelectedItemRemainingUses}"
+                                       FontSize="14"
+                                       FontAttributes="Bold"
+                                       WidthRequest="34"
+                                       HeightRequest="34"
+                                       HorizontalTextAlignment="Center"
+                                       VerticalTextAlignment="Center" />
+                                <skin:SkinHost SkinKey="generic_small" FallbackColor="#e74c3c">
+                                    <Button Text="−"
+                                            TextColor="White"
+                                            CornerRadius="4"
+                                            WidthRequest="34"
+                                            HeightRequest="34"
+                                            Padding="0"
+                                            FontSize="16"
+                                            IsEnabled="{Binding CanAdjustSelectedUses}"
+                                            Command="{Binding DecrementUsesCommand}" />
+                                </skin:SkinHost>
                             </VerticalStackLayout>
 
                         </Grid>
                     </Border>
 
                     <!-- Action Buttons - Row 3 -->
-                    <Grid Grid.Row="3" ColumnDefinitions="*, *, *" ColumnSpacing="8">
-                        <Button Grid.Row="0" Grid.Column="0"
-                            Text="📦 Bestow"
-                            BackgroundColor="#2ecc71"
-                            TextColor="White"
-                            CornerRadius="6"
-                            HeightRequest="35"
-                            FontSize="12"
-                            Command="{Binding BestowCommand}" />
+                    <Grid Grid.Row="3" ColumnDefinitions="*, *, *, *" ColumnSpacing="8">
+                        <skin:SkinHost Grid.Row="0" Grid.Column="0"
+                                       SkinKey="generic"
+                                       FallbackColor="#2ecc71">
+                            <Button Text="📦 Bestow"
+                                TextColor="White"
+                                CornerRadius="6"
+                                HeightRequest="35"
+                                Padding="14,0"
+                                FontSize="12"
+                                Command="{Binding BestowCommand}" />
+                        </skin:SkinHost>
 
-                        <Button Grid.Row="0" Grid.Column="1"
-                            Text="♻️ Recover"
-                            BackgroundColor="#3498db"
-                            TextColor="White"
-                            CornerRadius="6"
-                            HeightRequest="35"
-                            FontSize="12"
-                            Command="{Binding RecoverItemCommand}" />
+                        <skin:SkinHost Grid.Row="0" Grid.Column="1"
+                                       SkinKey="generic"
+                                       FallbackColor="#3498db">
+                            <Button Text="♻️ Recover"
+                                TextColor="White"
+                                CornerRadius="6"
+                                HeightRequest="35"
+                                Padding="14,0"
+                                FontSize="12"
+                                Command="{Binding RecoverItemCommand}" />
+                        </skin:SkinHost>
 
-                        <Button Grid.Row="0" Grid.Column="2"
-                            Text="{Binding IsDropModeActive, Converter={StaticResource DropModeButtonTextConverter}}"
-                            BackgroundColor="{Binding IsDropModeActive, Converter={StaticResource DropModeButtonColorConverter}}"
-                            TextColor="White"
-                            CornerRadius="6"
-                            HeightRequest="35"
-                            FontSize="12"
-                            FontAttributes="Bold"
-                            Command="{Binding ToggleDropModeCommand}" />
+                        <skin:SkinHost Grid.Row="0" Grid.Column="2"
+                                       SkinKey="generic"
+                                       FallbackColor="{Binding IsDropModeActive, Converter={StaticResource DropModeButtonColorConverter}}">
+                            <Button Text="{Binding IsDropModeActive, Converter={StaticResource DropModeButtonTextConverter}}"
+                                TextColor="White"
+                                CornerRadius="6"
+                                HeightRequest="35"
+                                Padding="14,0"
+                                FontSize="12"
+                                FontAttributes="Bold"
+                                IsEnabled="{Binding CanToggleDropMode}"
+                                Command="{Binding ToggleDropModeCommand}" />
+                        </skin:SkinHost>
+
+                        <skin:SkinHost Grid.Row="0" Grid.Column="3"
+                                       SkinKey="generic"
+                                       FallbackColor="#d35400">
+                            <Button Text="{Binding PackToggleText}"
+                                TextColor="White"
+                                CornerRadius="6"
+                                HeightRequest="35"
+                                Padding="14,0"
+                                FontSize="12"
+                                Command="{Binding TogglePackCommand}" />
+                        </skin:SkinHost>
                     </Grid>
 
                     <!-- Empty State - Row 1 (overlay) -->
                     <Label Grid.Row="1"
                            Text="No items in inventory"
                            FontSize="13"
-                           TextColor="#888888"
+                           TextColor="Gray"
                            HorizontalOptions="Center"
                            VerticalOptions="Center"
                            IsVisible="{Binding InventoryItems.Count, Converter={StaticResource IsZeroConverter}}" />
 
                 </Grid>
-            </Border>
+            </skin:SkinPanel>
 
         </Grid>
 
-        <!-- ===== ACTION BUTTONS - Row 3 ===== -->
-        <Grid Grid.Row="3"
-              ColumnDefinitions="*, *, *, *, *, *, *"
+        <!-- ===== ACTION BUTTONS - Row 2 ===== -->
+        <Grid Grid.Row="2"
+              ColumnDefinitions="*, *, *, *, 1.7*, *, *"
               ColumnSpacing="5"
               Margin="0,5,0,0">
 
-            <Button Grid.Row="0" Grid.Column="0"
-                    Text="📜 Spells"
-                    BackgroundColor="#8e44ad"
-                    TextColor="White"
-                    CornerRadius="6"
-                    HeightRequest="35"
-                    FontSize="11"
-                    Command="{Binding NavigateToSpellsCommand}" />
+            <skin:SkinHost Grid.Row="0" Grid.Column="0"
+                           SkinKey="generic"
+                           FallbackColor="#8e44ad">
+                <Button Text="📜 Spells"
+                        TextColor="White"
+                        CornerRadius="6"
+                        HeightRequest="35"
+                        Padding="14,0"
+                        FontSize="12"
+                        Clicked="OnSpellsClicked" />
+            </skin:SkinHost>
 
-            <Button Grid.Row="0" Grid.Column="1"
-                    Text="⚡ Quips"
-                    BackgroundColor="#9b59b6"
-                    TextColor="White"
-                    CornerRadius="6"
-                    HeightRequest="35"
-                    FontSize="11"
-                    Command="{Binding NavigateToQuipsCommand}" />
+            <skin:SkinHost Grid.Row="0" Grid.Column="1"
+                           SkinKey="generic"
+                           FallbackColor="#9b59b6">
+                <Button Text="⚡ Quips"
+                        TextColor="White"
+                        CornerRadius="6"
+                        HeightRequest="35"
+                        Padding="14,0"
+                        FontSize="12"
+                        Clicked="OnQuipsClicked" />
+            </skin:SkinHost>
 
-            <Button Grid.Row="0" Grid.Column="2"
-                    Text="📐 Blueprints"
-                    BackgroundColor="#2980b9"
-                    TextColor="White"
-                    CornerRadius="6"
-                    HeightRequest="35"
-                    FontSize="11"
-                    Command="{Binding NavigateToBlueprintsCommand}" />
+            <skin:SkinHost Grid.Row="0" Grid.Column="2"
+                           SkinKey="generic"
+                           FallbackColor="#2980b9">
+                <Button Text="🔨 Crafting"
+                        TextColor="White"
+                        CornerRadius="6"
+                        HeightRequest="35"
+                        Padding="14,0"
+                        FontSize="12"
+                        Clicked="OnBlueprintsClicked" />
+            </skin:SkinHost>
 
-            <Button Grid.Row="0" Grid.Column="3"
-                    Text="⚙️ Features"
-                    BackgroundColor="#27ae60"
-                    TextColor="White"
-                    CornerRadius="6"
-                    HeightRequest="35"
-                    FontSize="11"
-                    Command="{Binding NavigateToFeaturesCommand}" />
+            <skin:SkinHost Grid.Row="0" Grid.Column="3"
+                           SkinKey="generic"
+                           FallbackColor="#27ae60">
+                <Button Text="⚙️ Features"
+                        TextColor="White"
+                        CornerRadius="6"
+                        HeightRequest="35"
+                        Padding="14,0"
+                        FontSize="12"
+                        Clicked="OnFeaturesClicked" />
+            </skin:SkinHost>
 
-            <Button Grid.Row="0" Grid.Column="4"
-                    Text="🐾 Familiars"
-                    BackgroundColor="#d35400"
-                    TextColor="White"
-                    CornerRadius="6"
-                    HeightRequest="35"
-                    FontSize="11"
-                    Command="{Binding NavigateToFamiliarsCommand}" />
+                <skin:SkinHost Grid.Row="0" Grid.Column="4"
+                           SkinKey="generic"
+                           FallbackColor="#d35400">
+                    <Button Text="🐾⚙️ Familiars &amp; Constructs"
+                        TextColor="White"
+                        CornerRadius="6"
+                        HeightRequest="35"
+                        Padding="6,0"
+                        FontSize="12"
+                        LineBreakMode="TailTruncation"
+                        Clicked="OnFamiliarsClicked" />
+                </skin:SkinHost>
 
-            <Button Grid.Row="0" Grid.Column="5"
-                    Text="🏪 Shop"
-                    BackgroundColor="#f39c12"
-                    TextColor="White"
-                    CornerRadius="6"
-                    HeightRequest="35"
-                    FontSize="11"
-                    Command="{Binding NavigateToShopCommand}" />
+                <skin:SkinHost Grid.Row="0" Grid.Column="5"
+                           SkinKey="generic"
+                           FallbackColor="#f39c12">
+                <Button Text="🏪 Shop"
+                        TextColor="White"
+                        CornerRadius="6"
+                        HeightRequest="35"
+                        Padding="14,0"
+                        FontSize="12"
+                        Clicked="OnShopClicked" />
+            </skin:SkinHost>
 
-            <Button Grid.Row="0" Grid.Column="6"
-                    Text="🚪 Quit"
-                    BackgroundColor="#e74c3c"
-                    TextColor="White"
-                    CornerRadius="6"
-                    HeightRequest="35"
-                    FontSize="11"
-                    Command="{Binding QuitCommand}" />
+            <skin:SkinHost Grid.Row="0" Grid.Column="6"
+                           SkinKey="neutral"
+                           FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                <Button Text="⚙️ Options"
+                        TextColor="White"
+                        CornerRadius="6"
+                        HeightRequest="35"
+                        Padding="14,0"
+                        FontSize="11"
+                        Command="{Binding OpenOptionsCommand}" />
+            </skin:SkinHost>
 
         </Grid>
 
+        <!-- ===== SLIDE-UP PANEL OVERLAY (covers Row 1 only; declared last so it draws on top) ===== -->
+        <skin:SkinPanel x:Name="PanelOverlay"
+                        Grid.Row="1"
+                        IsVisible="False"
+                        StrokeColor="{DynamicResource ThemeSectionBorderColor}"
+                        StrokeThickness="2"
+                        CornerRadius="8"
+                        ContentPadding="10">
+            <Grid RowDefinitions="Auto, *" RowSpacing="8">
+                <Grid Grid.Row="0" ColumnDefinitions="*, Auto">
+                    <Label x:Name="PanelTitleLabel"
+                           Grid.Column="0"
+                           Text="🐾 Familiars &amp; Constructs"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           VerticalOptions="Center" />
+                    <skin:SkinHost Grid.Column="1"
+                                   SkinKey="generic_small"
+                                   FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                        <Button Text="✕"
+                                WidthRequest="34"
+                                HeightRequest="34"
+                                Padding="0"
+                                CornerRadius="6"
+                                TextColor="White"
+                                Clicked="OnClosePanelClicked" />
+                    </skin:SkinHost>
+                </Grid>
+
+                <controls:FamiliarPanelView x:Name="FamiliarPanel" Grid.Row="1" IsVisible="False" />
+                <controls:ShopPanelView x:Name="ShopPanel" Grid.Row="1" IsVisible="False" />
+                <controls:SubFeaturePanelView x:Name="SubFeaturePanel" Grid.Row="1" IsVisible="False" />
+                <controls:FeaturePanelView x:Name="FeaturePanel" Grid.Row="1" IsVisible="False" />
+                </Grid>
+        </skin:SkinPanel>
+        </Grid>
+        <!-- end of PageRoot -->
+
+        <!-- ===== EVENT TRAY (slides out from the right edge; pinned, the page makes room for it) ===== -->
+        <skin:SkinPanel x:Name="EventTrayOverlay"
+                        IsVisible="False"
+                        HorizontalOptions="End"
+                        VerticalOptions="Fill"
+                        WidthRequest="400"
+                        Margin="0,15,15,15"
+                        BackgroundColor="{DynamicResource ThemePanelBackgroundColor}"
+                        StrokeColor="{DynamicResource ThemeSectionBorderColor}"
+                        StrokeThickness="2"
+                        CornerRadius="8"
+                        ContentPadding="10">
+            <Grid RowDefinitions="Auto, *" RowSpacing="8">
+                <Grid Grid.Row="0" ColumnDefinitions="*, Auto, Auto" ColumnSpacing="6">
+                    <Label Grid.Column="0"
+                           Text="🔔 Event Tray"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           VerticalOptions="Center" />
+                    <skin:SkinHost Grid.Column="1"
+                                   SkinKey="neutral"
+                                   FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                        <Button x:Name="PinTrayButton"
+                                Text="📌 Pin"
+                                WidthRequest="96"
+                                HeightRequest="34"
+                                Padding="0"
+                                CornerRadius="6"
+                                FontSize="12"
+                                TextColor="White"
+                                Clicked="OnPinEventTrayClicked" />
+                    </skin:SkinHost>
+                    <skin:SkinHost Grid.Column="2"
+                                   SkinKey="generic_small"
+                                   FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                        <Button Text="✕"
+                                WidthRequest="34"
+                                HeightRequest="34"
+                                Padding="0"
+                                CornerRadius="6"
+                                TextColor="White"
+                                Clicked="OnCloseEventTrayClicked" />
+                    </skin:SkinHost>
+                </Grid>
+
+                <controls:EventTrayView x:Name="EventTray" Grid.Row="1" />
+            </Grid>
+        </skin:SkinPanel>
     </Grid>
+    <!-- end of PageHost -->
 </ContentPage>

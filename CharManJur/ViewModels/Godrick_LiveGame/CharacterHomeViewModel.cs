@@ -5,6 +5,9 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
+using CharManJur.ViewModels;
+using CharManJur.Views;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CharManJur.ViewModels.Godrick_LiveGame;
 
@@ -14,13 +17,14 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
     private readonly ICharacterPersistenceService _persistenceService;
     private readonly IItemDataService _itemDataService;
     private readonly IPlayerActionLogService _actionLogService;
+    private readonly UsesChangeLogger _usesLog;
 
     private ObservableCollection<InventoryItemDisplay> _inventoryItems = new();
     private InventoryItemDisplay? _selectedInventoryItem;
-    private bool _isLoading;
+    public ObservableCollection<CharacterEffect> ActiveEffects { get; } = new();
+    public ICommand RemoveEffectCommand { get; }
 
     // ===== EQUIPMENT BACKING FIELDS =====
-    private List<string> _handSlots = new();
     private string _equippedArmor = "None";
     private string _equippedHands = "0 / 0";
     private string _equippedBelt = "0 / 4";
@@ -38,18 +42,16 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
         _persistenceService = persistenceService;
         _itemDataService = itemDataService;
         _actionLogService = actionLogService;
-
-        // Initialize hand slots based on limb system
-        InitializeHandSlots();
+        _usesLog = new UsesChangeLogger(charDataService, actionLogService);
+        FavourTracker = new FavourTracker(charDataService, actionLogService);
+        FavourTracker.Changed += () => OnPropertyChanged(nameof(FavourAmount));
+        FavourUpCommand = new Command(() => FavourTracker.Adjust(+1));
+        FavourDownCommand = new Command(() => FavourTracker.Adjust(-1));
 
         // ===== NAVIGATION COMMANDS =====
-        NavigateToSpellsCommand = new Command(async () => await Shell.Current.GoToAsync("///SpellsPage"));
-        NavigateToQuipsCommand = new Command(async () => await Shell.Current.GoToAsync("///QuipsPage"));
-        NavigateToBlueprintsCommand = new Command(async () => await Shell.Current.GoToAsync("///BlueprintsPage"));
         NavigateToFeaturesCommand = new Command(async () => await Shell.Current.GoToAsync("///FeaturesPage"));
-        NavigateToFamiliarsCommand = new Command(async () => await Shell.Current.GoToAsync("///FamiliarsPage"));
-        NavigateToShopCommand = new Command(async () => await Shell.Current.GoToAsync("///ShopPage"));
-        QuitCommand = new Command(async () => await OnQuit());
+        OpenOptionsCommand = new Command(async () => await OnOpenOptions());
+        CurrencyDisplaySettings.Changed += UpdateCurrencyDisplay;   // a preference change refreshes the dashboard right away
 
         // ===== INVENTORY INTERACTION COMMANDS =====
         InteractCommand = new Command(OnInteract);
@@ -59,16 +61,19 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
         RecoverItemCommand = new Command(OnRecoverItem);
         ToggleDropModeCommand = new Command(OnToggleDropMode);
         EditNoteCommand = new Command(OnEditNote);
-    }
-
-    private void InitializeHandSlots()
-    {
-        int totalSlots = _charDataService.GetTotalLimbSlots();
-        _handSlots.Clear();
-        for (int i = 0; i < totalSlots; i++)
-        {
-            _handSlots.Add("Empty");
-        }
+        EquipSelectedToHandCommand = new Command(OnEquipSelectedToHand);
+        EquipSelectedToBeltCommand = new Command(OnEquipSelectedToBelt);
+        HandToFamiliarCommand = new Command(OnHandToFamiliar);
+        UnequipSelectedCommand = new Command(OnUnequipSelected);
+        EquipSelectedAsArmorCommand = new Command(OnEquipSelectedAsArmor);
+        OpenBioCommand = new Command(async () => await OnOpenBio());
+        OpenRestCommand = new Command(async () => await OnOpenRest());
+        OpenRollDieCommand = new Command(async () => await OnOpenRollDie());
+        OpenApplyDamageCommand = new Command(async () => await OnOpenApplyDamage());
+        OpenApplyEffectCommand = new Command(async () => await OnOpenApplyEffect());
+        RemoveEffectCommand = new Command<CharacterEffect>(OnRemoveEffect);
+        TogglePackCommand = new Command(async () => await OnTogglePack());
+        ExplainEncumbranceCommand = new Command(async () => await OnExplainEncumbrance());
     }
 
     private async void OnRecoverItem()
@@ -83,10 +88,62 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
     // ===== HEADER PROPERTIES =====
     public string CharacterName => _charDataService.CharacterName;
     public string PlayerName => _charDataService.PlayerName;
-    public string Languages => "Common";
 
-    public int CurrentHP => _charDataService.Hitpoints;
+    // ===== RACE / LANGUAGE INFO =====
+    public string CharacterRace => _charDataService.CharacterRace;
+    public string RaceFeatureName => _charDataService.CharacterRaceFeatureName;
+    public string RaceFeatureDescription => _charDataService.CharacterRaceFeatureDescription;
+    public bool HasRaceInfo => !string.IsNullOrWhiteSpace(CharacterRace);
+    public bool HasRaceFeature => !string.IsNullOrWhiteSpace(RaceFeatureName);
+    public bool HasRaceFeatureDescription => !string.IsNullOrWhiteSpace(RaceFeatureDescription);
+
+    public string LanguagesText => _charDataService.SelectedLanguages.Count == 0
+        ? string.Empty
+        : "Languages: " + string.Join(", ", _charDataService.SelectedLanguages.Select(l => l.Name));
+    public bool HasLanguages => _charDataService.SelectedLanguages.Count > 0;
+    public int CurrentHP => _charDataService.CurrentHitpoints;
     public int MaxHP => _charDataService.Hitpoints;
+
+    // ===== CURRENCY =====
+    // Total in chips, then each denomination owned (highest first). Icons are colored to match each coin's description.
+    public string CurrencyTotalText => CurrencyHelper.FormatAmount(_charDataService.CurrencyTotalChips, CurrencyDisplaySettings.Unit);
+    public string CurrencyUnitIcon => CurrencyHelper.UnitIcon(CurrencyDisplaySettings.Unit);
+    public Color CurrencyUnitColor => Color.FromArgb(CurrencyHelper.UnitColorHex(CurrencyDisplaySettings.Unit));
+    public ObservableCollection<CurrencyDisplay> CurrencyBreakdown { get; } = new();
+
+    public class CurrencyDisplay
+    {
+        public string Icon { get; set; } = string.Empty;
+        public Color IconColor { get; set; } = Colors.White;
+        public string CountText { get; set; } = string.Empty;
+    }
+
+    private static readonly (int Id, string Icon, string Color)[] CurrencyIcons =
+    {
+        (CurrencyHelper.NoteId,  "▬", "#4a90d9"),   // blue-backed paper
+        (CurrencyHelper.MarkId,  "▮", "#e8e0c0"),   // stamped paper
+        (CurrencyHelper.RupeeId, "▲", "#c0c0c0"),   // triangular silver
+        (CurrencyHelper.ChipId,  "●", "#b87333"),   // round copper
+    };
+
+    private void UpdateCurrencyDisplay()
+    {
+        CurrencyBreakdown.Clear();
+        foreach (var (id, icon, color) in CurrencyIcons)
+        {
+            int count = CurrencyHelper.Count(_charDataService.Inventory, id);
+            if (count <= 0) continue;
+            CurrencyBreakdown.Add(new CurrencyDisplay
+            {
+                Icon = icon,
+                IconColor = Color.FromArgb(color),
+                CountText = count.ToString("N0")
+            });
+        }
+        OnPropertyChanged(nameof(CurrencyTotalText));
+        OnPropertyChanged(nameof(CurrencyUnitIcon));
+        OnPropertyChanged(nameof(CurrencyUnitColor));
+    }
 
     // ===== STAT PROPERTIES =====
     public int StatVigor => _charDataService.TotalStatVigor;
@@ -94,130 +151,168 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
     public int StatMind => _charDataService.TotalStatMind;
     public int StatSpirit => _charDataService.TotalStatSpirit;
 
-    public int ASMStatVigor => _charDataService.TotalASMStatVigor;
-    public int ASMStatAgility => _charDataService.TotalASMStatAgility;
-    public int ASMStatMind => _charDataService.TotalASMStatMind;
-    public int ASMStatSpirit => _charDataService.TotalASMStatSpirit;
+    public int CurrentVigor => _charDataService.CurrentStatVigor;
+    public int CurrentAgility => _charDataService.CurrentStatAgility;
+    public int CurrentMind => _charDataService.CurrentStatMind;
+    public int CurrentSpirit => _charDataService.CurrentStatSpirit;
+    public int ArmorRating => _charDataService.ArmorRating;
+    public bool HasEquippedArmor => EquippedArmor != "None";
 
-    // ===== DYNAMIC HAND SLOT PROPERTIES =====
-    public List<string> HandSlots
+    // While transformed, the Vigor and Agility bars show the form's scores, marked with a wolf.
+    private bool IsTransformedNow => _charDataService.Transform is { IsTransformed: true };
+    public string VigorFormBadge => IsTransformedNow ? "🐺" : string.Empty;
+    public string AgilityFormBadge => IsTransformedNow ? "🐺" : string.Empty;
+
+    public string ArmorChevronsDisplay
     {
-        get => _handSlots;
-        set
+        get
         {
-            _handSlots = value;
-            OnPropertyChanged();
+            var chevrons = new System.Text.StringBuilder();
+            for (int i = 1; i <= 3; i++)
+            {
+                chevrons.Append(ArmorRating >= i ? "⬤" : "◯");
+                if (i < 3) chevrons.Append(' ');
+            }
+            return chevrons.ToString();
         }
     }
 
     // ===== LIMB SET DISPLAY PROPERTIES =====
     public List<LimbSetDisplay> LimbSetDisplays { get; set; } = new();
-    private LimbSetDisplay? _selectedLimbSet;
-    private LimbSlotDisplay? _selectedSlot;
+    public List<BeltSlotDisplay> BeltSlotDisplays { get; set; } = new();
 
-    public LimbSetDisplay? SelectedLimbSet
+    public void UpdateBeltSlotDisplays()
     {
-        get => _selectedLimbSet;
-        set
+        BeltSlotDisplays.Clear();
+
+        int slot = 1;
+        while (slot <= 4)
         {
-            _selectedLimbSet = value;
-            OnPropertyChanged();
-        }
-    }
+            var item = _charDataService.GetEquippedBeltSlot(slot);
 
-    public LimbSlotDisplay? SelectedSlot
-    {
-        get => _selectedSlot;
-        set
-        {
-            _selectedSlot = value;
-            OnPropertyChanged();
-        }
-    }
-
-    // ===== CONTEXT MENU HANDLERS =====
-
-    public void ShowSlotContextMenu(LimbSlotDisplay slot)
-    {
-        SelectedSlot = slot;
-        // The context menu will be shown by the view
-        ShowSlotContextMenuCommand?.Execute(slot);
-    }
-
-    public void UnequipSlotItem(LimbSlotDisplay slot)
-    {
-        if (slot?.OccupiedByItem == null) return;
-
-        if (slot.IsPartOfTwoHandedItem)
-        {
-            _charDataService.UnequipTwoHandedItem(slot.OccupiedByItem.Id);
-        }
-        else
-        {
-            _charDataService.UnequipItem(slot.OccupiedByItem.Id);
-        }
-
-        UpdateLimbSetDisplays();
-        OnPropertyChanged(nameof(EquippedHands));
-        OnPropertyChanged(nameof(LimbSetDisplays));
-    }
-
-    public void DropSlotItem(LimbSlotDisplay slot)
-    {
-        if (slot?.OccupiedByItem == null) return;
-
-        bool confirm = Application.Current.MainPage.DisplayAlertAsync(
-            "Drop Item",
-            $"Are you sure you want to drop '{slot.OccupiedByItem.DisplayName}'?",
-            "Yes, Drop",
-            "Cancel").Result;
-
-        if (confirm)
-        {
-            if (slot.IsPartOfTwoHandedItem)
+            if (item != null && item.SlotIndex == slot && item.SlotsRequired > 1)
             {
-                _charDataService.UnequipTwoHandedItem(slot.OccupiedByItem.Id);
+                // This slot is where a bulky item's span begins — one merged cell.
+                BeltSlotDisplays.Add(new BeltSlotDisplay
+                {
+                    SlotNumber = slot,
+                    IsOccupied = true,
+                    OccupiedByItemName = item.DisplayName,
+                    OccupiedByItem = item,
+                    IsPartOfBulkyItem = true,
+                    SpanSlots = item.SlotsRequired
+                });
+                slot += item.SlotsRequired;
             }
-            _charDataService.DropItem(slot.OccupiedByItem.Id);
-            UpdateLimbSetDisplays();
-            OnPropertyChanged(nameof(EquippedHands));
-            OnPropertyChanged(nameof(LimbSetDisplays));
+            else if (item != null && item.SlotIndex != slot)
+            {
+                // Second half of a bulky item — already represented by the merged
+                // cell above, so no separate cell is rendered here.
+                slot++;
+            }
+            else
+            {
+                BeltSlotDisplays.Add(new BeltSlotDisplay
+                {
+                    SlotNumber = slot,
+                    IsOccupied = item != null,
+                    OccupiedByItemName = item?.DisplayName ?? string.Empty,
+                    OccupiedByItem = item,
+                    IsPartOfBulkyItem = false,
+                    SpanSlots = 1
+                });
+                slot++;
+            }
         }
+
+        OnPropertyChanged(nameof(BeltSlotDisplays));
     }
 
-    public string GetSlotItemDetails(LimbSlotDisplay slot)
+    // ===== WIELDED WEAPONS (mini equipment dashboard) =====
+    public ObservableCollection<WeaponDisplay> EquippedWeapons { get; } = new();
+    public bool HasEquippedWeapons => EquippedWeapons.Count > 0;
+    public bool HasNoEquippedWeapons => EquippedWeapons.Count == 0;
+
+    public class WeaponDisplay
     {
-        if (slot?.OccupiedByItem == null) return string.Empty;
-
-        var item = slot.OccupiedByItem;
-        var details = new List<string>();
-
-        details.Add($"Name: {item.DisplayName}");
-        details.Add($"Description: {item.DisplayDescription}");
-
-        if (item.Template?.ValueInChips != null)
-            details.Add($"Value: {item.Template.ValueInChips} chips");
-
-        if (item.Template?.WeaponDamage != null)
-            details.Add($"Damage: {item.Template.WeaponDamage}");
-
-        if (item.Template?.ArmorValue != null)
-            details.Add($"Armor: +{item.Template.ArmorValue}");
-
-        if (item.Template?.Uses != null && item.Template.Uses.Value > 0)
-            details.Add($"Uses: {item.RemainingUses}/{item.Template.Uses}");
-
-        if (slot.IsPartOfTwoHandedItem)
-            details.Add("⚔️ Two-Handed (occupies both slots)");
-
-        return string.Join("\n", details);
+        public string Name { get; set; } = string.Empty;
+        public string Summary { get; set; } = string.Empty;
+        public string EffectsText { get; set; } = string.Empty;
+        public string Location { get; set; } = string.Empty;
+        public bool HasEffects => !string.IsNullOrEmpty(EffectsText);
     }
 
-    // ===== CONTEXT MENU COMMANDS =====
-    public ICommand ShowSlotContextMenuCommand { get; }
-    public ICommand UnequipFromSlotCommand { get; }
-    public ICommand DropFromSlotCommand { get; }
-    public ICommand ViewSlotItemDetailsCommand { get; }
+    private void UpdateEquippedWeapons()
+    {
+        EquippedWeapons.Clear();
+
+        // Hands first, then belt, each in slot order
+        var carried = _charDataService.Inventory
+            .Where(i => i.IsEquipped && i.IsWeapon && i.Template != null
+                        && (i.EquipmentSlot == EquipmentSlotType.Hand || i.EquipmentSlot == EquipmentSlotType.Belt))
+            .OrderBy(i => i.EquipmentSlot == EquipmentSlotType.Hand ? 0 : 1)
+            .ThenBy(i => i.SlotIndex ?? 0);
+
+        foreach (var item in carried)
+        {
+            var t = item.Template!;
+            var parts = new List<string>();
+            if (t.WeaponCategory.HasValue) parts.Add(EnumDisplayHelper.GetName(t.WeaponCategory.Value));
+            if (t.WeaponDamage.HasValue) parts.Add(EnumDisplayHelper.GetName(t.WeaponDamage.Value));
+            if (t.WeaponSpeed.HasValue) parts.Add(EnumDisplayHelper.GetName(t.WeaponSpeed.Value));
+
+            EquippedWeapons.Add(new WeaponDisplay
+            {
+                Name = item.DisplayName,
+                Location = item.EquipmentSlot == EquipmentSlotType.Hand ? $"Hand {item.SlotIndex}" : $"Belt {item.SlotIndex}",
+                Summary = string.Join(" · ", parts),
+                EffectsText = t.WeaponEffects is { Count: > 0 }
+                    ? string.Join(", ", t.WeaponEffects.Select(e => EnumDisplayHelper.GetName(e)))
+                    : string.Empty
+            });
+        }
+
+        // While transformed, every weapon trait of the form is wielded too (named after its trait).
+        if (_charDataService.Transform is { IsTransformed: true } form)
+        {
+            string where = string.IsNullOrWhiteSpace(form.Name) ? "Natural" : form.Name;
+            foreach (var weapon in form.Weapons)
+            {
+                EquippedWeapons.Add(new WeaponDisplay
+                {
+                    Name = weapon.Name,
+                    Location = where,
+                    Summary = LiveShifter.WeaponSummary(weapon),
+                    EffectsText = LiveShifter.WeaponEffectsText(weapon)
+                });
+            }
+        }
+
+        OnPropertyChanged(nameof(HasEquippedWeapons));
+        OnPropertyChanged(nameof(HasNoEquippedWeapons));
+    }
+
+    // ===== FAMILIAR STRIP (equipment column) =====
+    public ObservableCollection<FamiliarStripItem> FamiliarStrip { get; } = new();
+    public bool HasFamiliars => FamiliarStrip.Count > 0;
+
+    public void RefreshFamiliarStrip()
+    {
+        FamiliarStrip.Clear();
+        foreach (var familiar in _charDataService.AcquiredFamiliars)
+            FamiliarStrip.Add(new FamiliarStripItem(_charDataService, familiar));
+        OnPropertyChanged(nameof(HasFamiliars));
+    }
+
+    public class BeltSlotDisplay
+    {
+        public int SlotNumber { get; set; }
+        public bool IsOccupied { get; set; }
+        public string OccupiedByItemName { get; set; } = string.Empty;
+        public CharacterItem? OccupiedByItem { get; set; }
+        public bool IsPartOfBulkyItem { get; set; }
+        public int SpanSlots { get; set; } = 1;
+    }
 
     public void UpdateLimbSetDisplays()
     {
@@ -236,12 +331,18 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
                 Slots = new List<LimbSlotDisplay>()
             };
 
-            // Build slot displays for this limb set
+            CharacterItem? twoHandedOccupant = limbSet.IsOccupiedByTwoHandedItem && limbSet.TwoHandedItemId.HasValue
+                ? _charDataService.Inventory.FirstOrDefault(i => i.Id == limbSet.TwoHandedItemId.Value)
+                : null;
+
             for (int i = 0; i < limbSet.SlotIndices.Count; i++)
             {
                 int slotIndex = limbSet.SlotIndices[i];
                 int slotNumber = slotIndex + 1;
-                var equippedItem = _charDataService.GetEquippedHandSlot(slotNumber);
+
+                // A two-handed occupant shows on EVERY slot in its set, not just the
+                // one matching its stored SlotIndex.
+                var equippedItem = twoHandedOccupant ?? _charDataService.GetEquippedHandSlot(slotNumber);
 
                 string slotName = limbSet.PairType == LimbPairType.Paired
                     ? (i == 0 ? limbSet.LeftSlotName : limbSet.RightSlotName)
@@ -291,135 +392,6 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
         public int LimbSetId { get; set; }
     }
 
-    public int TotalHandSlots => _charDataService.GetTotalLimbSlots();
-
-    // ===== LEGACY HAND SLOT PROPERTIES (for backward compatibility) =====
-    public string HandSlot1 => GetHandSlot(0);
-    public string HandSlot2 => GetHandSlot(1);
-    public string HandSlot3 => GetHandSlot(2);
-    public string HandSlot4 => GetHandSlot(3);
-
-    private string GetHandSlot(int index)
-    {
-        if (index < _handSlots.Count)
-            return _handSlots[index];
-        return "Empty";
-    }
-
-    // ===== BULKY ITEM PROPERTIES FOR HAND SLOTS =====
-    public bool HandSlot1Bulky => IsSlotBulky(GetEquippedHandSlot(1));
-    public bool HandSlot2Bulky => IsSlotBulky(GetEquippedHandSlot(2));
-    public bool HandSlot3Bulky => IsSlotBulky(GetEquippedHandSlot(3));
-    public bool HandSlot4Bulky => IsSlotBulky(GetEquippedHandSlot(4));
-
-    public bool HasBulkyInHands
-    {
-        get
-        {
-            for (int i = 1; i <= TotalHandSlots; i++)
-            {
-                if (IsSlotBulky(GetEquippedHandSlot(i)))
-                    return true;
-            }
-            return false;
-        }
-    }
-
-    public string HandSlotsBulkyLabel
-    {
-        get
-        {
-            for (int i = 1; i <= TotalHandSlots; i++)
-            {
-                var item = GetEquippedHandSlot(i);
-                if (item != null && item.SlotsRequired > 1)
-                    return $"📦 {item.DisplayName} (takes 2 slots)";
-            }
-            return string.Empty;
-        }
-    }
-
-    // ===== BELT SLOT PROPERTIES =====
-
-    private List<string> _beltSlots = new() { "Empty", "Empty", "Empty", "Empty" };
-
-    public string BeltSlot1
-    {
-        get => _beltSlots.Count > 0 ? _beltSlots[0] : "Empty";
-        set
-        {
-            while (_beltSlots.Count < 1) _beltSlots.Add("Empty");
-            if (_beltSlots[0] != value)
-            {
-                _beltSlots[0] = value;
-                OnPropertyChanged();
-            }
-        }
-    }
-
-    public string BeltSlot2
-    {
-        get => _beltSlots.Count > 1 ? _beltSlots[1] : "Empty";
-        set
-        {
-            while (_beltSlots.Count < 2) _beltSlots.Add("Empty");
-            if (_beltSlots[1] != value)
-            {
-                _beltSlots[1] = value;
-                OnPropertyChanged();
-            }
-        }
-    }
-
-    public string BeltSlot3
-    {
-        get => _beltSlots.Count > 2 ? _beltSlots[2] : "Empty";
-        set
-        {
-            while (_beltSlots.Count < 3) _beltSlots.Add("Empty");
-            if (_beltSlots[2] != value)
-            {
-                _beltSlots[2] = value;
-                OnPropertyChanged();
-            }
-        }
-    }
-
-    public string BeltSlot4
-    {
-        get => _beltSlots.Count > 3 ? _beltSlots[3] : "Empty";
-        set
-        {
-            while (_beltSlots.Count < 4) _beltSlots.Add("Empty");
-            if (_beltSlots[3] != value)
-            {
-                _beltSlots[3] = value;
-                OnPropertyChanged();
-            }
-        }
-    }
-
-    public bool BeltSlot1Bulky => IsSlotBulky(GetEquippedBeltSlot(1));
-    public bool BeltSlot2Bulky => IsSlotBulky(GetEquippedBeltSlot(2));
-    public bool BeltSlot3Bulky => IsSlotBulky(GetEquippedBeltSlot(3));
-    public bool BeltSlot4Bulky => IsSlotBulky(GetEquippedBeltSlot(4));
-
-    public bool HasBulkyInBelt => BeltSlot1Bulky || BeltSlot2Bulky || BeltSlot3Bulky || BeltSlot4Bulky;
-
-    public string BeltSlotsBulkyLabel
-    {
-        get
-        {
-            for (int i = 1; i <= 4; i++)
-            {
-                var item = GetEquippedBeltSlot(i);
-                if (item != null && item.SlotsRequired > 1)
-                    return $"📦 {item.DisplayName} (takes 2 slots)";
-            }
-            return "📦 Bulky item equipped";
-        }
-    }
-
     public string EquippedArmor
     {
         get => _equippedArmor;
@@ -438,17 +410,40 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
         set { _equippedBelt = value; OnPropertyChanged(); }
     }
 
-    public int Fatigue => 0;
+    public int FatigueBarUsed => _charDataService.FatigueCount;
+    public int FatigueBarMax => _charDataService.FatigueBarMax;
+    public int FatigueInInventory => _charDataService.FatigueInInventory;
+    public bool HasFatigueOverflow => FatigueInInventory > 0;
 
-    public int InventorySlotsTotal
-    {
-        get
-        {
-            int baseSlots = 6;
-            int vigorASM = _charDataService.TotalASMStatVigor;
-            return baseSlots + vigorASM;
-        }
-    }
+    // ===== MODIFIER COLORS (red = reduced by an effect/fatigue/encumbrance, green = increased) =====
+    private static readonly Color PenaltyColor = Color.FromArgb("#e74c3c");
+    private static readonly Color BonusColor = Color.FromArgb("#2ecc71");
+
+    private static Color ColorFor(int direction) =>
+        direction < 0 ? PenaltyColor : direction > 0 ? BonusColor : Colors.White;
+
+    public Color MaxHPColor => ColorFor(_charDataService.Direction(
+        _charDataService.Hitpoints, () => _charDataService.BaseHitpoints));
+
+    public Color VigorMaxColor => ColorFor(_charDataService.Direction(
+        _charDataService.TotalStatVigor, () => _charDataService.TotalStatVigor));
+    public Color AgilityMaxColor => ColorFor(_charDataService.Direction(
+        _charDataService.TotalStatAgility, () => _charDataService.TotalStatAgility));
+    public Color MindMaxColor => ColorFor(_charDataService.Direction(
+        _charDataService.TotalStatMind, () => _charDataService.TotalStatMind));
+    public Color SpiritMaxColor => ColorFor(_charDataService.Direction(
+        _charDataService.TotalStatSpirit, () => _charDataService.TotalStatSpirit));
+
+    public Color FatigueMaxColor => ColorFor(_charDataService.Direction(
+        _charDataService.FatigueBarMax, () => _charDataService.FatigueBarMax));
+
+    // Pack capacity after fatigue overflow, compared with the unmodified 6 + Vigor ASM
+    public Color PackTotalColor => ColorFor(_charDataService.Direction(
+        _charDataService.InventorySlotsAvailable, () => _charDataService.InventorySlotsTotal));
+
+    public int InventorySlotsTotal => _charDataService.InventorySlotsAvailable;
+
+    public string PackSlotsDisplay => $"{InventorySlotsUsed} / {InventorySlotsTotal}";
 
     // ===== DROP MODE =====
     public bool IsDropModeActive
@@ -481,16 +476,199 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
             _selectedInventoryItem = value;
             OnPropertyChanged();
             OnPropertyChanged(nameof(HasSelectedItem));
+            OnPropertyChanged(nameof(CanEquipSelectedToHand));
+            OnPropertyChanged(nameof(CanAdjustSelectedUses));
+            OnPropertyChanged(nameof(CanEquipSelectedToBelt));
+            OnPropertyChanged(nameof(CanEquipSelectedAsArmor));
+            OnPropertyChanged(nameof(IsSelectedEquippedInHand));
+            OnPropertyChanged(nameof(IsSelectedEquippedOnBelt));
+            OnPropertyChanged(nameof(IsSelectedEquippedAsArmor));
             OnPropertyChanged(nameof(SelectedItemName));
             OnPropertyChanged(nameof(SelectedItemDescription));
             OnPropertyChanged(nameof(SelectedItemDetails));
             OnPropertyChanged(nameof(SelectedItemPlayerNote));
             OnPropertyChanged(nameof(HasPlayerNote));
-            OnPropertyChanged(nameof(SelectedItemUses));
             OnPropertyChanged(nameof(HasUses));
             OnPropertyChanged(nameof(SelectedItemRemainingUses));
             OnPropertyChanged(nameof(SelectedItemIsEmpty));
             OnPropertyChanged(nameof(SelectedItemIsEquipped));
+            RebuildSelectedItemDetails();
+        }
+    }
+
+    public bool CanEquipSelectedToHand
+    {
+        get
+        {
+            var item = GetSelectedCharacterItem();
+            return item != null
+               && !(IsPackDropped && !item.IsEquipped)
+               && EquipmentActionHelper.CanEquipToHand(item, _charDataService);
+        }
+    }
+
+    public bool CanEquipSelectedToBelt
+    {
+        get
+        {
+            var item = GetSelectedCharacterItem();
+            return item != null
+               && !(IsPackDropped && !item.IsEquipped)
+               && EquipmentActionHelper.CanEquipToBelt(item, _charDataService);
+        }
+    }
+
+    // Uses can be changed on any item except one that is effectively dropped
+    // (pack dropped and the item isn't equipped/belted).
+    public bool CanAdjustSelectedUses
+    {
+        get
+        {
+            var item = GetSelectedCharacterItem();
+            return item != null && !(IsPackDropped && !item.IsEquipped);
+        }
+    }
+
+    private CharacterItem? GetSelectedCharacterItem()
+    {
+        if (SelectedInventoryItem == null) return null;
+        return _charDataService.Inventory.FirstOrDefault(i => i.Id == SelectedInventoryItem.Id);
+    }
+
+    // ===== UNEQUIP / EQUIP AS ARMOR (item details panel) =====
+    public bool CanEquipSelectedAsArmor
+    {
+        get
+        {
+            var item = GetSelectedCharacterItem();
+            return item != null && EquipmentActionHelper.CanEquipAsArmor(item, _charDataService);
+        }
+    }
+
+    // Unequip takes the place of whichever "Equip to ..." button matches the slot the item is in
+    public bool IsSelectedEquippedInHand => IsSelectedEquippedIn(EquipmentSlotType.Hand);
+    public bool IsSelectedEquippedOnBelt => IsSelectedEquippedIn(EquipmentSlotType.Belt);
+    public bool IsSelectedEquippedAsArmor => IsSelectedEquippedIn(EquipmentSlotType.Armor);
+
+    private bool IsSelectedEquippedIn(EquipmentSlotType slot)
+    {
+        var item = GetSelectedCharacterItem();
+        return item != null && item.IsEquipped && item.EquipmentSlot == slot;
+    }
+
+    public ICommand UnequipSelectedCommand { get; }
+    public ICommand EquipSelectedAsArmorCommand { get; }
+
+    private async void OnUnequipSelected()
+    {
+        var item = GetSelectedCharacterItem();
+        if (item == null) return;
+
+        if (await EquipmentActionHelper.UnequipAsync(item, _charDataService))
+        {
+            await RefreshAfterSelectedItemChangeAsync(item.Id);
+        }
+    }
+
+    private async void OnEquipSelectedAsArmor()
+    {
+        var item = GetSelectedCharacterItem();
+        if (item == null) return;
+
+        if (await EquipmentActionHelper.EquipAsArmorAsync(item, _charDataService))
+        {
+            await RefreshAfterSelectedItemChangeAsync(item.Id);
+        }
+    }
+
+    // ===== EDIT WRITTEN VALUE (Notes) =====
+    public bool CanEditSelectedValue
+    {
+        get
+        {
+            var item = GetSelectedCharacterItem();
+            return item?.Template?.IsValueEditable == true && !(IsPackDropped && !item.IsEquipped);
+        }
+    }
+
+    public ICommand EditValueCommand { get; }
+
+    private async void OnEditValue()
+    {
+        var item = GetSelectedCharacterItem();
+        if (item?.Template?.IsValueEditable != true) return;
+
+        var page = Application.Current!.MainPage!;
+        int currentMarks = CurrencyHelper.ValueEach(item) / CurrencyHelper.ChipsPerMark;
+
+        string? answer = await page.DisplayPromptAsync(
+            "Written Value",
+            $"Value written on this {item.DisplayName}, in Marks ({CurrencyHelper.MinNoteMarks} minimum):",
+            "Save", "Cancel", initialValue: currentMarks.ToString(), keyboard: Keyboard.Numeric);
+        if (answer == null) return;
+
+        if (!CurrencyHelper.TryParseNoteMarks(answer, out int chips))
+        {
+            await page.DisplayAlertAsync("Invalid Value",
+                $"Enter a whole number of Marks from {CurrencyHelper.MinNoteMarks} to {CurrencyHelper.MaxNoteMarks:N0}.", "OK");
+            return;
+        }
+
+        item.WrittenValueInChips = chips;
+        item.LastModified = DateTime.Now;
+        await _charDataService.SaveNowAsync();
+
+        RebuildSelectedItemDetails();
+        UpdateCurrencyDisplay();
+    }
+
+    // Reloads the pack, then reselects the same record so the buttons show its new state.
+    // A dropped item is gone, so nothing ends up selected.
+    private async Task RefreshAfterSelectedItemChangeAsync(int itemId)
+    {
+        await LoadCharacterDataAsync();
+        UpdateLimbSetDisplays();
+        SelectedInventoryItem = InventoryItems.FirstOrDefault(i => i.Id == itemId);
+    }
+
+    public ICommand EquipSelectedToHandCommand { get; }
+    public ICommand EquipSelectedToBeltCommand { get; }
+    public ICommand HandToFamiliarCommand { get; }
+
+    private async void OnEquipSelectedToHand()
+    {
+        var item = GetSelectedCharacterItem();
+        if (item == null) return;
+
+        if (await EquipmentActionHelper.EquipToHandAsync(item, _charDataService))
+        {
+            await RefreshAfterSelectedItemChangeAsync(item.Id);
+        }
+    }
+
+    private async void OnEquipSelectedToBelt()
+    {
+        var item = GetSelectedCharacterItem();
+        if (item == null) return;
+
+        if (await EquipmentActionHelper.EquipToBeltAsync(item, _charDataService))
+        {
+            await RefreshAfterSelectedItemChangeAsync(item.Id);
+        }
+    }
+
+    public bool CanHandSelectedToFamiliar =>
+    FamiliarHandoffHelper.CanHand(GetSelectedCharacterItem(), _charDataService);
+
+    private async void OnHandToFamiliar()
+    {
+        var item = GetSelectedCharacterItem();
+        if (item == null) return;
+
+        if (await FamiliarHandoffHelper.HandToFamiliarAsync(item, _charDataService))
+        {
+            SelectedInventoryItem = null;
+            await LoadCharacterDataAsync();
         }
     }
 
@@ -500,37 +678,147 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
     public string SelectedItemDetails => SelectedInventoryItem?.Details ?? string.Empty;
     public string SelectedItemPlayerNote => SelectedInventoryItem?.PlayerNote ?? string.Empty;
     public bool HasPlayerNote => !string.IsNullOrEmpty(SelectedItemPlayerNote);
-    public string SelectedItemUses => SelectedInventoryItem?.UsesDisplay ?? string.Empty;
     public bool HasUses => SelectedInventoryItem?.MaxUses > 0;
     public string SelectedItemRemainingUses => SelectedInventoryItem?.RemainingUses.ToString() ?? "0";
     public bool SelectedItemIsEmpty => SelectedInventoryItem?.IsEmpty ?? false;
     public bool SelectedItemIsEquipped => SelectedInventoryItem?.IsEquipped ?? false;
 
-    public bool IsLoading
+    // ===== ITEM DETAILS (structured rows in the details panel) =====
+    public ObservableCollection<ItemDetailRow> SelectedItemDetailRows { get; } = new();
+    public ObservableCollection<ItemEffectRow> SelectedItemEffectRows { get; } = new();
+    public bool HasSelectedItemEffects => SelectedItemEffectRows.Count > 0;
+
+    private void RebuildSelectedItemDetails()
     {
-        get => _isLoading;
-        set
+        SelectedItemDetailRows.Clear();
+        SelectedItemEffectRows.Clear();
+
+        var item = GetSelectedCharacterItem();
+        var t = item?.Template;
+        if (item != null && t != null)
         {
-            _isLoading = value;
-            OnPropertyChanged();
+            AddDetail("Category", t.Category.HasValue ? EnumDisplayHelper.GetName(t.Category.Value) : null);
+            AddDetail("Size", EnumDisplayHelper.GetName(t.Size));
+            AddDetail("Value", t.IsValueEditable
+                ? $"{CurrencyHelper.ValueEach(item):N0} chips (written)"
+                : (t.ValueInChips.HasValue ? $"{t.ValueInChips} chips" : null));
+            AddDetail("Rarity", t.Rarity?.ToString());
+            AddDetail("Stackable", t.IsStackableItem ? "Yes" : "No");
+            AddDetail("Stack limit", t.QtyLimit?.ToString());
+            AddDetail("Quantity", item.Quantity.ToString());
+            if (t.HasUses) AddDetail("Uses", $"{item.RemainingUses} / {t.Uses}");
+
+            if (t.IsWeapon) AddWeaponDetails(t);
+            if (t.IsArmor)
+            {
+                AddDetail("Armor value", t.ArmorValue?.ToString());
+                AddDetail("Armor type", t.ArmorType.HasValue ? EnumDisplayHelper.GetName(t.ArmorType.Value) : null);
+            }
+            if (t.IsContainer) AddDetail("Container slots", t.ContainerCapacity.ToString());
+        }
+
+        OnPropertyChanged(nameof(HasSelectedItemEffects));
+    }
+
+    private void AddDetail(string label, string? value)
+    {
+        if (!string.IsNullOrWhiteSpace(value)) SelectedItemDetailRows.Add(new ItemDetailRow(label, value));
+    }
+
+    private void AddWeaponDetails(Item t)
+    {
+        AddDetail("Weapon type", t.WeaponCategory.HasValue ? EnumDisplayHelper.GetName(t.WeaponCategory.Value) : null);
+        AddDetail("Damage", t.WeaponDamage.HasValue ? EnumDisplayHelper.GetName(t.WeaponDamage.Value) : null);
+        AddDetail("Speed", t.WeaponSpeed.HasValue ? EnumDisplayHelper.GetName(t.WeaponSpeed.Value) : null);
+
+        foreach (var effect in t.WeaponEffects ?? new List<WeaponEffectType>())
+        {
+            SelectedItemEffectRows.Add(new ItemEffectRow(
+                EnumDisplayHelper.GetName(effect), EnumDisplayHelper.GetEffectDescription(effect)));
         }
     }
 
     public ICharAttribDataService CharDataService => _charDataService;
 
-    private bool IsSlotBulky(CharacterItem? item)
+    // ===== FAVOUR (Shaman) =====
+    public FavourTracker FavourTracker { get; }
+    public ICommand FavourUpCommand { get; }
+    public ICommand FavourDownCommand { get; }
+    public int FavourAmount => _charDataService.Favour;
+    public bool HasFavour => _charDataService.UsesFavour;
+
+    // ===== SHIFTER =====
+    private LiveShifter? _shifter;
+    public LiveShifter Shifter => _shifter ??= LiveShifter.Create(_charDataService);
+
+    // Raised after the form changes (the Features panel refreshes its status).
+    public event Action? TransformationChanged;
+
+    // The chip's (and the Features panel's) menu while transformed.
+    public async Task ManageTransformationAsync()
     {
-        return item != null && item.SlotsRequired > 1;
+        var shifter = Shifter;
+        var state = shifter.State;
+        if (state == null) return;
+        var page = Application.Current!.MainPage!;
+
+        const string view = "📋 View my form";
+        const string damage = "💥 Take damage (to Stability)";
+        const string save = "🎲 Stability save";
+        const string combat = "🏳️ Combat ended (restore Stability)";
+        const string revert = "↩️ Revert to my normal form";
+
+        string? choice = await page.DisplayActionSheetAsync(
+            $"🐺 {(string.IsNullOrWhiteSpace(state.Name) ? "Transformed" : state.Name)} · Stability {state.StabilityCurrent}/{state.StabilityMax}",
+            "Close", null, view, damage, save, combat, revert);
+        if (choice == null || choice == "Close") return;
+
+        if (choice == view)
+        {
+            await page.DisplayAlertAsync("Your Form", LiveShifter.FormSummary(state), "OK");
+            return;
+        }
+
+        if (choice == damage)
+        {
+            string? answer = await page.DisplayPromptAsync(
+                "Damage", "How much damage did you take?", "Apply", "Cancel", keyboard: Keyboard.Numeric);
+            if (answer == null || !int.TryParse(answer.Trim(), out int amount) || amount <= 0) return;
+
+            var outcome = await shifter.TakeDamageAsync(amount);
+            await page.DisplayAlertAsync("Damage Applied", outcome.Message, "OK");
+            if (outcome.NeedsSave) { await OpenStabilitySaveAsync(); return; }
+        }
+        else if (choice == save)
+        {
+            await OpenStabilitySaveAsync();
+            return;
+        }
+        else if (choice == combat)
+        {
+            await shifter.RestoreStabilityAsync();
+            await page.DisplayAlertAsync("Combat Ended", "Your Stability is back to its rolled value.", "OK");
+        }
+        else if (choice == revert)
+        {
+            bool ok = await page.DisplayAlertAsync("Revert", "Return to your normal form?", "Revert", "Cancel");
+            if (!ok) return;
+            await shifter.RevertAsync("by choice");
+        }
+
+        await LoadCharacterDataAsync();
+        TransformationChanged?.Invoke();
     }
 
-    private CharacterItem? GetEquippedHandSlot(int slot)
+    private async Task OpenStabilitySaveAsync()
     {
-        return _charDataService.GetEquippedHandSlot(slot);
-    }
-
-    private CharacterItem? GetEquippedBeltSlot(int slot)
-    {
-        return _charDataService.GetEquippedBeltSlot(slot);
+        ModalOpening?.Invoke();   // keep an open panel in place
+        var savePage = new StabilitySavePage(Shifter, async () =>
+        {
+            await LoadCharacterDataAsync();
+            TransformationChanged?.Invoke();
+        });
+        await Application.Current!.MainPage!.Navigation.PushModalAsync(savePage);
     }
 
     // ===== COMMANDS =====
@@ -538,16 +826,20 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
     public ICommand NavigateToQuipsCommand { get; }
     public ICommand NavigateToBlueprintsCommand { get; }
     public ICommand NavigateToFeaturesCommand { get; }
-    public ICommand NavigateToFamiliarsCommand { get; }
     public ICommand NavigateToShopCommand { get; }
-    public ICommand QuitCommand { get; }
+    public ICommand OpenOptionsCommand { get; }
     public ICommand InteractCommand { get; }
     public ICommand IncrementUsesCommand { get; }
     public ICommand DecrementUsesCommand { get; }
     public ICommand BestowCommand { get; }
     public ICommand ToggleDropModeCommand { get; }
     public ICommand EditNoteCommand { get; }
+    public ICommand OpenBioCommand { get; }
+    public ICommand OpenRestCommand { get; }
+    public ICommand OpenApplyDamageCommand { get; }
+    public ICommand OpenApplyEffectCommand { get; }
     public ICommand RecoverItemCommand { get; }
+    public ICommand OpenRollDieCommand { get; }
 
     // ===== INTERACT COMMAND =====
     private async void OnInteract()
@@ -556,6 +848,15 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
 
         var characterItem = _charDataService.Inventory.FirstOrDefault(i => i.Id == SelectedInventoryItem.Id);
         if (characterItem == null) return;
+
+        if (_charDataService.IsPackDropped && !characterItem.IsEquipped)
+        {
+            await Application.Current!.MainPage!.DisplayAlertAsync(
+                "Pack Dropped",
+                "You can't interact with items in your pack while it's dropped.",
+                "OK");
+            return;
+        }
 
         var currentPage = Application.Current.MainPage;
         var homePage = currentPage as Views.Godrick_LiveGame.CharacterHomePage;
@@ -579,39 +880,31 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
         }
     }
 
-    // ===== EDIT PLAYER NOTE COMMAND =====
+    // ===== EDIT ITEM (personal note, plus the written value on a Note) =====
     private async void OnEditNote()
     {
-        if (SelectedInventoryItem == null) return;
+        var item = GetSelectedCharacterItem();
+        if (item == null) return;
 
-        var characterItem = _charDataService.Inventory.FirstOrDefault(i => i.Id == SelectedInventoryItem.Id);
-        if (characterItem == null) return;
+        bool canEditValue = item.Template?.IsValueEditable == true && !(IsPackDropped && !item.IsEquipped);
 
-        string currentNote = characterItem.PlayerNote ?? string.Empty;
-        string result = await Application.Current.MainPage.DisplayPromptAsync(
-            "Edit Note",
-            $"Enter a note for '{characterItem.DisplayName}':",
-            "Save",
-            "Cancel",
-            placeholder: "Add your note here...",
-            initialValue: currentNote,
-            maxLength: 500);
+        var popup = new EditItemPopup(item, canEditValue);
+        await Application.Current!.MainPage!.Navigation.PushModalAsync(popup);
+        var result = await popup.Completion;
+        if (result == null) return;
 
-        if (result != null)
-        {
-            characterItem.PlayerNote = string.IsNullOrWhiteSpace(result) ? null : result;
-            characterItem.LastModified = DateTime.Now;
+        _charDataService.EditItem(item.Id, result.PlayerNote, canEditValue ? result.WrittenValueInChips : null);
 
-            SelectedInventoryItem.PlayerNote = characterItem.PlayerNote;
-            OnPropertyChanged(nameof(SelectedItemPlayerNote));
-            OnPropertyChanged(nameof(HasPlayerNote));
+        // The tiles and panel read from the display objects, so push the saved note into them
+        var display = InventoryItems.FirstOrDefault(i => i.Id == item.Id);
+        if (display != null) display.PlayerNote = item.PlayerNote;
+        if (SelectedInventoryItem != null && SelectedInventoryItem.Id == item.Id)
+            SelectedInventoryItem.PlayerNote = item.PlayerNote;
 
-            var displayItem = InventoryItems.FirstOrDefault(i => i.Id == characterItem.Id);
-            if (displayItem != null)
-            {
-                displayItem.PlayerNote = characterItem.PlayerNote;
-            }
-        }
+        OnPropertyChanged(nameof(SelectedItemPlayerNote));
+        OnPropertyChanged(nameof(HasPlayerNote));
+        RebuildSelectedItemDetails();
+        UpdateCurrencyDisplay();
     }
 
     // ===== USES ADJUSTMENT COMMANDS =====
@@ -620,32 +913,53 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
         if (SelectedInventoryItem == null) return;
         var characterItem = _charDataService.Inventory.FirstOrDefault(i => i.Id == SelectedInventoryItem.Id);
         if (characterItem == null) return;
+        if (_charDataService.IsPackDropped && !characterItem.IsEquipped) return;   // effectively dropped
         if (characterItem.Template?.Uses == null || characterItem.Template.Uses.Value <= 0) return;
 
         int maxUses = characterItem.Template.Uses.Value;
         if (characterItem.RemainingUses < maxUses)
         {
+            int before = characterItem.RemainingUses;
             characterItem.RemainingUses++;
             characterItem.IsEmpty = characterItem.RemainingUses <= 0;
             characterItem.LastModified = DateTime.Now;
+            _usesLog.Record(characterItem, before, characterItem.RemainingUses);
             RefreshSelectedItemDisplay();
         }
     }
 
-    private void OnDecrementUses()
+    private async void OnDecrementUses()
     {
         if (SelectedInventoryItem == null) return;
         var characterItem = _charDataService.Inventory.FirstOrDefault(i => i.Id == SelectedInventoryItem.Id);
         if (characterItem == null) return;
+        if (_charDataService.IsPackDropped && !characterItem.IsEquipped) return;   // effectively dropped
         if (characterItem.Template?.Uses == null || characterItem.Template.Uses.Value <= 0) return;
+        if (characterItem.RemainingUses <= 0) return;
 
-        if (characterItem.RemainingUses > 0)
+        int before = characterItem.RemainingUses;
+        characterItem.RemainingUses--;
+        characterItem.LastModified = DateTime.Now;
+
+        if (characterItem.RemainingUses <= 0 && characterItem.Quantity > 1)
         {
-            characterItem.RemainingUses--;
-            characterItem.IsEmpty = characterItem.RemainingUses <= 0;
-            characterItem.LastModified = DateTime.Now;
-            RefreshSelectedItemDisplay();
+            // A used-up item in a stack is consumed: quantity drops by one and the next one is fresh.
+            characterItem.Quantity--;
+            characterItem.RemainingUses = characterItem.Template.Uses.Value;
+            characterItem.IsEmpty = false;
+            _usesLog.Record(characterItem, before, 0, stackLeft: characterItem.Quantity);
+
+            // Quantity affects pack slots, encumbrance and the tile, so rebuild, then reselect the same record.
+            int selectedId = characterItem.Id;
+            await LoadCharacterDataAsync();
+            SelectedInventoryItem = InventoryItems.FirstOrDefault(i => i.Id == selectedId);
+            return;
         }
+
+        _usesLog.Record(characterItem, before, characterItem.RemainingUses);
+
+        characterItem.IsEmpty = characterItem.RemainingUses <= 0;   // a single item stays "Empty" until dropped
+        RefreshSelectedItemDisplay();
     }
 
     private void RefreshSelectedItemDisplay()
@@ -661,8 +975,8 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(SelectedItemRemainingUses));
         OnPropertyChanged(nameof(SelectedItemIsEmpty));
         OnPropertyChanged(nameof(SelectedItemDetails));
-        OnPropertyChanged(nameof(SelectedItemUses));
         OnPropertyChanged(nameof(HasUses));
+        RebuildSelectedItemDetails();
     }
 
     // ===== BESTOW COMMAND =====
@@ -678,6 +992,7 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
     // ===== DROP MODE =====
     private void OnToggleDropMode()
     {
+        if (_charDataService.IsPackDropped) return;   // Drop Mode is unavailable while the pack is dropped
         IsDropModeActive = !IsDropModeActive;
     }
 
@@ -690,122 +1005,118 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(InventoryItems));
     }
 
-    private async void OnDropItem(int characterItemId)
-    {
-        var characterItem = _charDataService.Inventory.FirstOrDefault(i => i.Id == characterItemId);
-        if (characterItem == null) return;
-
-        bool confirm = await Application.Current.MainPage.DisplayAlertAsync(
-            "Drop Item",
-            $"Are you sure you want to drop '{characterItem.DisplayName}'?",
-            "Yes, Drop",
-            "Cancel");
-
-        if (confirm)
-        {
-            _charDataService.DropItem(characterItemId);
-            await LoadCharacterDataAsync();
-        }
-    }
-
     // ===== LOAD CHARACTER DATA =====
     public async Task LoadCharacterDataAsync()
     {
-        IsLoading = true;
-        try
+        var perfWatch = System.Diagnostics.Stopwatch.StartNew();
+        _charDataService.RepairLimbSetState();
+        _charDataService.UpdateEncumbranceState();
+        InventoryItems.Clear();
+
+        foreach (var characterItem in _charDataService.Inventory)
         {
-            // Initialize hand slots based on current limb system
-            InitializeHandSlots();
+            if (characterItem.IsDropped) continue;
 
-            InventoryItems.Clear();
+            var template = characterItem.Template;
+            var effectiveSize = template == null
+                ? ItemSize.Regular
+                : InventorySlotCalculator.EffectiveSize(template, characterItem.Quantity);
 
-            foreach (var characterItem in _charDataService.Inventory)
+            InventoryItems.Add(new InventoryItemDisplay
             {
-                if (characterItem.IsDropped) continue;
-
-                bool isStackable = characterItem.Template?.IsStackableItem ?? false;
-
-                if (isStackable)
+                Id = characterItem.Id,
+                DisplayName = characterItem.DisplayName,
+                Description = characterItem.DisplayDescription,
+                Details = GetItemDetails(characterItem),
+                Quantity = characterItem.Quantity,
+                IsEmpty = characterItem.IsEmpty,
+                IsEquipped = characterItem.IsEquipped,
+                EquippedSlot = characterItem.SlotIndex,
+                PlayerNote = characterItem.PlayerNote,
+                MaxUses = template?.Uses ?? 0,
+                RemainingUses = characterItem.RemainingUses,
+                Rarity = template?.Rarity,
+                IsDropMode = IsDropModeActive,
+                IsStackable = template?.IsStackableItem ?? false,
+                EquippedSlotType = GetEquipmentSlotType(characterItem),
+                SizeLabel = effectiveSize switch
                 {
-                    var existingDisplay = InventoryItems.FirstOrDefault(i =>
-                        i.Id == characterItem.Id && i.IsStackable);
-
-                    if (existingDisplay != null)
-                    {
-                        existingDisplay.Quantity += characterItem.Quantity;
-                        continue;
-                    }
-
-                    var displayItem = new InventoryItemDisplay
-                    {
-                        Id = characterItem.Id,
-                        DisplayName = characterItem.DisplayName,
-                        Description = characterItem.DisplayDescription,
-                        Details = GetItemDetails(characterItem),
-                        Quantity = characterItem.Quantity,
-                        IsEmpty = characterItem.IsEmpty,
-                        IsEquipped = characterItem.IsEquipped,
-                        EquippedSlot = characterItem.SlotIndex,
-                        PlayerNote = characterItem.PlayerNote,
-                        MaxUses = characterItem.Template?.Uses ?? 0,
-                        RemainingUses = characterItem.RemainingUses,
-                        IsDropMode = IsDropModeActive,
-                        DropCommand = new Command<int>(OnDropItem),
-                        IsStackable = true,
-                        EquippedSlotType = GetEquipmentSlotType(characterItem)
-                    };
-                    InventoryItems.Add(displayItem);
+                    ItemSize.Petty => "Petty",
+                    ItemSize.Bulky => "Bulky",
+                    _ => string.Empty
                 }
-                else
-                {
-                    for (int i = 0; i < characterItem.Quantity; i++)
-                    {
-                        var displayItem = new InventoryItemDisplay
-                        {
-                            Id = characterItem.Id,
-                            DisplayName = characterItem.DisplayName,
-                            Description = characterItem.DisplayDescription,
-                            Details = GetItemDetails(characterItem),
-                            Quantity = 1,
-                            IsEmpty = characterItem.IsEmpty,
-                            IsEquipped = characterItem.IsEquipped,
-                            EquippedSlot = characterItem.SlotIndex,
-                            PlayerNote = characterItem.PlayerNote,
-                            MaxUses = characterItem.Template?.Uses ?? 0,
-                            RemainingUses = characterItem.RemainingUses,
-                            IsDropMode = IsDropModeActive,
-                            DropCommand = new Command<int>(OnDropItem),
-                            IsStackable = false,
-                            EquippedSlotType = GetEquipmentSlotType(characterItem)
-                        };
-                        InventoryItems.Add(displayItem);
-                    }
-                }
-            }
-
-            UpdateEquipmentDisplay();
-            OnPropertyChanged(nameof(InventorySlotsUsed));
-            OnPropertyChanged(nameof(InventorySlotsTotal));
-            OnPropertyChanged(nameof(IsEncumbered));
-
-            // Force refresh stat bindings
-            OnPropertyChanged(nameof(StatVigor));
-            OnPropertyChanged(nameof(StatAgility));
-            OnPropertyChanged(nameof(StatMind));
-            OnPropertyChanged(nameof(StatSpirit));
-            OnPropertyChanged(nameof(ASMStatVigor));
-            OnPropertyChanged(nameof(ASMStatAgility));
-            OnPropertyChanged(nameof(ASMStatMind));
-            OnPropertyChanged(nameof(ASMStatSpirit));
-
-            if (SelectedInventoryItem != null)
-            {
-                RefreshSelectedItemDisplay();
-            }
+            });
         }
-        finally
+
+        ActiveEffects.Clear();
+        foreach (var effect in _charDataService.ActiveEffects)
         {
-            IsLoading = false;
+            ActiveEffects.Add(effect);
+        }
+        UpdateEquipmentDisplay();
+        await Shifter.RemoveStrayFormPackAsync();
+        RefreshFamiliarStrip();
+        UpdateCurrencyDisplay();
+        OnPropertyChanged(nameof(InventorySlotsUsed));
+        OnPropertyChanged(nameof(InventorySlotsTotal));
+        OnPropertyChanged(nameof(PackSlotsDisplay));
+        OnPropertyChanged(nameof(IsEncumbered));
+        OnPropertyChanged(nameof(IsPackDropped));
+        OnPropertyChanged(nameof(CanAdjustSelectedUses));
+        OnPropertyChanged(nameof(PackToggleText));
+        OnPropertyChanged(nameof(CanToggleDropMode));
+        OnPropertyChanged(nameof(CanEquipSelectedToHand));
+        OnPropertyChanged(nameof(CanEquipSelectedToBelt));
+
+        // Names must refresh too: this singleton ViewModel is reused when a different character loads
+        OnPropertyChanged(nameof(CharacterName));
+        OnPropertyChanged(nameof(PlayerName));
+        OnPropertyChanged(nameof(FavourAmount));
+        OnPropertyChanged(nameof(HasFavour));
+
+        // Force refresh stat bindings
+        OnPropertyChanged(nameof(StatVigor));
+        OnPropertyChanged(nameof(StatAgility));
+        OnPropertyChanged(nameof(StatMind));
+        OnPropertyChanged(nameof(StatSpirit));
+        OnPropertyChanged(nameof(CurrentHP));
+        OnPropertyChanged(nameof(MaxHP));
+        OnPropertyChanged(nameof(CurrentVigor));
+        OnPropertyChanged(nameof(CurrentAgility));
+        OnPropertyChanged(nameof(CurrentMind));
+        OnPropertyChanged(nameof(CurrentSpirit));
+        OnPropertyChanged(nameof(VigorFormBadge));
+        OnPropertyChanged(nameof(AgilityFormBadge));
+        OnPropertyChanged(nameof(FatigueBarUsed));
+        OnPropertyChanged(nameof(FatigueBarMax));
+        OnPropertyChanged(nameof(FatigueInInventory));
+        OnPropertyChanged(nameof(HasFatigueOverflow));
+        OnPropertyChanged(nameof(ArmorRating));
+        OnPropertyChanged(nameof(ArmorChevronsDisplay));
+        OnPropertyChanged(nameof(MaxHPColor));
+        OnPropertyChanged(nameof(VigorMaxColor));
+        OnPropertyChanged(nameof(AgilityMaxColor));
+        OnPropertyChanged(nameof(MindMaxColor));
+        OnPropertyChanged(nameof(SpiritMaxColor));
+        OnPropertyChanged(nameof(FatigueMaxColor));
+        OnPropertyChanged(nameof(PackTotalColor));
+        OnPropertyChanged(nameof(CharacterRace));
+        OnPropertyChanged(nameof(RaceFeatureName));
+        OnPropertyChanged(nameof(RaceFeatureDescription));
+        OnPropertyChanged(nameof(HasRaceInfo));
+        OnPropertyChanged(nameof(HasRaceFeature));
+        OnPropertyChanged(nameof(HasRaceFeatureDescription));
+        OnPropertyChanged(nameof(LanguagesText));
+        OnPropertyChanged(nameof(HasLanguages));
+        OnPropertyChanged(nameof(CanEquipSelectedAsArmor));
+        OnPropertyChanged(nameof(IsSelectedEquippedInHand));
+        OnPropertyChanged(nameof(IsSelectedEquippedOnBelt));
+        OnPropertyChanged(nameof(IsSelectedEquippedAsArmor));
+
+        System.Diagnostics.Debug.WriteLine($"[PERF] LoadCharacterDataAsync: {perfWatch.ElapsedMilliseconds} ms");
+        if (SelectedInventoryItem != null)
+        {
+            RefreshSelectedItemDisplay();
         }
     }
 
@@ -845,49 +1156,21 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
     // ===== UPDATE EQUIPMENT DISPLAY =====
     private void UpdateEquipmentDisplay()
     {
-        // Update hand slots
-        int totalSlots = _charDataService.GetTotalLimbSlots();
-        _handSlots.Clear();
-
-        for (int i = 1; i <= totalSlots; i++)
-        {
-            var item = _charDataService.GetEquippedHandSlot(i);
-            _handSlots.Add(item?.DisplayName ?? "Empty");
-        }
-
-        // Force refresh of hand slot bindings
-        OnPropertyChanged(nameof(HandSlots));
-        OnPropertyChanged(nameof(TotalHandSlots));
-        OnPropertyChanged(nameof(HandSlot1));
-        OnPropertyChanged(nameof(HandSlot2));
-        OnPropertyChanged(nameof(HandSlot3));
-        OnPropertyChanged(nameof(HandSlot4));
-
-        // ===== UPDATE BELT SLOTS =====
-        // Clear and repopulate belt slots
-        _beltSlots.Clear();
-        for (int i = 1; i <= 4; i++)
-        {
-            var item = _charDataService.GetEquippedBeltSlot(i);
-            _beltSlots.Add(item?.DisplayName ?? "Empty");
-        }
-
-        // Force refresh of belt slot bindings
-        OnPropertyChanged(nameof(BeltSlot1));
-        OnPropertyChanged(nameof(BeltSlot2));
-        OnPropertyChanged(nameof(BeltSlot3));
-        OnPropertyChanged(nameof(BeltSlot4));
-
-        // Update armor
+        // Update armor. While transformed, the armoring trait's name stands in for the armor's name.
         var armor = _charDataService.GetEquippedArmor();
-        EquippedArmor = armor?.DisplayName ?? "None";
+        var form = _charDataService.Transform is { IsTransformed: true } t ? t : null;
+        EquippedArmor = !string.IsNullOrEmpty(form?.ArmorName)
+            ? form!.ArmorName!
+            : armor?.DisplayName ?? "None";
+        OnPropertyChanged(nameof(HasEquippedArmor));
 
         // Update equipped counts
+        int totalSlots = _charDataService.GetTotalLimbSlots();
         int usedHandSlots = 0;
         for (int i = 1; i <= totalSlots; i++)
         {
             var item = _charDataService.GetEquippedHandSlot(i);
-            if (item != null) usedHandSlots += item.SlotsRequired;
+            if (item != null) usedHandSlots += 1;
         }
         EquippedHands = $"{usedHandSlots} / {totalSlots}";
 
@@ -895,28 +1178,44 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
         for (int i = 1; i <= 4; i++)
         {
             var item = _charDataService.GetEquippedBeltSlot(i);
-            if (item != null) usedBeltSlots += item.SlotsRequired;
+            if (item != null) usedBeltSlots += 1;
         }
         EquippedBelt = $"{usedBeltSlots} / 4";
 
-        // Refresh bulky properties
-        OnPropertyChanged(nameof(HandSlot1Bulky));
-        OnPropertyChanged(nameof(HandSlot2Bulky));
-        OnPropertyChanged(nameof(HandSlot3Bulky));
-        OnPropertyChanged(nameof(HandSlot4Bulky));
-        OnPropertyChanged(nameof(HasBulkyInHands));
-        OnPropertyChanged(nameof(HasBulkyInBelt));
-        OnPropertyChanged(nameof(HandSlotsBulkyLabel));
-        OnPropertyChanged(nameof(BeltSlotsBulkyLabel));
+        OnPropertyChanged(nameof(ArmorRating));
+        OnPropertyChanged(nameof(ArmorChevronsDisplay));
+        UpdateBeltSlotDisplays();
+        UpdateEquippedWeapons();
+    }
+
+    // ===== OPTIONS (Preferences / Quit) =====
+    private async Task OnOpenOptions()
+    {
+        const string preferences = "⚙️ Preferences";
+        const string quit = "🚪 Quit";
+
+        string? choice = await Application.Current!.MainPage!.DisplayActionSheetAsync(
+            "Options", "Cancel", null, preferences, quit);
+
+        if (choice == preferences)
+        {
+            var page = new PreferencesPage(
+                IPlatformApplication.Current!.Services.GetRequiredService<SettingsViewModel>());
+            await Application.Current!.MainPage!.Navigation.PushModalAsync(page);
+        }
+        else if (choice == quit)
+        {
+            await OnQuit();   // keeps the "Leave Session?" warning and ends the session
+        }
     }
 
     // ===== QUIT COMMAND =====
     private async Task OnQuit()
     {
         bool confirm = await Application.Current.MainPage.DisplayAlertAsync(
-            "Quit Character?",
-            "Are you sure you want to return to the main menu? All character data will be saved.",
-            "Yes, Quit",
+            "Leave Session?",
+            "Your character will be saved and you'll return to the main menu. Any items you've dropped will NOT be recoverable after you leave.",
+            "Yes, Leave",
             "Cancel");
 
         if (!confirm) return;
@@ -926,6 +1225,7 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
             _charDataService.CharacterName);
 
         var saveData = _charDataService.CreateSaveData();
+        _charDataService.FileName = fileName;
         saveData.FileName = fileName;
         saveData.LastSaved = DateTime.Now;
         saveData.CurrentPage = "CharacterHomePage";
@@ -933,44 +1233,146 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
         await _persistenceService.SaveCharacterDataAsync(saveData);
         _charDataService.MarkCharacterSaved();
 
+        await _usesLog.FlushAllAsync();   // write any pending uses entries before the session ends
+        await FavourTracker.FlushAsync();
+        await _charDataService.EndSessionAsync();   // ends the session: dropped items are gone for good
+
         await Shell.Current.GoToAsync("///MainPage");
     }
 
-    // ===== HELPER METHOD =====
-    public CharacterItem? GetCharacterItem(int id)
+    private async Task OnOpenRest()
     {
-        return _charDataService.Inventory.FirstOrDefault(i => i.Id == id);
+        var popup = new RestPopup(_charDataService, async () =>
+        {
+            await LoadCharacterDataAsync();
+        });
+        await Application.Current!.MainPage!.Navigation.PushModalAsync(popup);
+    }
+
+    private async Task OnOpenBio()
+    {
+        var popup = new BioPage(_charDataService);
+        await Application.Current!.MainPage!.Navigation.PushModalAsync(popup);
+    }
+
+    // Raised just before a dashboard page opens, so the home page can keep an open panel (Crafting, Shop...) in place.
+    public event Action? ModalOpening;
+
+    private async Task OnOpenRollDie()
+    {
+        ModalOpening?.Invoke();
+        var popup = new DiceRollPopup(_charDataService);
+        await Application.Current!.MainPage!.Navigation.PushModalAsync(popup);
+    }
+
+    private async Task OnOpenApplyDamage()
+    {
+        var popup = new ApplyDamagePopup(_charDataService, async () => await LoadCharacterDataAsync());
+        await Application.Current!.MainPage!.Navigation.PushModalAsync(popup);
+    }
+
+    private async Task OnOpenApplyEffect()
+    {
+        var popup = new ApplyEffectPopup(_charDataService, async () => await LoadCharacterDataAsync());
+        await Application.Current!.MainPage!.Navigation.PushModalAsync(popup);
+    }
+
+    private async void OnRemoveEffect(CharacterEffect? effect)
+    {
+        if (effect == null) return;
+
+        if (effect.HardcodedType == HardcodedEffectType.Transformed)
+        {
+            await ManageTransformationAsync();
+            return;
+        }
+
+        if (effect.HardcodedType == HardcodedEffectType.VigorSave)
+        {
+            var popup = new VigorSavePopup(_charDataService, async () => await LoadCharacterDataAsync());
+            await Application.Current!.MainPage!.Navigation.PushModalAsync(popup);
+            return;
+        }
+
+        if (effect.HardcodedType == HardcodedEffectType.DeathsDoor)
+        {
+            bool confirmClear = await Application.Current!.MainPage!.DisplayAlertAsync(
+                "Clear Death's Door?", "Only clear this once the situation has been resolved.", "Yes", "Cancel");
+            if (!confirmClear) return;
+
+            _charDataService.ClearDeathsDoor();
+            await LoadCharacterDataAsync();
+            return;
+        }
+
+        var detailPopup = new EffectDetailPopup(effect, _charDataService, async () => await LoadCharacterDataAsync());
+        await Application.Current!.MainPage!.Navigation.PushModalAsync(detailPopup);
     }
 
     // ===== INVENTORY CAPACITY =====
-    public int InventorySlotsUsed
+    public int InventorySlotsUsed => _charDataService.InventorySlotsUsed;
+    public bool IsEncumbered => _charDataService.IsEncumbered;
+
+    // ===== DROP PACK =====
+    public bool IsPackDropped => _charDataService.IsPackDropped;
+    public string PackToggleText => IsPackDropped ? "🎒 Pick Up Pack" : "🎒 Drop Pack";
+    public bool CanToggleDropMode => !IsPackDropped;
+    public ICommand TogglePackCommand { get; }
+
+    private async Task OnTogglePack()
     {
-        get
+        if (_charDataService.IsPackDropped)
         {
-            int totalSlots = 0;
-            bool isEncumbered = false;
-
-            foreach (var item in _charDataService.Inventory)
+            // Picking the pack up can put you straight back into encumbrance
+            bool wouldEncumber = _charDataService.InventorySlotsUsed > _charDataService.InventorySlotsAvailable;
+            if (wouldEncumber)
             {
-                if (item.IsDropped || item.IsEmpty) continue;
-                if (item.Template == null) continue;
-
-                int quantity = item.Quantity;
-                int slots = item.Template.CalculateSlotsUsed(quantity);
-                totalSlots += slots;
-
-                if (item.Template.IsEncumbering(quantity))
-                    isEncumbered = true;
+                bool confirm = await Application.Current!.MainPage!.DisplayAlertAsync(
+                    "Pick Up Pack?",
+                    "Your pack is over capacity. Picking it up will make you encumbered and reduce your Max HP to 0.",
+                    "Pick Up",
+                    "Cancel");
+                if (!confirm) return;
             }
-
-            if (isEncumbered)
-                return InventorySlotsTotal + 1;
-
-            return totalSlots;
+            _charDataService.SetPackDropped(false);
         }
+        else
+        {
+            _charDataService.SetPackDropped(true);
+        }
+        if (_charDataService.IsPackDropped && IsDropModeActive)
+        {
+            IsDropModeActive = false;   // dropping the pack ends Drop Mode
+        }
+        await LoadCharacterDataAsync();
     }
 
-    public bool IsEncumbered => InventorySlotsUsed > InventorySlotsTotal;
+    public ICommand ExplainEncumbranceCommand { get; }
+
+    private async Task OnExplainEncumbrance()
+    {
+        if (!IsEncumbered) return;
+
+        // Pack capacity follows the character's normal Vigor, even while transformed.
+        int vigor = _charDataService.PackVigorModifier;
+        int fatigue = _charDataService.FatigueInInventory;
+        int total = _charDataService.InventorySlotsTotal;
+        int available = _charDataService.InventorySlotsAvailable;
+        int used = _charDataService.InventorySlotsUsed;
+
+        string capacity = $"Your pack holds 6 slots plus your Vigor modifier ({(vigor >= 0 ? "+" : "")}{vigor}) = {total}";
+        if (fatigue > 0) capacity += $", minus {fatigue} taken up by fatigue overflow = {available}";
+        capacity += ".";
+
+        string message =
+            $"You're carrying {used} pack slots, but your pack only holds {available}.\n\n" +
+            $"{capacity}\n\n" +
+            "While you're encumbered your Max HP is 0.\n\n" +
+            "To fix it: drop items, hand some to a familiar, clear fatigue, or move items to your hands or belt " +
+            "(equipped items don't use pack slots).";
+
+        await Application.Current!.MainPage!.DisplayAlertAsync("Encumbered", message, "OK");
+    }
 
     // ===== INotifyPropertyChanged =====
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -979,4 +1381,12 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
+
+    // Writes pending uses and Favour entries now (the Event Tray calls this when it opens).
+    public async Task FlushPendingLogAsync()
+    {
+        await _usesLog.FlushAllAsync();
+        await FavourTracker.FlushAsync();
+    }
+
 }

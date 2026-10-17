@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.Godrick_LiveGame.DiceRollPopup"
+             Title="Roll Die"
+             Shell.NavBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15" MaximumWidthRequest="1000">
+
+            <Label Text="🎲 Roll Die"
+                   FontSize="24"
+                   FontAttributes="Bold"
+                   TextColor="{DynamicResource ThemeDetailBorderColor1}"
+                   HorizontalOptions="Center" />
+            <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}" />
+
+            <!-- Mode -->
+            <HorizontalStackLayout Spacing="20" HorizontalOptions="Center">
+                <RadioButton x:Name="CheckRadio" GroupName="Mode" Content="Skill Check" IsChecked="True" CheckedChanged="OnModeChanged" />
+                <RadioButton x:Name="SaveRadio" GroupName="Mode" Content="Ability Save" CheckedChanged="OnModeChanged" />
+            </HorizontalStackLayout>
+
+            <!-- ===== Skill Check section ===== -->
+            <VerticalStackLayout x:Name="CheckSection" Spacing="10">
+                <Label Text="Skill" FontSize="13" TextColor="Gray" />
+                <Border Stroke="{DynamicResource ThemeDetailBorderColor2}" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
+                    <Picker x:Name="SkillPicker" BackgroundColor="Transparent" SelectedIndexChanged="OnSkillChanged" />
+                </Border>
+                <Label x:Name="SkillFormulaLabel" FontSize="13" TextColor="Gray" HorizontalOptions="Center" />
+
+                <Label Text="Advantage / Disadvantage" FontSize="13" TextColor="Gray" />
+                <HorizontalStackLayout Spacing="15" HorizontalOptions="Center">
+                    <RadioButton x:Name="AdvantageNoneRadio" GroupName="AdvantageMode" Content="None" IsChecked="True" CheckedChanged="OnAdvantageModeChanged" />
+                    <RadioButton x:Name="AdvantageRadio" GroupName="AdvantageMode" Content="Advantage" CheckedChanged="OnAdvantageModeChanged" />
+                    <RadioButton x:Name="DisadvantageRadio" GroupName="AdvantageMode" Content="Disadvantage" CheckedChanged="OnAdvantageModeChanged" />
+                </HorizontalStackLayout>
+                <Label Text="Adds 1d4 to the roll, added to your total on Advantage or subtracted on Disadvantage."
+                       FontSize="11" TextColor="Gray" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+
+                <HorizontalStackLayout Spacing="20" HorizontalOptions="Center">
+                    <RadioButton x:Name="CheckManualRadio" GroupName="CheckRollMode" Content="Manual Entry" IsChecked="True" CheckedChanged="OnCheckRollModeChanged" />
+                    <RadioButton x:Name="CheckRollForMeRadio" GroupName="CheckRollMode" Content="Roll for Me" CheckedChanged="OnCheckRollModeChanged" />
+                </HorizontalStackLayout>
+
+                <Border x:Name="CheckManualSection" Stroke="{DynamicResource ThemeDetailBorderColor2}" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
+                    <Entry x:Name="CheckManualEntry" Placeholder="Total of your 2d6" Keyboard="Numeric" PlaceholderColor="Gray" BackgroundColor="Transparent" HorizontalTextAlignment="Center" />
+                </Border>
+
+                <VerticalStackLayout x:Name="CheckRollForMeSection" Spacing="8" IsVisible="False">
+                    <skin:SkinHost SkinKey="primary" FallbackColor="{DynamicResource ThemePrimaryButtonColor}">
+                        <Button Text="🎲 Roll 2d6" TextColor="White" CornerRadius="6" HeightRequest="35" Padding="14,0" Clicked="OnCheckRollClicked" />
+                    </skin:SkinHost>
+                    <Label x:Name="CheckRollResultLabel" FontSize="13" FontAttributes="Bold" HorizontalOptions="Center" />
+                </VerticalStackLayout>
+
+                <!-- Advantage/Disadvantage d4 -->
+                <VerticalStackLayout x:Name="AdvantageDieSection" Spacing="8" IsVisible="False">
+                    <BoxView HeightRequest="1" Color="{DynamicResource ThemeDetailBorderColor1}" />
+                    <Label Text="d4 Roll" FontSize="13" TextColor="Gray" />
+
+                    <Border x:Name="AdvantageManualSection" Stroke="{DynamicResource ThemeDetailBorderColor2}" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}" IsVisible="{Binding Source={x:Reference CheckManualRadio}, Path=IsChecked}">
+                        <Entry x:Name="AdvantageManualEntry" Placeholder="d4 result (1-4)" Keyboard="Numeric" PlaceholderColor="Gray" BackgroundColor="Transparent" HorizontalTextAlignment="Center" />
+                    </Border>
+
+                    <VerticalStackLayout x:Name="AdvantageRollForMeSection" Spacing="8" IsVisible="{Binding Source={x:Reference CheckRollForMeRadio}, Path=IsChecked}">
+                        <skin:SkinHost SkinKey="primary" FallbackColor="{DynamicResource ThemePrimaryButtonColor}">
+                            <Button Text="🎲 Roll d4" TextColor="White" CornerRadius="6" HeightRequest="35" Padding="14,0" Clicked="OnAdvantageRollClicked" />
+                        </skin:SkinHost>
+                        <Label x:Name="AdvantageRollResultLabel" FontSize="13" FontAttributes="Bold" HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+
+            <!-- ===== Ability Save section ===== -->
+            <VerticalStackLayout x:Name="SaveSection" Spacing="10" IsVisible="False">
+                <Label Text="Ability" FontSize="13" TextColor="Gray" />
+                <Border Stroke="{DynamicResource ThemeDetailBorderColor2}" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
+                    <Picker x:Name="AbilityPicker" BackgroundColor="Transparent" SelectedIndexChanged="OnAbilityChanged">
+                        <Picker.Items>
+                            <x:String>Vigor</x:String>
+                            <x:String>Agility</x:String>
+                            <x:String>Mind</x:String>
+                            <x:String>Spirit</x:String>
+                        </Picker.Items>
+                    </Picker>
+                </Border>
+                <Label x:Name="SaveTargetLabel" FontSize="13" TextColor="Gray" HorizontalOptions="Center" />
+
+                <HorizontalStackLayout Spacing="20" HorizontalOptions="Center">
+                    <RadioButton x:Name="SaveManualRadio" GroupName="SaveRollMode" Content="Manual Entry" IsChecked="True" CheckedChanged="OnSaveRollModeChanged" />
+                    <RadioButton x:Name="SaveRollForMeRadio" GroupName="SaveRollMode" Content="Roll for Me" CheckedChanged="OnSaveRollModeChanged" />
+                </HorizontalStackLayout>
+
+                <Border x:Name="SaveManualSection" Stroke="{DynamicResource ThemeDetailBorderColor2}" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
+                    <Entry x:Name="SaveManualEntry" Placeholder="d20 result" Keyboard="Numeric" PlaceholderColor="Gray" BackgroundColor="Transparent" HorizontalTextAlignment="Center" />
+                </Border>
+
+                <VerticalStackLayout x:Name="SaveRollForMeSection" Spacing="8" IsVisible="False">
+                    <skin:SkinHost SkinKey="primary" FallbackColor="{DynamicResource ThemePrimaryButtonColor}">
+                        <Button Text="🎲 Roll d20" TextColor="White" CornerRadius="6" HeightRequest="35" Padding="14,0" Clicked="OnSaveRollClicked" />
+                    </skin:SkinHost>
+                    <Label x:Name="SaveRollResultLabel" FontSize="13" FontAttributes="Bold" HorizontalOptions="Center" />
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+
+            <BoxView HeightRequest="1" Color="{DynamicResource ThemeDetailBorderColor1}" />
+
+            <Grid ColumnDefinitions="*, *" ColumnSpacing="10" MaximumWidthRequest="800">
+                <skin:SkinHost Grid.Column="0" SkinKey="confirm" FallbackColor="{DynamicResource ThemeConfirmButtonColor}">
+                    <Button Text="Confirm" TextColor="White" CornerRadius="8" HeightRequest="45" Padding="14,0" Clicked="OnConfirmClicked" />
+                </skin:SkinHost>
+                <skin:SkinHost Grid.Column="1" SkinKey="neutral" FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                    <Button Text="Close" TextColor="White" CornerRadius="8" HeightRequest="45" Padding="14,0" Clicked="OnCloseClicked" />
+                </skin:SkinHost>
+            </Grid>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

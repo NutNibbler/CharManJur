@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             xmlns:controls="clr-namespace:CharManJur.Views.Godrick_LiveGame.Controls"
+             x:Class="CharManJur.Views.Godrick_LiveGame.CraftPage"
+             Title="Craft"
+             Shell.NavBarIsVisible="False">
+
+    <ContentPage.Resources>
+        <!-- Size and look live on the Button; the host supplies the skin art -->
+        <Style x:Key="StepButton" TargetType="Button">
+            <Setter Property="WidthRequest" Value="34" />
+            <Setter Property="HeightRequest" Value="34" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="TextColor" Value="White" />
+        </Style>
+        <Style x:Key="StepHostStyle" TargetType="skin:SkinHost">
+            <Setter Property="SkinKey" Value="generic_small" />
+            <Setter Property="FallbackColor" Value="{DynamicResource ThemeNeutralButtonColor}" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto, *, Auto" Padding="20" RowSpacing="10" MaximumWidthRequest="1400">
+
+        <!-- Header -->
+        <VerticalStackLayout Grid.Row="0" Spacing="4">
+            <Label Text="{Binding Title}"
+                   FontSize="24"
+                   FontAttributes="Bold"
+                   TextColor="{DynamicResource ThemeDetailBorderColor1}"
+                   HorizontalOptions="Center" />
+            <Label Text="{Binding Subtitle}"
+                   FontSize="12"
+                   TextColor="Gray"
+                   LineBreakMode="WordWrap"
+                   HorizontalTextAlignment="Center" />
+            <Label Text="{Binding HintText}"
+                   FontSize="12"
+                   TextColor="Gray"
+                   LineBreakMode="WordWrap"
+                   HorizontalTextAlignment="Center">
+                <Label.Triggers>
+                    <DataTrigger TargetType="Label" Binding="{Binding HintIsWarning}" Value="True">
+                        <Setter Property="TextColor" Value="{DynamicResource ThemeWarningButtonColor}" />
+                    </DataTrigger>
+                    <DataTrigger TargetType="Label" Binding="{Binding HintMet}" Value="True">
+                        <Setter Property="TextColor" Value="{DynamicResource ThemeConfirmButtonColor}" />
+                    </DataTrigger>
+                </Label.Triggers>
+            </Label>
+            <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}" />
+        </VerticalStackLayout>
+
+        <!-- Body: what you're making | what you're using -->
+        <Grid Grid.Row="1" ColumnDefinitions="*, *" ColumnSpacing="12">
+
+            <!-- LEFT: output -->
+            <Grid Grid.Column="0" RowDefinitions="Auto, *" RowSpacing="8">
+
+                <!-- What kind of thing -->
+                <HorizontalStackLayout Grid.Row="0" Spacing="8">
+                    <skin:SkinHost SkinKey="neutral" FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                        <skin:SkinHost.Triggers>
+                            <DataTrigger TargetType="skin:SkinHost" Binding="{Binding IsItemMode}" Value="True">
+                                <Setter Property="SkinKey" Value="primary" />
+                                <Setter Property="FallbackColor" Value="{DynamicResource ThemePrimaryButtonColor}" />
+                            </DataTrigger>
+                        </skin:SkinHost.Triggers>
+                        <Button Text="📦 Item"
+                                TextColor="White"
+                                CornerRadius="6"
+                                WidthRequest="110"
+                                HeightRequest="32"
+                                Padding="14,0"
+                                FontSize="12"
+                                Command="{Binding ShowItemCommand}" />
+                    </skin:SkinHost>
+                    <skin:SkinHost SkinKey="neutral" FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                        <skin:SkinHost.Triggers>
+                            <DataTrigger TargetType="skin:SkinHost" Binding="{Binding IsConstructMode}" Value="True">
+                                <Setter Property="SkinKey" Value="primary" />
+                                <Setter Property="FallbackColor" Value="{DynamicResource ThemePrimaryButtonColor}" />
+                            </DataTrigger>
+                        </skin:SkinHost.Triggers>
+                        <Button Text="⚙️ Construct (Familiar)"
+                                TextColor="White"
+                                CornerRadius="6"
+                                WidthRequest="190"
+                                HeightRequest="32"
+                                Padding="14,0"
+                                FontSize="12"
+                                Command="{Binding ShowConstructCommand}" />
+                    </skin:SkinHost>
+                </HorizontalStackLayout>
+
+                <!-- Item output -->
+                <Grid Grid.Row="1"
+                      RowDefinitions="Auto, Auto, *, Auto"
+                      RowSpacing="6"
+                      IsVisible="{Binding IsItemMode}">
+                    <Grid Grid.Row="0" ColumnDefinitions="*, Auto" ColumnSpacing="8">
+                        <Label Grid.Column="0"
+                               Text="What are you making?"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="{DynamicResource ThemeWarningButtonColor}"
+                               VerticalOptions="Center" />
+                        <skin:SkinHost Grid.Column="1" SkinKey="create" FallbackColor="{DynamicResource ThemeCreateButtonColor}">
+                            <Button Text="✨ Create Custom"
+                                    TextColor="White"
+                                    CornerRadius="6"
+                                    WidthRequest="150"
+                                    HeightRequest="30"
+                                    Padding="10,0"
+                                    FontSize="11"
+                                    Command="{Binding CreateCustomItemCommand}" />
+                        </skin:SkinHost>
+                    </Grid>
+
+                    <Border Grid.Row="1"
+                            Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 8"
+                            BackgroundColor="{DynamicResource ThemePanelBackgroundColor}">
+                        <Entry Text="{Binding SearchText}"
+                               Placeholder="Search items..."
+                               PlaceholderColor="Gray"
+                               BackgroundColor="Transparent" />
+                    </Border>
+
+                    <CollectionView Grid.Row="2"
+                                    ItemsSource="{Binding Outputs}"
+                                    SelectionMode="Single"
+                                    SelectedItem="{Binding SelectedOutput, Mode=TwoWay}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                        StrokeThickness="0.5"
+                                        StrokeShape="RoundRectangle 4"
+                                        Padding="8"
+                                        Margin="2">
+                                    <VerticalStackLayout Spacing="0">
+                                        <Label Text="{Binding Name}"
+                                               FontSize="13"
+                                               FontAttributes="Bold"
+                                               LineBreakMode="TailTruncation" />
+                                        <Label Text="{Binding CategoryText}" FontSize="10" TextColor="Gray" />
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <Label Grid.Row="2"
+                           Text="No items match."
+                           FontSize="13"
+                           TextColor="Gray"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center"
+                           IsVisible="{Binding HasNoOutputs}" />
+
+                    <!-- Selected item and how many -->
+                    <Border Grid.Row="3"
+                            StrokeShape="RoundRectangle 6"
+                            StrokeThickness="1"
+                            Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                            BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}"
+                            Padding="10"
+                            IsVisible="{Binding HasSelection}">
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="{Binding SelectedName}"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   TextColor="{DynamicResource ThemeDetailBorderColor1}" />
+                            <Label Text="{Binding SelectedDescription}"
+                                   FontSize="11"
+                                   TextColor="Gray"
+                                   LineBreakMode="WordWrap"
+                                   IsVisible="{Binding HasSelectedDescription}" />
+                            <HorizontalStackLayout Spacing="8">
+                                <Label Text="Quantity" FontSize="13" FontAttributes="Bold" VerticalOptions="Center" />
+                                <skin:SkinHost Style="{StaticResource StepHostStyle}">
+                                    <Button Text="−" Style="{StaticResource StepButton}" Command="{Binding QuantityDownCommand}" />
+                                </skin:SkinHost>
+                                <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                        StrokeThickness="1"
+                                        StrokeShape="RoundRectangle 6"
+                                        BackgroundColor="{DynamicResource ThemePanelBackgroundColor}"
+                                        WidthRequest="70"
+                                        HeightRequest="34"
+                                        VerticalOptions="Center">
+                                    <Entry Text="{Binding QuantityText}"
+                                           Keyboard="Numeric"
+                                           BackgroundColor="Transparent"
+                                           HorizontalTextAlignment="Center"
+                                           VerticalOptions="Center" />
+                                </Border>
+                                <skin:SkinHost Style="{StaticResource StepHostStyle}">
+                                    <Button Text="+" Style="{StaticResource StepButton}" Command="{Binding QuantityUpCommand}" />
+                                </skin:SkinHost>
+                            </HorizontalStackLayout>
+                            <controls:StartingUsesView MaximumUses="{Binding OutputMaxUses}"
+                                                       Uses="{Binding StartingUses, Mode=TwoWay}"
+                                                       IsVisible="{Binding ShowStartingUses}" />
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+
+                <!-- Construct output -->
+                <ScrollView Grid.Row="1" IsVisible="{Binding IsConstructMode}">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="Describe your construct"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="{DynamicResource ThemeWarningButtonColor}" />
+                        <Label Text="It joins your Familiars &amp; Constructs as an inanimate familiar. It's yours only: it saves with your character."
+                               FontSize="11"
+                               TextColor="Gray"
+                               LineBreakMode="WordWrap" />
+
+                        <Label Text="Name *" FontAttributes="Bold" FontSize="13" />
+                        <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 6"
+                                BackgroundColor="{DynamicResource ThemePanelBackgroundColor}">
+                            <Entry Text="{Binding ConstructName}"
+                                   Placeholder="e.g. Cart, Walking Pack, Clockwork Mule"
+                                   PlaceholderColor="Gray"
+                                   MaxLength="40"
+                                   BackgroundColor="Transparent" />
+                        </Border>
+
+                        <Label Text="Description" FontAttributes="Bold" FontSize="13" />
+                        <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 6"
+                                BackgroundColor="{DynamicResource ThemePanelBackgroundColor}">
+                            <Editor Text="{Binding ConstructDescription}"
+                                    Placeholder="What is it, what does it do?"
+                                    PlaceholderColor="Gray"
+                                    HeightRequest="80"
+                                    AutoSize="TextChanges"
+                                    BackgroundColor="Transparent" />
+                        </Border>
+
+                        <Label Text="Size" FontAttributes="Bold" FontSize="13" />
+                        <Picker ItemsSource="{Binding ConstructSizeNames}"
+                                SelectedItem="{Binding SelectedConstructSize, Mode=TwoWay}"
+                                BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+
+                        <Label Text="Base inventory capacity (pack slots)" FontAttributes="Bold" FontSize="13" />
+                        <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 6"
+                                BackgroundColor="{DynamicResource ThemePanelBackgroundColor}"
+                                WidthRequest="120"
+                                HorizontalOptions="Start">
+                            <Entry Text="{Binding ConstructCapacityText}"
+                                   Keyboard="Numeric"
+                                   BackgroundColor="Transparent"
+                                   HorizontalTextAlignment="Center" />
+                        </Border>
+                        <Label Text="Its own pack space. A container it carries adds to this."
+                               FontSize="10"
+                               TextColor="Gray" />
+                    </VerticalStackLayout>
+                </ScrollView>
+            </Grid>
+
+            <!-- RIGHT: what you commit -->
+            <Grid Grid.Column="1" RowDefinitions="Auto, *" RowSpacing="6">
+                <Label Grid.Row="0"
+                       Text="What are you using? (everything you commit is consumed)"
+                       FontSize="14"
+                       FontAttributes="Bold"
+                       TextColor="{DynamicResource ThemeWarningButtonColor}"
+                       LineBreakMode="WordWrap" />
+
+                <CollectionView Grid.Row="1"
+                                ItemsSource="{Binding Inputs}"
+                                SelectionMode="None">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                    StrokeThickness="0.5"
+                                    StrokeShape="RoundRectangle 4"
+                                    Padding="8"
+                                    Margin="2">
+                                <Border.Triggers>
+                                    <DataTrigger TargetType="Border" Binding="{Binding HasCommitted}" Value="True">
+                                        <Setter Property="Stroke" Value="{DynamicResource ThemeConfirmButtonColor}" />
+                                        <Setter Property="StrokeThickness" Value="2" />
+                                    </DataTrigger>
+                                </Border.Triggers>
+                                <Grid ColumnDefinitions="*, Auto" ColumnSpacing="8">
+                                    <VerticalStackLayout Grid.Column="0" Spacing="0" VerticalOptions="Center">
+                                        <Label Text="{Binding Name}"
+                                               FontSize="13"
+                                               FontAttributes="Bold"
+                                               LineBreakMode="TailTruncation" />
+                                        <Label Text="{Binding InfoText}" FontSize="10" TextColor="Gray" />
+                                    </VerticalStackLayout>
+                                    <HorizontalStackLayout Grid.Column="1" Spacing="6" VerticalOptions="Center">
+                                        <skin:SkinHost Style="{StaticResource StepHostStyle}">
+                                            <Button Text="−" Style="{StaticResource StepButton}" Command="{Binding DownCommand}" />
+                                        </skin:SkinHost>
+                                        <Label Text="{Binding CommittedText}"
+                                               FontSize="14"
+                                               FontAttributes="Bold"
+                                               WidthRequest="30"
+                                               HorizontalTextAlignment="Center"
+                                               VerticalOptions="Center" />
+                                        <skin:SkinHost Style="{StaticResource StepHostStyle}">
+                                            <Button Text="+" Style="{StaticResource StepButton}" Command="{Binding UpCommand}" />
+                                        </skin:SkinHost>
+                                    </HorizontalStackLayout>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <Label Grid.Row="1"
+                       Text="You have nothing to craft with."
+                       FontSize="13"
+                       TextColor="Gray"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"
+                       IsVisible="{Binding HasNoInputs}" />
+            </Grid>
+        </Grid>
+
+        <!-- Footer -->
+        <VerticalStackLayout Grid.Row="2" Spacing="6">
+            <Label Text="{Binding StatusText}"
+                   FontSize="12"
+                   TextColor="Gray"
+                   HorizontalOptions="Center"
+                   IsVisible="{Binding HasStatus}" />
+            <Label Text="{Binding Error}"
+                   FontSize="12"
+                   FontAttributes="Bold"
+                   TextColor="{DynamicResource ThemeDangerButtonColor}"
+                   LineBreakMode="WordWrap"
+                   HorizontalTextAlignment="Center"
+                   IsVisible="{Binding HasError}" />
+            <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                <skin:SkinHost SkinKey="neutral" FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                    <Button Text="Cancel"
+                            TextColor="White"
+                            CornerRadius="8"
+                            WidthRequest="140"
+                            HeightRequest="45"
+                            Padding="14,0"
+                            Command="{Binding CancelCommand}" />
+                </skin:SkinHost>
+                <skin:SkinHost SkinKey="confirm" FallbackColor="{DynamicResource ThemeConfirmButtonColor}">
+                    <Button Text="🔨 Craft"
+                            TextColor="White"
+                            CornerRadius="8"
+                            WidthRequest="180"
+                            HeightRequest="45"
+                            Padding="14,0"
+                            FontAttributes="Bold"
+                            IsEnabled="{Binding CanCraft}"
+                            Command="{Binding CraftCommand}" />
+                </skin:SkinHost>
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>

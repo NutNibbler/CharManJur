@@ -103,5 +103,32 @@
     <ShellContent 
         Route="ItemAssetManagerPage" 
         ContentTemplate="{DataTemplate views:ItemAssetManagerPage}" />
+    <ShellContent 
+        Route="BackgroundAssetManagerPage" 
+        ContentTemplate="{DataTemplate views:BackgroundAssetManagerPage}" />
+    <ShellContent 
+        Route="FamiliarAssetManagerPage" 
+        ContentTemplate="{DataTemplate views:FamiliarAssetManagerPage}" />
+    <ShellContent 
+        Route="RaceAssetManagerPage" 
+        ContentTemplate="{DataTemplate views:RaceAssetManagerPage}" />
+    <ShellContent 
+        Route="HinderanceAssetManagerPage" 
+        ContentTemplate="{DataTemplate views:HinderanceAssetManagerPage}" />
+    <ShellContent 
+        Route="BlueprintAssetManagerPage" 
+        ContentTemplate="{DataTemplate views:BlueprintAssetManagerPage}" />
+    <ShellContent 
+        Route="SpellAssetManagerPage" 
+        ContentTemplate="{DataTemplate views:SpellAssetManagerPage}" />
+    <ShellContent 
+        Route="QuipAssetManagerPage" 
+        ContentTemplate="{DataTemplate views:QuipAssetManagerPage}" />
+    <ShellContent 
+        Route="TechniqueAssetManagerPage" 
+        ContentTemplate="{DataTemplate views:TechniqueAssetManagerPage}" />
+    <ShellContent 
+        Route="TraitAssetManagerPage" 
+        ContentTemplate="{DataTemplate views:TraitAssetManagerPage}" />
 
 </Shell>

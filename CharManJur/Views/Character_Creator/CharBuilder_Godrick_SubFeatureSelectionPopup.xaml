@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:CharManJur.Converters"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.CharBuilder_Godrick_SubFeatureSelectionPopup"
+             Title="Select Sub-Features"
+             Shell.NavBarIsVisible="False">
+
+    <Grid RowDefinitions="Auto, Auto, *, Auto"
+          Padding="20"
+          RowSpacing="15">
+
+        <!-- Header -->
+        <VerticalStackLayout Grid.Row="0" Spacing="5">
+            <Label Text="{Binding SubFeatureTypeName}"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   TextColor="{DynamicResource ThemeDetailBorderColor1}"
+                   HorizontalOptions="Center" />
+            <Label Text="Select one or more options to add to your character"
+                   FontSize="14"
+                   TextColor="Gray"
+                   HorizontalOptions="Center" />
+            <BoxView HeightRequest="2" 
+                     Color="{DynamicResource ThemeDetailBorderColor1}" 
+                     HorizontalOptions="Fill" />
+        </VerticalStackLayout>
+
+        <!-- Create Custom [Type] -->
+        <skin:SkinHost Grid.Row="1" SkinKey="create" HeightRequest="45"
+                       FallbackColor="{DynamicResource ThemeCreateButtonColor}">
+            <Button Text="{Binding CreateCustomButtonText}"
+                    TextColor="White"
+                    CornerRadius="10"
+                    FontAttributes="Bold"
+                    IsVisible="{Binding CanCreateCustom}"
+                    Command="{Binding CreateCustomCommand}" />
+        </skin:SkinHost>
+
+        <!-- Main Content: Scrollable List with Checkboxes -->
+        <ScrollView Grid.Row="2">
+            <CollectionView x:Name="ItemsCollectionView"
+                            ItemsSource="{Binding AvailableItems}"
+                            SelectionMode="None"
+                            Margin="0,0,0,10">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Padding="5,3">
+                            <Border Stroke="{DynamicResource ThemeDetailBorderColor1}"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 8"
+                                Padding="10"
+                                BackgroundColor="{Binding IsSelected, Converter={StaticResource SelectedBackgroundConverter}}">
+                                <Grid ColumnDefinitions="Auto, *">
+                                    <!-- Checkbox -->
+                                    <CheckBox Grid.Column="0"
+                                          IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                          VerticalOptions="Start"
+                                          Margin="0,4,0,0"
+                                          Color="{DynamicResource ThemeDetailBorderColor1}" />
+
+                                    <!-- Name / Description / Detail Line -->
+                                    <VerticalStackLayout Grid.Column="1" Spacing="4" Margin="10,0,0,0">
+                                        <Label Text="{Binding DisplayName}"
+                                           FontSize="16"
+                                           FontAttributes="Bold" />
+
+                                        <Label Text="{Binding Description}"
+                                           FontSize="13"
+                                           TextColor="Gray"
+                                           LineBreakMode="WordWrap"
+                                           IsVisible="{Binding HasDescription}" />
+
+                                        <Label Text="{Binding DetailLine}"
+                                           FontSize="12"
+                                           FontAttributes="Italic"
+                                           TextColor="{DynamicResource ThemeDetailBorderColor1}"
+                                           IsVisible="{Binding HasDetailLine}" />
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </ScrollView>
+
+        <!-- Footer: Action Buttons -->
+        <Grid Grid.Row="3" 
+              ColumnDefinitions="*, *" 
+              ColumnSpacing="10"
+              Margin="0,10,0,0">
+
+            <!-- Debug Label to show HasAnySelected state -->
+            <Label Grid.Column="0" Grid.ColumnSpan="2" 
+                   Text="{Binding HasAnySelected}" 
+                   TextColor="Yellow" 
+                   IsVisible="False" />
+
+            <skin:SkinHost Grid.Column="0" SkinKey="neutral" HeightRequest="50"
+                           FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                <Button Text="Cancel"
+                        TextColor="White"
+                        CornerRadius="10"
+                        Command="{Binding CancelCommand}" />
+            </skin:SkinHost>
+
+            <skin:SkinHost Grid.Column="1" SkinKey="confirm" HeightRequest="50"
+                           FallbackColor="{DynamicResource ThemeConfirmButtonColor}">
+                <Button Text="Confirm Selection"
+                        TextColor="White"
+                        CornerRadius="10"
+                        FontAttributes="Bold"
+                        IsEnabled="{Binding HasAnySelected}"
+                        Command="{Binding ConfirmSelectionCommand}" />
+            </skin:SkinHost>
+
+        </Grid>
+
+    </Grid>
+</ContentPage>

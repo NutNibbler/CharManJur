@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.CustomSpellCreatorPage"
+             Shell.NavBarIsVisible="False"
+             Title="Create Custom Spell">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
+
+            <Label Text="✨ Create Custom Spell" FontSize="24" FontAttributes="Bold" HorizontalOptions="Center"/>
+
+            <Label Text="Name" FontAttributes="Bold"/>
+            <Entry x:Name="entryName" Placeholder="Spell name"/>
+
+            <Label Text="Description" FontAttributes="Bold"/>
+            <Editor x:Name="editorDescription" Placeholder="What does this spell do?" HeightRequest="120" AutoSize="TextChanges"/>
+
+            <Label Text="Dice" FontAttributes="Bold"/>
+            <Entry x:Name="entryDice" Placeholder="e.g. Minutes, Rounds, Hours"/>
+
+            <Label Text="Range" FontAttributes="Bold"/>
+            <Entry x:Name="entryRange" Placeholder="e.g. Touch, Near, Far, Self"/>
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,15,0,0">
+                <skin:SkinHost Grid.Column="0" SkinKey="neutral"
+                               FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                    <Button Text="Cancel"
+                            TextColor="White" CornerRadius="8" HeightRequest="45"
+                            Clicked="OnCancelClicked"/>
+                </skin:SkinHost>
+                <skin:SkinHost Grid.Column="1" SkinKey="create"
+                               FallbackColor="{DynamicResource ThemeCreateButtonColor}">
+                    <Button x:Name="btnSave"
+                            Text="Create Spell"
+                            TextColor="White" CornerRadius="8" HeightRequest="45"
+                            Clicked="OnCreateClicked"/>
+                </skin:SkinHost>
+            </Grid>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

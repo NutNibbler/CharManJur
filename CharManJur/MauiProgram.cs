@@ -11,6 +11,7 @@ namespace CharManJur
     {
         public static MauiApp CreateMauiApp()
         {
+            CharManJur.Helpers.ThemeContrast.Register();
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
@@ -35,15 +36,34 @@ namespace CharManJur
             builder.Services.AddTransient<LoadCharacterViewModel>();
             builder.Services.AddSingleton<IBackgroundDataService, BackgroundDataService>();
             builder.Services.AddSingleton<IItemDataService, ItemDataService>();
+            builder.Services.AddSingleton<IItemTransferGateway, LocalOnlyItemTransferGateway>();
 
             //APPLICATION SETTINGS REGISTERS
             builder.Services.AddSingleton<IThemeService, ThemeService>();
+            builder.Services.AddSingleton<ISkinService, SkinService>();
             builder.Services.AddTransient<SettingsViewModel>();
             builder.Services.AddTransient<SettingsPage>();
 
             //ASSET MANAGER REGISTERS
             builder.Services.AddTransient<ItemAssetManagerViewModel>();
             builder.Services.AddTransient<ItemAssetManagerPage>();
+            builder.Services.AddTransient<BackgroundAssetManagerViewModel>();
+            builder.Services.AddTransient<BackgroundAssetManagerPage>();
+            builder.Services.AddSingleton<IAssetPackService, AssetPackService>();
+            builder.Services.AddTransient<FamiliarAssetManagerViewModel>();
+            builder.Services.AddTransient<FamiliarAssetManagerPage>();
+            builder.Services.AddTransient<RaceAssetManagerViewModel>();
+            builder.Services.AddTransient<RaceAssetManagerPage>();
+            builder.Services.AddTransient<HinderanceAssetManagerViewModel>();
+            builder.Services.AddTransient<HinderanceAssetManagerPage>();
+            builder.Services.AddTransient<BlueprintAssetManagerViewModel>();
+            builder.Services.AddTransient<BlueprintAssetManagerPage>();
+            builder.Services.AddTransient<SpellAssetManagerViewModel>();
+            builder.Services.AddTransient<SpellAssetManagerPage>();
+            builder.Services.AddTransient<QuipAssetManagerViewModel>();
+            builder.Services.AddTransient<QuipAssetManagerPage>();
+            builder.Services.AddTransient<TechniqueAssetManagerViewModel>();
+            builder.Services.AddTransient<TechniqueAssetManagerPage>();
             builder.Services.AddSingleton<IAssetPackService, AssetPackService>();
 
             //CUSTOM HINDERANCE REGISTERS
@@ -53,6 +73,12 @@ namespace CharManJur
             //CUSTOM FAMILIAR REGISTERS
             builder.Services.AddSingleton<IFamiliarDataService, FamiliarDataService>();
             builder.Services.AddSingleton<ICustomFamiliarStorageService, CustomFamiliarStorageService>();
+
+            //CUSTOM SUB FEATURE REGISTERS
+            builder.Services.AddSingleton<ICustomBlueprintStorageService, CustomBlueprintStorageService>();
+            builder.Services.AddSingleton<ICustomSpellStorageService, CustomSpellStorageService>();
+            builder.Services.AddSingleton<ICustomQuipStorageService, CustomQuipStorageService>();
+            builder.Services.AddSingleton<ICustomTechniqueStorageService, CustomTechniqueStorageService>();
 
             builder.Services.AddTransient<BackgroundSelectionViewModel>();
             builder.Services.AddSingleton<ICustomItemStorageService, CustomItemStorageService>();
@@ -70,6 +96,12 @@ namespace CharManJur
             builder.Services.AddTransient<Godrick_CustomRaceCreator>();
             builder.Services.AddSingleton<ICustomRaceStorageService, CustomRaceStorageService>();
             builder.Services.AddTransient<CustomRaceBuilderViewModel>();
+
+            //CUSTOM TRAIT REGISTERS (Shifter traits)
+            builder.Services.AddSingleton<ICustomTraitStorageService, CustomTraitStorageService>();
+            builder.Services.AddSingleton<ITraitDataService, TraitDataService>();
+            builder.Services.AddTransient<TraitAssetManagerViewModel>();
+            builder.Services.AddTransient<TraitAssetManagerPage>();
 
             //CUSTOM BACKGROUND BUILDER REGISTER
             builder.Services.AddSingleton<ICustomBackgroundStorageService, CustomBackgroundStorageService>();

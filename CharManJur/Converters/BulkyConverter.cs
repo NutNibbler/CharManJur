@@ -9,7 +9,7 @@ public class BulkyBorderConverter : IValueConverter
     {
         if (value is bool isBulky && isBulky)
             return Colors.Orange;
-        return Color.FromArgb("#444444");
+        return ThemeColorLookup.Get("ThemeDetailBorderColor2", Color.FromArgb("#444444"));
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

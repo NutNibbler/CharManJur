@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.SkinsSettingsView">
+
+    <!-- The page's SettingsViewModel exposes a "Skins" child view model; everything below binds to it -->
+    <VerticalStackLayout Spacing="15" BindingContext="{Binding Skins}">
+
+        <Label Text="Skins" FontSize="20" FontAttributes="Bold" />
+
+        <Label Text="Skin packs give buttons and pages custom artwork. Drop a pack folder into the skins folder, then press Refresh. Packs higher in the list win when two packs provide the same image."
+               FontSize="12"
+               TextColor="Gray"
+               LineBreakMode="WordWrap" />
+
+        <Label Text="{Binding SkinsFolderPath}"
+               FontSize="11"
+               TextColor="Gray"
+               LineBreakMode="WordWrap" />
+
+        <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+            <skin:SkinHost Grid.Column="0" SkinKey="primary"
+                           FallbackColor="{DynamicResource ThemePrimaryButtonColor}">
+                <Button Text="📂 Open skins folder"
+                        TextColor="White"
+                        CornerRadius="8"
+                        HeightRequest="45"
+                        Command="{Binding OpenFolderCommand}" />
+            </skin:SkinHost>
+            <skin:SkinHost Grid.Column="1" SkinKey="neutral"
+                           FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                <Button Text="🔄 Refresh"
+                        TextColor="White"
+                        CornerRadius="8"
+                        HeightRequest="45"
+                        Command="{Binding RefreshCommand}" />
+            </skin:SkinHost>
+        </Grid>
+
+        <!-- ===== Load order ===== -->
+        <Label Text="Load order (top wins)" FontSize="16" FontAttributes="Bold" />
+
+        <Label Text="No skin packs found. Put a pack folder in the skins folder and press Refresh."
+               FontSize="12"
+               TextColor="Gray"
+               IsVisible="{Binding HasNoPacks}" />
+
+        <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding Packs}">
+            <BindableLayout.ItemTemplate>
+                <DataTemplate>
+                    <skin:SkinPanel StrokeColor="{DynamicResource ThemeSectionBorderColor}"
+                                    StrokeThickness="1"
+                                    CornerRadius="8"
+                                    ContentPadding="8">
+                        <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto" ColumnSpacing="8">
+
+                            <Label Grid.Column="0"
+                                   Text="{Binding PriorityText}"
+                                   FontSize="18"
+                                   FontAttributes="Bold"
+                                   WidthRequest="24"
+                                   HorizontalTextAlignment="Center"
+                                   VerticalOptions="Center" />
+
+                            <CheckBox Grid.Column="1"
+                                      IsChecked="{Binding IsEnabled}"
+                                      VerticalOptions="Center" />
+
+                            <VerticalStackLayout Grid.Column="2" Spacing="2" VerticalOptions="Center">
+                                <Label Text="{Binding Name}" FontSize="16" FontAttributes="Bold" />
+                                <Label Text="{Binding Subtitle}" FontSize="11" TextColor="Gray" />
+                                <Label Text="{Binding Description}"
+                                       FontSize="12"
+                                       TextColor="Gray"
+                                       LineBreakMode="WordWrap"
+                                       IsVisible="{Binding HasDescription}" />
+                                <Label Text="{Binding Warning}"
+                                       FontSize="11"
+                                       TextColor="{DynamicResource ThemeWarningButtonColor}"
+                                       LineBreakMode="WordWrap"
+                                       IsVisible="{Binding HasWarning}" />
+                            </VerticalStackLayout>
+
+                            <skin:SkinHost Grid.Column="3" SkinKey="generic_small"
+                                           FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
+                                           VerticalOptions="Center">
+                                <Button Text="▲"
+                                        FontSize="14"
+                                        TextColor="White"
+                                        CornerRadius="6"
+                                        WidthRequest="40"
+                                        HeightRequest="40"
+                                        Padding="0"
+                                        IsEnabled="{Binding CanMoveUp}"
+                                        Command="{Binding MoveUpCommand}" />
+                            </skin:SkinHost>
+
+                            <skin:SkinHost Grid.Column="4" SkinKey="generic_small"
+                                           FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
+                                           VerticalOptions="Center">
+                                <Button Text="▼"
+                                        FontSize="14"
+                                        TextColor="White"
+                                        CornerRadius="6"
+                                        WidthRequest="40"
+                                        HeightRequest="40"
+                                        Padding="0"
+                                        IsEnabled="{Binding CanMoveDown}"
+                                        Command="{Binding MoveDownCommand}" />
+                            </skin:SkinHost>
+                        </Grid>
+                    </skin:SkinPanel>
+                </DataTemplate>
+            </BindableLayout.ItemTemplate>
+        </VerticalStackLayout>
+
+        <!-- ===== Text ===== -->
+        <Label Text="Text" FontSize="16" FontAttributes="Bold" />
+
+        <Label Text="Fonts come from the enabled packs. A new font is used after you restart the app."
+               FontSize="12"
+               TextColor="Gray"
+               LineBreakMode="WordWrap" />
+
+        <Picker Title="Font"
+                ItemsSource="{Binding FontLabels}"
+                SelectedIndex="{Binding SelectedFontIndex, Mode=TwoWay}" />
+
+        <Label Text="⚠️ Restart the app to use the selected font."
+               FontSize="12"
+               TextColor="{DynamicResource ThemeWarningButtonColor}"
+               IsVisible="{Binding ShowRestartNote}" />
+
+        <Label Text="Body text color" FontSize="14" FontAttributes="Bold" />
+        <Label Text="Used for normal text. Labels with their own color (gray hints, theme-colored text) are not changed."
+               FontSize="12"
+               TextColor="Gray"
+               LineBreakMode="WordWrap" />
+
+        <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+            <BoxView Grid.Column="0"
+                     Color="{Binding BodyTextSwatch}"
+                     WidthRequest="32"
+                     HeightRequest="32"
+                     CornerRadius="6"
+                     VerticalOptions="Center" />
+
+            <Label Grid.Column="1"
+                   Text="{Binding BodyTextColorText}"
+                   FontSize="12"
+                   VerticalOptions="Center" />
+
+            <skin:SkinHost Grid.Column="2" SkinKey="primary"
+                           FallbackColor="{DynamicResource ThemePrimaryButtonColor}"
+                           VerticalOptions="Center">
+                <Button Text="Choose"
+                        FontSize="12"
+                        TextColor="White"
+                        CornerRadius="6"
+                        HeightRequest="36"
+                        Command="{Binding ChooseBodyTextColorCommand}" />
+            </skin:SkinHost>
+
+            <skin:SkinHost Grid.Column="3" SkinKey="neutral"
+                           FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
+                           VerticalOptions="Center">
+                <Button Text="Reset"
+                        FontSize="12"
+                        TextColor="White"
+                        CornerRadius="6"
+                        HeightRequest="36"
+                        Command="{Binding ResetBodyTextColorCommand}" />
+            </skin:SkinHost>
+        </Grid>
+
+        <!-- ===== Preview ===== -->
+        <Label Text="Preview" FontSize="16" FontAttributes="Bold" />
+        <Label Text="What each image resolves to with the order above, before you save."
+               FontSize="12"
+               TextColor="Gray" />
+
+        <FlexLayout BindableLayout.ItemsSource="{Binding Previews}"
+                    Wrap="Wrap"
+                    Direction="Row"
+                    JustifyContent="Start"
+                    AlignItems="Start">
+            <BindableLayout.ItemTemplate>
+                <DataTemplate>
+                    <VerticalStackLayout Spacing="2"
+                                         Margin="0,0,10,10"
+                                         WidthRequest="{Binding SlotWidth}">
+                        <Border StrokeShape="RoundRectangle 8"
+                                StrokeThickness="1"
+                                Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                BackgroundColor="#33808080"
+                                Padding="0"
+                                HorizontalOptions="Start"
+                                WidthRequest="{Binding TileWidth}"
+                                HeightRequest="{Binding TileHeight}">
+                            <Grid>
+                                <Image Source="{Binding Image}"
+                                       Aspect="{Binding Aspect}"
+                                       IsVisible="{Binding HasImage}" />
+                                <Label Text="{Binding Title}"
+                                       FontSize="11"
+                                       FontAttributes="Bold"
+                                       TextColor="{Binding TitleColor}"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center"
+                                       HorizontalTextAlignment="Center" />
+                            </Grid>
+                        </Border>
+                        <Label Text="{Binding SourceText}"
+                               FontSize="10"
+                               TextColor="Gray"
+                               LineBreakMode="WordWrap" />
+                    </VerticalStackLayout>
+                </DataTemplate>
+            </BindableLayout.ItemTemplate>
+        </FlexLayout>
+
+    </VerticalStackLayout>
+</ContentView>

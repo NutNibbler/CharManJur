@@ -31,7 +31,7 @@
 		<ApplicationTitle>CharManJur</ApplicationTitle>
 
 		<!-- App Identifier -->
-		<ApplicationId>com.companyname.charmanjur</ApplicationId>
+		<ApplicationId>CharManJur</ApplicationId>
 
 		<!-- Versions -->
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
@@ -77,7 +77,7 @@
   </ItemGroup>
   
 	<ItemGroup>
-	  <Compile Update="Views\CreateNewCharacter.xaml.cs">
+	  <Compile Update="Views\Character_Creator\CreateNewCharacter.xaml.cs">
 	    <DependentUpon>CreateNewCharacter.xaml</DependentUpon>
 	  </Compile>
 	  <Compile Update="Views\LoadCharacter.xaml.cs">
@@ -86,43 +86,142 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <MauiXaml Update="Views\CharacterReviewPopup.xaml">
+	  <MauiXaml Update="Views\Godrick_LiveGame\ApplyDamagePopup.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\CharBuilder_Godrick_BackgroundSelection.xaml">
+	  <MauiXaml Update="Views\Godrick_LiveGame\ApplyEffectPopup.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\CharBuilder_Godrick_ClassSelection.xaml">
+	  <MauiXaml Update="Views\Godrick_LiveGame\BeltSlotSwapPopup.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\CharBuilder_Godrick_HinderanceSelection.xaml">
+	  <MauiXaml Update="Views\Godrick_LiveGame\BestowFamiliarPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\CharBuilder_Godrick_KinSelection.xaml">
+	  <MauiXaml Update="Views\Godrick_LiveGame\BestowSubFeaturePage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\CharBuilder_Godrick_SubFeatureSelectionPopup.xaml">
+	  <MauiXaml Update="Views\Godrick_LiveGame\BioPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\ColorPickerPopup.xaml">
+	  <MauiXaml Update="Views\Godrick_LiveGame\Controls\EventTrayView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\CreateNewCharacter.xaml">
+	  <MauiXaml Update="Views\Godrick_LiveGame\Controls\FamiliarPanelView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\CustomFamiliarCreatorPage.xaml">
+	  <MauiXaml Update="Views\Godrick_LiveGame\Controls\FeaturePanelView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\CustomItemCreatorPage.xaml">
+	  <MauiXaml Update="Views\Godrick_LiveGame\Controls\SellPanelView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\Godrick_CustomBackgroundCreator.xaml">
+	  <MauiXaml Update="Views\Godrick_LiveGame\Controls\ShopPanelView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\Godrick_CustomHinderanceCreator.xaml">
+	  <MauiXaml Update="Views\Godrick_LiveGame\Controls\StartingUsesView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\Godrick_CustomRaceCreator.xaml">
+	  <MauiXaml Update="Views\Godrick_LiveGame\Controls\StatBarView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Godrick_LiveGame\Controls\SubFeaturePanelView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Godrick_LiveGame\CraftPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Godrick_LiveGame\DiceRollPopup.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Godrick_LiveGame\EditItemPopup.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Godrick_LiveGame\EffectDetailPopup.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Godrick_LiveGame\FeatureUsePage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Godrick_LiveGame\MagicCastPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Godrick_LiveGame\RestPopup.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Godrick_LiveGame\ShapeshiftPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Godrick_LiveGame\StabilitySavePage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Godrick_LiveGame\VigorSavePopup.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Settings\AssetManagers\CustomTraitCreatorPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Settings\AssetManagers\Familiar\FamiliarAssetManagerPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Settings\AssetManagers\Background\BackgroundAssetManagerPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Settings\AssetManagers\SubFeatures\BlueprintAssetManagerPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Character_Creator\CharacterReviewPopup.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Character_Creator\CharBuilder_Godrick_BackgroundSelection.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Character_Creator\CharBuilder_Godrick_ClassSelection.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Character_Creator\CharBuilder_Godrick_HinderanceSelection.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Character_Creator\CharBuilder_Godrick_KinSelection.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Character_Creator\CharBuilder_Godrick_SubFeatureSelectionPopup.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Settings\AssetManagers\TraitAssetManagerPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Settings\ColorPickerPopup.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Character_Creator\CreateNewCharacter.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Settings\AssetManagers\SubFeatures\CustomBlueprintCreatorPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Settings\AssetManagers\Familiar\CustomFamiliarCreatorPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Settings\AssetManagers\Item\CustomItemCreatorPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Settings\AssetManagers\SubFeatures\CustomQuipCreatorPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Settings\AssetManagers\SubFeatures\CustomSpellCreatorPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Settings\AssetManagers\SubFeatures\CustomTechniqueCreatorPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Settings\AssetManagers\Background\Godrick_CustomBackgroundCreator.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Settings\AssetManagers\Hinderance\Godrick_CustomHinderanceCreator.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Settings\AssetManagers\Kin\Godrick_CustomRaceCreator.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\Godrick_LiveGame\BestowItemPage.xaml">
@@ -146,16 +245,43 @@
 	  <MauiXaml Update="Views\Godrick_Training_Popup.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\ItemAssetManagerPage.xaml">
+	  <MauiXaml Update="Views\Settings\AssetManagers\Hinderance\HinderanceAssetManagerPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Settings\AssetManagers\Item\ItemAssetManagerPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\LoadCharacter.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\PackEditPopup.xaml">
+	  <MauiXaml Update="Views\Settings\AssetManagers\PackEditPopup.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\SettingsPage.xaml">
+	  <MauiXaml Update="Views\Settings\AssetManagers\SubFeatures\QuipAssetManagerPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Settings\AssetManagers\Kin\RaceAssetManagerPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Settings\CurrencyPreferenceView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Settings\PreferencesPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Settings\SettingsPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Settings\AssetManagers\SubFeatures\SpellAssetManagerPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Settings\AssetManagers\SubFeatures\TechniqueAssetManagerPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Settings\SkinSettingsView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Settings\ThemeSettingsView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>

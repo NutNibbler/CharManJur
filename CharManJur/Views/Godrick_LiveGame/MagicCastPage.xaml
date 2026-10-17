@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.Godrick_LiveGame.MagicCastPage"
+             Title="Magic Dice"
+             Shell.NavBarIsVisible="False">
+
+    <ContentPage.Resources>
+        <!-- Size and look live on the Button; the host supplies the skin art -->
+        <Style x:Key="StepButton" TargetType="Button">
+            <Setter Property="WidthRequest" Value="34" />
+            <Setter Property="HeightRequest" Value="34" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="TextColor" Value="White" />
+        </Style>
+        <Style x:Key="StepHostStyle" TargetType="skin:SkinHost">
+            <Setter Property="SkinKey" Value="generic_small" />
+            <Setter Property="FallbackColor" Value="{DynamicResource ThemeNeutralButtonColor}" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="*, Auto" Padding="20" RowSpacing="10">
+
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout Spacing="12" MaximumWidthRequest="900">
+
+                <Label Text="{Binding Title}"
+                       FontSize="24"
+                       FontAttributes="Bold"
+                       TextColor="{DynamicResource ThemeDetailBorderColor1}"
+                       HorizontalOptions="Center" />
+                <Label Text="{Binding Subtitle}"
+                       FontSize="13"
+                       TextColor="Gray"
+                       HorizontalOptions="Center" />
+                <Label Text="{Binding ResolvedDescription}"
+                       FontSize="13"
+                       TextColor="Gray"
+                       LineBreakMode="WordWrap"
+                       IsVisible="{Binding HasDescription}" />
+                <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}" />
+
+                <!-- Techniques (locked once the dice are rolled) -->
+                <VerticalStackLayout Spacing="6"
+                                     IsVisible="{Binding HasTechniques}"
+                                     IsEnabled="{Binding NotRolled}">
+                    <Label Text="{Binding TechniqueHeader}"
+                           FontSize="12"
+                           FontAttributes="Bold"
+                           TextColor="{DynamicResource ThemeWarningButtonColor}"
+                           LineBreakMode="WordWrap" />
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding TechniqueRows}" Spacing="4">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate>
+                                <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                        StrokeThickness="0.5"
+                                        StrokeShape="RoundRectangle 4"
+                                        Padding="6">
+                                    <Grid ColumnDefinitions="Auto, *" ColumnSpacing="8">
+                                        <CheckBox Grid.Column="0"
+                                                  IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                  IsEnabled="{Binding CanToggle}"
+                                                  VerticalOptions="Start"
+                                                  Color="{DynamicResource ThemeDetailBorderColor1}" />
+                                        <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                            <Label Text="{Binding Name}" FontSize="14" FontAttributes="Bold" />
+                                            <Label Text="{Binding Description}"
+                                                   FontSize="11"
+                                                   TextColor="Gray"
+                                                   LineBreakMode="WordWrap"
+                                                   IsVisible="{Binding HasDescription}" />
+                                        </VerticalStackLayout>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+
+                <!-- Name for a combined technique (only when sculpting a cantrip) -->
+                <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 6"
+                        BackgroundColor="{DynamicResource ThemePanelBackgroundColor}"
+                        IsVisible="{Binding IsTechniqueMode}"
+                        IsEnabled="{Binding NotRolled}">
+                    <Entry Text="{Binding CombinedName}"
+                           Placeholder="{Binding CombinedNamePlaceholder}"
+                           PlaceholderColor="Gray"
+                           BackgroundColor="Transparent" />
+                </Border>
+
+                <!-- How many Magic Dice -->
+                <HorizontalStackLayout Spacing="8" IsEnabled="{Binding NotRolled}">
+                    <Label Text="Magic Dice to invest" FontSize="13" FontAttributes="Bold" VerticalOptions="Center" />
+                    <skin:SkinHost Style="{StaticResource StepHostStyle}">
+                        <Button Text="−" Style="{StaticResource StepButton}" Command="{Binding DiceDownCommand}" />
+                    </skin:SkinHost>
+                    <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 6"
+                            BackgroundColor="{DynamicResource ThemePanelBackgroundColor}"
+                            WidthRequest="70"
+                            HeightRequest="34"
+                            VerticalOptions="Center">
+                        <Entry Text="{Binding DiceCountText}"
+                               Keyboard="Numeric"
+                               BackgroundColor="Transparent"
+                               HorizontalTextAlignment="Center"
+                               VerticalOptions="Center" />
+                    </Border>
+                    <skin:SkinHost Style="{StaticResource StepHostStyle}">
+                        <Button Text="+" Style="{StaticResource StepButton}" Command="{Binding DiceUpCommand}" />
+                    </skin:SkinHost>
+                    <Label Text="{Binding MinDiceText}" FontSize="11" TextColor="Gray" VerticalOptions="Center" />
+                </HorizontalStackLayout>
+                <Label Text="{Binding PoolWarning}"
+                       FontSize="12"
+                       FontAttributes="Bold"
+                       TextColor="{DynamicResource ThemeDangerButtonColor}"
+                       LineBreakMode="WordWrap"
+                       IsVisible="{Binding PoolTooSmall}" />
+
+                <!-- Roll: the app rolls, or the player types what they rolled -->
+                <VerticalStackLayout Spacing="8" IsVisible="{Binding NotRolled}">
+                    <HorizontalStackLayout Spacing="8">
+                        <skin:SkinHost SkinKey="neutral" FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                            <skin:SkinHost.Triggers>
+                                <DataTrigger TargetType="skin:SkinHost" Binding="{Binding IsAppRolls}" Value="True">
+                                    <Setter Property="SkinKey" Value="primary" />
+                                    <Setter Property="FallbackColor" Value="{DynamicResource ThemePrimaryButtonColor}" />
+                                </DataTrigger>
+                            </skin:SkinHost.Triggers>
+                            <Button Text="🎲 App rolls"
+                                    TextColor="White"
+                                    CornerRadius="6"
+                                    WidthRequest="130"
+                                    HeightRequest="32"
+                                    Padding="14,0"
+                                    FontSize="12"
+                                    Command="{Binding SetAppRollsCommand}" />
+                        </skin:SkinHost>
+                        <skin:SkinHost SkinKey="neutral" FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                            <skin:SkinHost.Triggers>
+                                <DataTrigger TargetType="skin:SkinHost" Binding="{Binding IsManual}" Value="True">
+                                    <Setter Property="SkinKey" Value="primary" />
+                                    <Setter Property="FallbackColor" Value="{DynamicResource ThemePrimaryButtonColor}" />
+                                </DataTrigger>
+                            </skin:SkinHost.Triggers>
+                            <Button Text="✍ I rolled"
+                                    TextColor="White"
+                                    CornerRadius="6"
+                                    WidthRequest="130"
+                                    HeightRequest="32"
+                                    Padding="14,0"
+                                    FontSize="12"
+                                    Command="{Binding SetManualCommand}" />
+                        </skin:SkinHost>
+                    </HorizontalStackLayout>
+
+                    <skin:SkinHost SkinKey="create"
+                                   FallbackColor="{DynamicResource ThemeCreateButtonColor}"
+                                   HorizontalOptions="Start"
+                                   IsVisible="{Binding IsAppRolls}">
+                        <Button Text="🎲 Roll the dice"
+                                TextColor="White"
+                                CornerRadius="8"
+                                WidthRequest="200"
+                                HeightRequest="42"
+                                Padding="14,0"
+                                FontSize="14"
+                                IsVisible="{Binding IsAppRolls}"
+                                Command="{Binding RollCommand}" />
+                    </skin:SkinHost>
+
+                    <VerticalStackLayout Spacing="6" IsVisible="{Binding IsManual}">
+                        <Label Text="Enter the dice you rolled, separated by spaces (e.g. 4 3 2):"
+                               FontSize="11"
+                               TextColor="Gray" />
+                        <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 6"
+                                BackgroundColor="{DynamicResource ThemePanelBackgroundColor}"
+                                HeightRequest="38">
+                            <Entry Text="{Binding ManualText}"
+                                   Placeholder="4 3 2"
+                                   PlaceholderColor="Gray"
+                                   BackgroundColor="Transparent"
+                                   VerticalOptions="Center" />
+                        </Border>
+                        <skin:SkinHost SkinKey="primary"
+                                       FallbackColor="{DynamicResource ThemePrimaryButtonColor}"
+                                       HorizontalOptions="Start">
+                            <Button Text="Use these results"
+                                    TextColor="White"
+                                    CornerRadius="8"
+                                    WidthRequest="200"
+                                    HeightRequest="40"
+                                    Padding="14,0"
+                                    FontSize="13"
+                                    Command="{Binding UseEnteredCommand}" />
+                        </skin:SkinHost>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+
+                <!-- The roll -->
+                <VerticalStackLayout Spacing="8" IsVisible="{Binding HasRolled}">
+                    <Label Text="Your dice" FontSize="12" FontAttributes="Bold" TextColor="{DynamicResource ThemeDetailBorderColor1}" />
+
+                    <FlexLayout BindableLayout.ItemsSource="{Binding Dice}" Wrap="Wrap" Direction="Row">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate>
+                                <Border WidthRequest="56"
+                                        HeightRequest="56"
+                                        StrokeShape="RoundRectangle 8"
+                                        Margin="0,0,8,8"
+                                        Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                        StrokeThickness="1"
+                                        BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
+                                    <Border.Triggers>
+                                        <DataTrigger TargetType="Border" Binding="{Binding IsHigh}" Value="True">
+                                            <Setter Property="Stroke" Value="{DynamicResource ThemeWarningButtonColor}" />
+                                            <Setter Property="StrokeThickness" Value="2" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Border" Binding="{Binding IsTechnique}" Value="True">
+                                            <Setter Property="Stroke" Value="{DynamicResource ThemeDetailBorderColor1}" />
+                                            <Setter Property="StrokeThickness" Value="4" />
+                                        </DataTrigger>
+                                    </Border.Triggers>
+                                    <VerticalStackLayout VerticalOptions="Center" Spacing="0">
+                                        <Label Text="{Binding Value}"
+                                               FontSize="22"
+                                               FontAttributes="Bold"
+                                               HorizontalOptions="Center" />
+                                        <Label Text="🌀"
+                                               FontSize="10"
+                                               HorizontalOptions="Center"
+                                               IsVisible="{Binding IsTechnique}" />
+                                    </VerticalStackLayout>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.ToggleDieCommand}"
+                                            CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </FlexLayout>
+
+                    <Label Text="Orange border: shows 4-6 (Fatigue).   Thick border with 🌀: powers a technique."
+                           FontSize="10"
+                           TextColor="Gray" />
+                    <Label Text="{Binding MarkingText}"
+                           FontSize="12"
+                           TextColor="{DynamicResource ThemeWarningButtonColor}"
+                           LineBreakMode="WordWrap"
+                           IsVisible="{Binding HasMarkingText}" />
+
+                    <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 6"
+                            BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}"
+                            Padding="10">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="{Binding DiceLine}" FontSize="16" FontAttributes="Bold" />
+                            <Label Text="{Binding FatigueLine}" FontSize="13" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Border Stroke="{DynamicResource ThemeDangerButtonColor}"
+                            StrokeThickness="2"
+                            StrokeShape="RoundRectangle 6"
+                            BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}"
+                            Padding="10"
+                            IsVisible="{Binding HasSeries}">
+                        <Label Text="{Binding SeriesLine}"
+                               FontSize="13"
+                               FontAttributes="Bold"
+                               TextColor="{DynamicResource ThemeDangerButtonColor}"
+                               LineBreakMode="WordWrap" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <Label Text="{Binding Error}"
+                       FontSize="12"
+                       FontAttributes="Bold"
+                       TextColor="{DynamicResource ThemeDangerButtonColor}"
+                       LineBreakMode="WordWrap"
+                       IsVisible="{Binding HasError}" />
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Footer -->
+        <HorizontalStackLayout Grid.Row="1" Spacing="10" HorizontalOptions="Center">
+            <skin:SkinHost SkinKey="neutral" FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                <Button Text="Cancel"
+                        TextColor="White"
+                        CornerRadius="8"
+                        WidthRequest="140"
+                        HeightRequest="45"
+                        Padding="14,0"
+                        Command="{Binding CancelCommand}" />
+            </skin:SkinHost>
+
+            <skin:SkinHost SkinKey="warning"
+                           FallbackColor="{DynamicResource ThemeWarningButtonColor}"
+                           IsVisible="{Binding HasSeries}">
+                <Button Text="⚠ Ignore Damage (Ask your GM)"
+                        TextColor="White"
+                        CornerRadius="8"
+                        WidthRequest="260"
+                        HeightRequest="45"
+                        Padding="14,0"
+                        FontSize="12"
+                        IsVisible="{Binding HasSeries}"
+                        IsEnabled="{Binding CanApply}"
+                        Command="{Binding IgnoreDamageCommand}" />
+            </skin:SkinHost>
+
+            <skin:SkinHost SkinKey="confirm"
+                           FallbackColor="{DynamicResource ThemeConfirmButtonColor}"
+                           IsVisible="{Binding HasRolled}">
+                <Button Text="{Binding ApplyText}"
+                        TextColor="White"
+                        CornerRadius="8"
+                        WidthRequest="160"
+                        HeightRequest="45"
+                        Padding="14,0"
+                        FontAttributes="Bold"
+                        IsVisible="{Binding HasRolled}"
+                        IsEnabled="{Binding CanApply}"
+                        Command="{Binding ApplyCommand}" />
+            </skin:SkinHost>
+        </HorizontalStackLayout>
+    </Grid>
+</ContentPage>

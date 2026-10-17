@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
              x:Class="CharManJur.Views.Godrick_LiveGame.ItemFlyout"
              Shell.NavBarIsVisible="False"
              BackgroundColor="Transparent">
@@ -18,9 +19,9 @@
         <!-- Flyout Content -->
         <Border x:Name="FlyoutBorder"
                 Grid.Row="0" Grid.Column="0"
-                BackgroundColor="#1a1a2e"
+                BackgroundColor="{DynamicResource ThemePanelBackgroundColor}"
                 StrokeThickness="1"
-                Stroke="#3498db"
+                Stroke="{DynamicResource ThemeSectionBorderColor}"
                 StrokeShape="RoundRectangle 8"
                 Padding="10"
                 WidthRequest="240"
@@ -32,92 +33,113 @@
                 <Label Text="{Binding ItemName}"
                        FontSize="15"
                        FontAttributes="Bold"
-                       TextColor="White"
                        HorizontalOptions="Center"
                        Margin="0,0,0,2" />
-                <BoxView HeightRequest="1" Color="#333333" />
+                <BoxView HeightRequest="1" Color="{DynamicResource ThemeDetailBorderColor1}" />
 
                 <!-- Slot Info Display -->
                 <Label Text="{Binding SlotInfoDisplay}"
                        FontSize="11"
-                       TextColor="#f39c12"
+                       TextColor="{DynamicResource ThemeWarningButtonColor}"
                        HorizontalOptions="Center"
                        IsVisible="{Binding HasSlotInfo}" />
 
                 <!-- Equip to Hand -->
-                <Button Text="🖐️ Equip to Hand"
-                        BackgroundColor="{Binding CanEquipHand, Converter={StaticResource EnabledButtonColorConverter}}"
-                        TextColor="White"
-                        CornerRadius="6"
-                        HeightRequest="30"
-                        FontSize="11"
-                        IsEnabled="{Binding CanEquipHand}"
-                        Command="{Binding EquipHandCommand}" />
+                <skin:SkinHost SkinKey="generic"
+                               FallbackColor="{Binding CanEquipHand, Converter={StaticResource EnabledButtonColorConverter}}">
+                    <Button Text="🖐️ Equip to Hand"
+                            TextColor="White"
+                            CornerRadius="6"
+                            HeightRequest="30"
+                            Padding="14,0"
+                            FontSize="11"
+                            IsEnabled="{Binding CanEquipHand}"
+                            Command="{Binding EquipHandCommand}" />
+                </skin:SkinHost>
 
                 <!-- Equip to Belt -->
-                <Button Text="🪢 Equip to Belt"
-                        BackgroundColor="{Binding CanEquipBelt, Converter={StaticResource EnabledButtonColorConverter}}"
-                        TextColor="White"
-                        CornerRadius="6"
-                        HeightRequest="30"
-                        FontSize="11"
-                        IsEnabled="{Binding CanEquipBelt}"
-                        Command="{Binding EquipBeltCommand}" />
+                <skin:SkinHost SkinKey="generic"
+                               FallbackColor="{Binding CanEquipBelt, Converter={StaticResource EnabledButtonColorConverter}}">
+                    <Button Text="🪢 Equip to Belt"
+                            TextColor="White"
+                            CornerRadius="6"
+                            HeightRequest="30"
+                            Padding="14,0"
+                            FontSize="11"
+                            IsEnabled="{Binding CanEquipBelt}"
+                            Command="{Binding EquipBeltCommand}" />
+                </skin:SkinHost>
 
                 <!-- Equip as Armor -->
-                <Button Text="🛡️ Equip as Armor"
-                        BackgroundColor="{Binding CanEquipArmor, Converter={StaticResource EnabledButtonColorConverter}}"
-                        TextColor="White"
-                        CornerRadius="6"
-                        HeightRequest="30"
-                        FontSize="11"
-                        IsEnabled="{Binding CanEquipArmor}"
-                        Command="{Binding EquipArmorCommand}" />
+                <skin:SkinHost SkinKey="generic"
+                               FallbackColor="{Binding CanEquipArmor, Converter={StaticResource EnabledButtonColorConverter}}">
+                    <Button Text="🛡️ Equip as Armor"
+                            TextColor="White"
+                            CornerRadius="6"
+                            HeightRequest="30"
+                            Padding="14,0"
+                            FontSize="11"
+                            IsEnabled="{Binding CanEquipArmor}"
+                            Command="{Binding EquipArmorCommand}" />
+                </skin:SkinHost>
 
                 <!-- Unequip -->
-                <Button Text="↩️ Unequip"
-                        BackgroundColor="#e67e22"
-                        TextColor="White"
-                        CornerRadius="6"
-                        HeightRequest="30"
-                        FontSize="11"
-                        IsVisible="{Binding IsEquipped}"
-                        Command="{Binding UnequipCommand}" />
+                <skin:SkinHost SkinKey="warning"
+                               FallbackColor="{DynamicResource ThemeWarningButtonColor}"
+                               IsVisible="{Binding IsEquipped}">
+                    <Button Text="↩️ Unequip"
+                            TextColor="White"
+                            CornerRadius="6"
+                            HeightRequest="30"
+                            Padding="14,0"
+                            FontSize="11"
+                            IsVisible="{Binding IsEquipped}"
+                            Command="{Binding UnequipCommand}" />
+                </skin:SkinHost>
 
                 <!-- Divider -->
                 <BoxView HeightRequest="1"
-                         Color="#333333"
+                         Color="{DynamicResource ThemeDetailBorderColor1}"
                          IsVisible="{Binding IsEquipped}" />
 
                 <!-- Drop -->
-                <Button Text="🗑️ Drop"
-                        BackgroundColor="#e74c3c"
-                        TextColor="White"
-                        CornerRadius="6"
-                        HeightRequest="30"
-                        FontSize="11"
-                        Command="{Binding DropCommand}" />
+                <skin:SkinHost SkinKey="danger"
+                               FallbackColor="{DynamicResource ThemeDangerButtonColor}">
+                    <Button Text="🗑️ Drop"
+                            TextColor="White"
+                            CornerRadius="6"
+                            HeightRequest="30"
+                            Padding="14,0"
+                            FontSize="11"
+                            Command="{Binding DropCommand}" />
+                </skin:SkinHost>
 
                 <!-- Transfer -->
-                <Button Text="📤 Transfer"
-                        BackgroundColor="#9b59b6"
-                        TextColor="White"
-                        CornerRadius="6"
-                        HeightRequest="30"
-                        FontSize="11"
-                        Command="{Binding TransferCommand}" />
+                <skin:SkinHost SkinKey="summary"
+                               FallbackColor="{DynamicResource ThemeSummaryButtonColor}">
+                    <Button Text="📤 Transfer"
+                            TextColor="White"
+                            CornerRadius="6"
+                            HeightRequest="30"
+                            Padding="14,0"
+                            FontSize="11"
+                            Command="{Binding TransferCommand}" />
+                </skin:SkinHost>
 
                 <!-- Divider -->
-                <BoxView HeightRequest="1" Color="#333333" />
+                <BoxView HeightRequest="1" Color="{DynamicResource ThemeDetailBorderColor1}" />
 
                 <!-- Cancel -->
-                <Button Text="Cancel"
-                        BackgroundColor="#444444"
-                        TextColor="White"
-                        CornerRadius="6"
-                        HeightRequest="30"
-                        FontSize="11"
-                        Command="{Binding CancelCommand}" />
+                <skin:SkinHost SkinKey="neutral"
+                               FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                    <Button Text="Cancel"
+                            TextColor="White"
+                            CornerRadius="6"
+                            HeightRequest="30"
+                            Padding="14,0"
+                            FontSize="11"
+                            Command="{Binding CancelCommand}" />
+                </skin:SkinHost>
 
             </VerticalStackLayout>
         </Border>

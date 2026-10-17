@@ -10,13 +10,33 @@ public partial class CharacterHomePage : ContentPage
 {
     private readonly CharacterHomeViewModel _viewModel;
     private bool _isReturningFromFlyout = false;
-    private List<Border> _handSlotBorders = new();
 
     public CharacterHomePage(CharacterHomeViewModel viewModel)
     {
         InitializeComponent();
         _viewModel = viewModel;
         BindingContext = _viewModel;
+
+        _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+        InitializeDragAndDrop();
+        InitializePanels();
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(CharacterHomeViewModel.LimbSetDisplays))
+        {
+            GenerateLimbSetDisplay();
+        }
+        else if (e.PropertyName == nameof(CharacterHomeViewModel.BeltSlotDisplays))
+        {
+            GenerateBeltSlotDisplay();
+        }
+        else if (e.PropertyName == nameof(CharacterHomeViewModel.SelectedInventoryItem)
+                 && _viewModel.SelectedInventoryItem != null)
+        {
+            _selectionChangedAt = Environment.TickCount64;   // used by the tile tap toggle
+        }
     }
 
     protected override async void OnAppearing()
@@ -30,9 +50,25 @@ public partial class CharacterHomePage : ContentPage
         }
 
         await _viewModel.LoadCharacterDataAsync();
+        ResetPanels();
         _viewModel.UpdateLimbSetDisplays();
         GenerateLimbSetDisplay();
+        GenerateBeltSlotDisplay();
     }
+
+    private static Color GetThemeColor(string key, Color fallback)
+    {
+        if (Application.Current?.Resources.TryGetValue(key, out var value) == true && value is Color color)
+        {
+            return color;
+        }
+
+        return fallback;
+    }
+
+    // Occupied / "good" slots and warning accents follow the active theme.
+    private static Color OccupiedColor => GetThemeColor("ThemeConfirmButtonColor", Colors.LightGreen);
+    private static Color WarningColor => GetThemeColor("ThemeWarningButtonColor", Colors.Orange);
 
     private void GenerateLimbSetDisplay()
     {
@@ -68,42 +104,65 @@ public partial class CharacterHomePage : ContentPage
             // Create a border for each limb set
             var setBorder = new Border
             {
-                Stroke = limbSet.IsOccupiedByTwoHandedItem ? Colors.Orange : Colors.DeepSkyBlue,
+                Stroke = limbSet.IsOccupiedByTwoHandedItem ? WarningColor : GetThemeColor("ThemeSectionBorderColor", Colors.DeepSkyBlue),
                 StrokeThickness = limbSet.IsOccupiedByTwoHandedItem ? 2 : 1,
                 StrokeShape = new RoundRectangle { CornerRadius = 6 },
                 Padding = new Thickness(8, 5, 8, 5),
                 BackgroundColor = limbSet.IsOccupiedByTwoHandedItem
-                    ? Color.FromRgba(255, 165, 0, 0.15)
-                    : Color.FromRgba(52, 152, 219, 0.1)
+                    ? WarningColor.WithAlpha(0.15f)
+                    : GetThemeColor("ThemeSectionBorderColor", Colors.DeepSkyBlue).WithAlpha(0.1f)
             };
 
             var setLayout = new VerticalStackLayout { Spacing = 3 };
 
-            // Header with icon and name
+            // Header with icon, name, and (when applicable) a "2H EQUIPPED" chip
             var header = new Grid
             {
                 ColumnDefinitions =
                 {
                     new ColumnDefinition { Width = GridLength.Auto },
-                    new ColumnDefinition { Width = GridLength.Star }
+                    new ColumnDefinition { Width = GridLength.Star },
+                    new ColumnDefinition { Width = GridLength.Auto }
                 }
             };
 
             var iconLabel = new Label { Text = limbSet.Icon, FontSize = 14 };
             Grid.SetColumn(iconLabel, 0);
 
+            // No explicit TextColor: follows the body-text color
             var nameLabel = new Label
             {
                 Text = limbSet.DisplayName,
                 FontSize = 12,
                 FontAttributes = FontAttributes.Bold,
-                TextColor = Colors.White,
                 Margin = new Thickness(5, 0, 0, 0)
             };
             Grid.SetColumn(nameLabel, 1);
 
             header.Children.Add(iconLabel);
             header.Children.Add(nameLabel);
+
+            if (limbSet.IsOccupiedByTwoHandedItem)
+            {
+                var twoHandedChip = new Border
+                {
+                    Stroke = WarningColor,
+                    StrokeThickness = 1,
+                    StrokeShape = new RoundRectangle { CornerRadius = 8 },
+                    Padding = new Thickness(6, 1, 6, 1),
+                    BackgroundColor = WarningColor.WithAlpha(0.2f),
+                    Content = new Label
+                    {
+                        Text = "2H EQUIPPED",
+                        FontSize = 8,
+                        FontAttributes = FontAttributes.Bold,
+                        TextColor = WarningColor
+                    }
+                };
+                Grid.SetColumn(twoHandedChip, 2);
+                header.Children.Add(twoHandedChip);
+            }
+
             setLayout.Children.Add(header);
 
             // Slots display
@@ -117,82 +176,135 @@ public partial class CharacterHomePage : ContentPage
                 ColumnSpacing = 5
             };
 
-            // Add each slot in this limb set
-            for (int i = 0; i < limbSet.Slots.Count; i++)
+            // A two-handed item occupying the whole set renders as ONE merged cell
+            // spanning every column, instead of two separate cells.
+            bool isMerged = limbSet.IsOccupiedByTwoHandedItem
+                && limbSet.Slots.Count > 1
+                && limbSet.Slots[0].IsOccupied;
+
+            if (isMerged)
             {
-                var slot = limbSet.Slots[i];
-                var slotBorder = new Border
+                var firstSlot = limbSet.Slots[0];
+                var lastSlot = limbSet.Slots[limbSet.Slots.Count - 1];
+
+                var mergedBorder = new Border
                 {
-                    Stroke = slot.IsOccupied ? Colors.LightGreen : Colors.Gray,
-                    StrokeThickness = slot.IsOccupied ? 2 : 1,
+                    Stroke = OccupiedColor,
+                    StrokeThickness = 2,
                     StrokeShape = new RoundRectangle { CornerRadius = 4 },
                     Padding = new Thickness(4, 2, 4, 2),
-                    BackgroundColor = slot.IsOccupied
-                        ? Color.FromRgba(46, 204, 113, 0.2)
-                        : Color.FromRgba(128, 128, 128, 0.1)
+                    BackgroundColor = OccupiedColor.WithAlpha(0.3f)
                 };
 
-                // ===== ADD TAP GESTURE FOR CONTEXT MENU =====
-                if (slot.IsOccupied)
+                var tapGesture = new TapGestureRecognizer();
+                var slotRef = firstSlot;
+                tapGesture.Tapped += (s, e) =>
                 {
-                    var tapGesture = new TapGestureRecognizer();
-                    var slotRef = slot;
-                    tapGesture.Tapped += (s, e) =>
-                    {
-                        // Get the position from the tapped element
-                        var element = s as VisualElement;
-                        var position = new Point(
-                            element?.X ?? 100,
-                            element?.Y ?? 100);
-                        OnSlotTapped(slotRef, position);
-                    };
-                    slotBorder.GestureRecognizers.Add(tapGesture);
-                    slotBorder.BackgroundColor = Color.FromRgba(46, 204, 113, 0.3);
-                }
-
-                var slotLayout = new VerticalStackLayout
+                    var element = s as VisualElement;
+                    var position = new Point(
+                        element?.X ?? 100,
+                        element?.Y ?? 100);
+                    OnSlotTapped(slotRef, position);
+                };
+                mergedBorder.GestureRecognizers.Add(tapGesture);
+                AttachHandSlotDragDrop(mergedBorder, firstSlot);
+                var mergedLayout = new VerticalStackLayout
                 {
                     Spacing = 1,
                     HorizontalOptions = LayoutOptions.Center
                 };
 
-                var slotNameLabel = new Label
+                mergedLayout.Children.Add(new Label
                 {
-                    Text = slot.SlotName,
+                    Text = $"{firstSlot.SlotName} + {lastSlot.SlotName}",
                     FontSize = 8,
                     TextColor = Colors.Gray,
                     HorizontalOptions = LayoutOptions.Center
-                };
+                });
 
-                var slotStatusLabel = new Label
+                mergedLayout.Children.Add(new Label
                 {
-                    Text = slot.IsOccupied ? slot.OccupiedByItemName : "Empty",
+                    Text = firstSlot.OccupiedByItemName,
                     FontSize = 10,
-                    TextColor = slot.IsOccupied ? Colors.LightGreen : Colors.Gray,
+                    TextColor = OccupiedColor,
                     HorizontalOptions = LayoutOptions.Center,
-                    FontAttributes = slot.IsOccupied ? FontAttributes.Bold : FontAttributes.None
-                };
+                    FontAttributes = FontAttributes.Bold,
+                    LineBreakMode = LineBreakMode.TailTruncation
+                });
 
-                // Show two-handed indicator
-                if (slot.IsPartOfTwoHandedItem)
+                mergedBorder.Content = mergedLayout;
+
+                Grid.SetColumn(mergedBorder, 0);
+                Grid.SetColumnSpan(mergedBorder, slotsGrid.ColumnDefinitions.Count);
+                slotsGrid.Children.Add(mergedBorder);
+            }
+            else
+            {
+                // Add each slot in this limb set
+                for (int i = 0; i < limbSet.Slots.Count; i++)
                 {
-                    var twoHandLabel = new Label
+                    var slot = limbSet.Slots[i];
+                    var slotBorder = new Border
                     {
-                        Text = "⚔️ 2H",
-                        FontSize = 8,
-                        TextColor = Colors.Orange,
-                        HorizontalOptions = LayoutOptions.Center,
-                        FontAttributes = FontAttributes.Bold
+                        Stroke = slot.IsOccupied ? OccupiedColor : GetThemeColor("ThemeDetailBorderColor2", Colors.Gray),
+                        StrokeThickness = slot.IsOccupied ? 2 : 1,
+                        StrokeShape = new RoundRectangle { CornerRadius = 4 },
+                        Padding = new Thickness(4, 2, 4, 2),
+                        BackgroundColor = slot.IsOccupied
+                            ? OccupiedColor.WithAlpha(0.2f)
+                            : GetThemeColor("ThemeDetailBorderColor2", Colors.Gray).WithAlpha(0.1f)
                     };
-                    slotLayout.Children.Add(twoHandLabel);
+
+                    // ===== ADD TAP GESTURE FOR CONTEXT MENU =====
+                    if (slot.IsOccupied)
+                    {
+                        var tapGesture = new TapGestureRecognizer();
+                        var slotRef = slot;
+                        tapGesture.Tapped += (s, e) =>
+                        {
+                            // Get the position from the tapped element
+                            var element = s as VisualElement;
+                            var position = new Point(
+                                element?.X ?? 100,
+                                element?.Y ?? 100);
+                            OnSlotTapped(slotRef, position);
+                        };
+                        slotBorder.GestureRecognizers.Add(tapGesture);
+                        slotBorder.BackgroundColor = OccupiedColor.WithAlpha(0.3f);
+                    }
+
+                    AttachHandSlotDragDrop(slotBorder, slot);
+
+                    var slotLayout = new VerticalStackLayout
+                    {
+                        Spacing = 1,
+                        HorizontalOptions = LayoutOptions.Center
+                    };
+
+                    var slotNameLabel = new Label
+                    {
+                        Text = slot.SlotName,
+                        FontSize = 8,
+                        TextColor = Colors.Gray,
+                        HorizontalOptions = LayoutOptions.Center
+                    };
+
+                    var slotStatusLabel = new Label
+                    {
+                        Text = slot.IsOccupied ? slot.OccupiedByItemName : "Empty",
+                        FontSize = 10,
+                        TextColor = slot.IsOccupied ? OccupiedColor : Colors.Gray,
+                        HorizontalOptions = LayoutOptions.Center,
+                        FontAttributes = slot.IsOccupied ? FontAttributes.Bold : FontAttributes.None
+                    };
+
+                    slotLayout.Children.Add(slotNameLabel);
+                    slotLayout.Children.Add(slotStatusLabel);
+                    slotBorder.Content = slotLayout;
+
+                    Grid.SetColumn(slotBorder, i);
+                    slotsGrid.Children.Add(slotBorder);
                 }
-
-                slotLayout.Children.Add(slotNameLabel);
-                slotLayout.Children.Add(slotStatusLabel);
-                slotBorder.Content = slotLayout;
-
-                Grid.SetColumn(slotBorder, i);
-                slotsGrid.Children.Add(slotBorder);
             }
 
             setLayout.Children.Add(slotsGrid);
@@ -205,7 +317,82 @@ public partial class CharacterHomePage : ContentPage
         }
     }
 
-    // ===== HANDLE SLOT TAP - SHOW CONTEXT MENU =====
+    private void GenerateBeltSlotDisplay()
+    {
+        BeltSlotsGrid.Children.Clear();
+
+        foreach (var slot in _viewModel.BeltSlotDisplays)
+        {
+            var slotBorder = new Border
+            {
+                Stroke = slot.IsOccupied ? OccupiedColor : GetThemeColor("ThemeDetailBorderColor2", Colors.Gray),
+                StrokeThickness = slot.IsOccupied ? 2 : 1,
+                StrokeShape = new RoundRectangle { CornerRadius = 4 },
+                Padding = new Thickness(4, 2, 4, 2),
+                BackgroundColor = slot.IsOccupied
+                    ? OccupiedColor.WithAlpha(0.2f)
+                    : GetThemeColor("ThemeDetailBorderColor2", Colors.Gray).WithAlpha(0.1f)
+            };
+
+            if (slot.IsOccupied)
+            {
+                var tapGesture = new TapGestureRecognizer();
+                int slotNumber = slot.SlotNumber;
+                tapGesture.Tapped += (s, e) => OnBeltSlotTapped(slotNumber);
+                slotBorder.GestureRecognizers.Add(tapGesture);
+                slotBorder.BackgroundColor = OccupiedColor.WithAlpha(0.3f);
+            }
+
+            AttachBeltSlotDragDrop(slotBorder, slot);
+
+            var slotLayout = new VerticalStackLayout { Spacing = 1, HorizontalOptions = LayoutOptions.Center };
+
+            if (slot.IsPartOfBulkyItem)
+            {
+                slotLayout.Children.Add(new Label
+                {
+                    Text = "📦 Bulky",
+                    FontSize = 8,
+                    TextColor = WarningColor,
+                    HorizontalOptions = LayoutOptions.Center,
+                    FontAttributes = FontAttributes.Bold
+                });
+            }
+
+            string slotLabel = slot.SpanSlots > 1
+                ? $"Slots {slot.SlotNumber}-{slot.SlotNumber + slot.SpanSlots - 1}"
+                : $"Slot {slot.SlotNumber}";
+
+            slotLayout.Children.Add(new Label
+            {
+                Text = slotLabel,
+                FontSize = 8,
+                TextColor = Colors.Gray,
+                HorizontalOptions = LayoutOptions.Center
+            });
+
+            slotLayout.Children.Add(new Label
+            {
+                Text = slot.IsOccupied ? slot.OccupiedByItemName : "Empty",
+                FontSize = 10,
+                TextColor = slot.IsOccupied ? OccupiedColor : Colors.Gray,
+                HorizontalOptions = LayoutOptions.Center,
+                FontAttributes = slot.IsOccupied ? FontAttributes.Bold : FontAttributes.None,
+                LineBreakMode = LineBreakMode.TailTruncation
+            });
+
+            slotBorder.Content = slotLayout;
+
+            Grid.SetColumn(slotBorder, slot.SlotNumber - 1);
+            if (slot.SpanSlots > 1)
+            {
+                Grid.SetColumnSpan(slotBorder, slot.SpanSlots);
+            }
+
+            BeltSlotsGrid.Children.Add(slotBorder);
+        }
+    }
+
     // ===== HANDLE SLOT TAP - SHOW CONTEXT MENU =====
     private async void OnSlotTapped(CharacterHomeViewModel.LimbSlotDisplay slot, Point? position = null)
     {
@@ -241,6 +428,51 @@ public partial class CharacterHomePage : ContentPage
         await Navigation.PushModalAsync(contextMenu);
     }
 
+    private async void OnBeltSlotTapped(int slotNumber)
+    {
+        var item = _viewModel.CharDataService.GetEquippedBeltSlot(slotNumber);
+        if (item == null) return;
+
+        int totalHandSlots = _viewModel.CharDataService.GetTotalLimbSlots();
+
+        var contextMenu = new EquippedItemContextMenu(
+            item,
+            _viewModel.CharDataService,
+            totalHandSlots + slotNumber,
+            $"Belt Slot {slotNumber}",
+            async () =>
+            {
+                await _viewModel.LoadCharacterDataAsync();
+                _viewModel.UpdateLimbSetDisplays();
+                GenerateLimbSetDisplay();
+            },
+            this);
+
+        await Navigation.PushModalAsync(contextMenu);
+    }
+
+    private async void OnArmorTapped(object sender, TappedEventArgs e)
+    {
+        var item = _viewModel.CharDataService.GetEquippedArmor();
+        if (item == null) return;
+
+        var contextMenu = new EquippedItemContextMenu(
+            item,
+            _viewModel.CharDataService,
+            1,
+            "Armor",
+            async () =>
+            {
+                await _viewModel.LoadCharacterDataAsync();
+                _viewModel.UpdateLimbSetDisplays();
+                GenerateLimbSetDisplay();
+                GenerateBeltSlotDisplay();
+            },
+            this);
+
+        await Navigation.PushModalAsync(contextMenu);
+    }
+
     public void SetReturningFromFlyout(bool value)
     {
         _isReturningFromFlyout = value;
@@ -265,7 +497,13 @@ public partial class CharacterHomePage : ContentPage
     // ===== DROP MODE ITEM TAP HANDLER =====
     private async void OnDropItemTapped(object sender, TappedEventArgs e)
     {
-        if (!_viewModel.IsDropModeActive)
+        if (BindingContext is CharacterHomeViewModel selVm
+            && !selVm.IsDropModeActive
+            && (sender as BindableObject)?.BindingContext is InventoryItemDisplay tappedItem)
+        {
+            selVm.SelectedInventoryItem = tappedItem;
+        }
+        if (!_viewModel.IsDropModeActive || _viewModel.IsPackDropped)
         {
             return;
         }
@@ -278,15 +516,8 @@ public partial class CharacterHomePage : ContentPage
                 return;
             }
 
-            bool confirm = await DisplayAlertAsync(
-                "🫳 Drop Item",
-                $"Are you sure you want to drop: '{characterItem.DisplayName}'?",
-                "Yes, Drop",
-                "Cancel");
-
-            if (confirm)
+            if (await ItemDropHelper.DropAsync(characterItem, _viewModel.CharDataService))
             {
-                _viewModel.CharDataService.DropItem(characterItem.Id);
                 await _viewModel.LoadCharacterDataAsync();
                 _viewModel.UpdateLimbSetDisplays();
                 GenerateLimbSetDisplay();

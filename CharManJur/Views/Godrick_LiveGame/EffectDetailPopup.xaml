@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.Godrick_LiveGame.EffectDetailPopup"
+             Title="Effect Details"
+             Shell.NavBarIsVisible="False">
+
+    <VerticalStackLayout Padding="20" Spacing="12" VerticalOptions="Center">
+
+        <Label x:Name="NameLabel" FontSize="22" FontAttributes="Bold" TextColor="{DynamicResource ThemeDetailBorderColor1}" HorizontalOptions="Center" />
+        <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}" />
+
+        <Label x:Name="SummaryLabel" FontSize="14" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+        <Label x:Name="NoteLabel" FontSize="12" TextColor="Gray" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+
+        <Grid ColumnDefinitions="*, *" ColumnSpacing="10" Margin="0,10,0,0">
+            <skin:SkinHost Grid.Column="0" SkinKey="primary" FallbackColor="{DynamicResource ThemePrimaryButtonColor}">
+                <Button Text="✏️ Edit" TextColor="White" CornerRadius="8" HeightRequest="45" Padding="14,0" Clicked="OnEditClicked" />
+            </skin:SkinHost>
+            <skin:SkinHost Grid.Column="1" SkinKey="danger" FallbackColor="{DynamicResource ThemeDangerButtonColor}">
+                <Button Text="🗑️ Clear" TextColor="White" CornerRadius="8" HeightRequest="45" Padding="14,0" Clicked="OnClearClicked" />
+            </skin:SkinHost>
+        </Grid>
+
+        <skin:SkinHost SkinKey="neutral" FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+            <Button Text="Close" TextColor="White" CornerRadius="8" HeightRequest="45" Padding="14,0" Clicked="OnCloseClicked" />
+        </skin:SkinHost>
+
+    </VerticalStackLayout>
+</ContentPage>

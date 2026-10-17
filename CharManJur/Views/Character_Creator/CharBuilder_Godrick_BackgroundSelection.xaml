@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:CharManJur.Converters"
+             xmlns:viewmodels="clr-namespace:CharManJur.ViewModels"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.CharBuilder_Godrick_BackgroundSelection"
+             Shell.NavBarIsVisible="False"
+             Title="Character Build - Background Selection">
+
+    <Grid RowDefinitions="Auto, *, Auto"
+          ColumnDefinitions="0.35*, 0.65*"
+          ColumnSpacing="10"
+          Padding="10">
+
+        <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+               Text="Character Build - Background Selection"
+               FontSize="28"
+               FontAttributes="Bold"
+               HorizontalOptions="Center"
+               Margin="0,10,0,15"
+               TextColor="{DynamicResource ThemeDetailBorderColor1}" />
+
+        <ScrollView Grid.Row="1" Grid.Column="0">
+            <VerticalStackLayout Spacing="5">
+
+                <CollectionView x:Name="BackgroundsCollectionView"
+                        ItemsSource="{Binding Backgrounds}"
+                        SelectedItem="{Binding SelectedBackground}"
+                        SelectionMode="Single">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Padding="5" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="5">
+                                <Border Grid.Column="0" Stroke="{DynamicResource ThemeDetailBorderColor1}" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="12">
+                                    <Label Text="{Binding Name}" FontSize="16" FontAttributes="Bold" VerticalTextAlignment="Center"/>
+                                </Border>
+                                <!-- Edit Button - Only for custom backgrounds -->
+                                <skin:SkinHost Grid.Column="1" SkinKey="generic_small"
+                                    FallbackColor="{DynamicResource ThemeDetailBorderColor1}">
+                                    <Button Text="✏️"
+                                        TextColor="White"
+                                        CornerRadius="15"
+                                        FontSize="12"
+                                        WidthRequest="35" HeightRequest="35" Padding="0"
+                                        IsVisible="{Binding Id, Converter={StaticResource IsCustomBackgroundConverter}}"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditCustomBackgroundCommand}"
+                                        CommandParameter="{Binding}"/>
+                                </skin:SkinHost>
+                                <skin:SkinHost Grid.Column="2" SkinKey="generic_small"
+                                    FallbackColor="{DynamicResource ThemeDangerButtonColor}">
+                                    <Button Text="🗑️"
+                                        TextColor="White"
+                                        CornerRadius="15"
+                                        FontSize="12"
+                                        WidthRequest="35" HeightRequest="35" Padding="0"
+                                        IsVisible="{Binding Id, Converter={StaticResource IsCustomBackgroundConverter}}"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteCustomBackgroundCommand}"
+                                        CommandParameter="{Binding}"/>
+                                </skin:SkinHost>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <ScrollView Grid.Row="1" Grid.Column="1">
+            <VerticalStackLayout Spacing="10" Padding="5">
+
+                <Label Text="{Binding SelectedBackgroundName}"
+                       FontSize="24"
+                       FontAttributes="Bold"
+                       TextColor="{DynamicResource ThemeDetailBorderColor1}" />
+
+                <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}" />
+
+                <Label Text="{Binding SelectedBackgroundDescription}"
+                       FontSize="14"
+                       LineBreakMode="WordWrap" />
+
+                <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}" />
+
+                <VerticalStackLayout IsVisible="{Binding HasSelectedBackground}">
+                    <Label Text="Stat Bonuses"
+                           FontAttributes="Bold"
+                           FontSize="16"
+                           TextColor="{DynamicResource ThemeDetailBorderColor1}" />
+
+                    <Grid ColumnDefinitions="*, *" RowDefinitions="Auto,Auto" ColumnSpacing="10">
+                        <Label Grid.Column="0" Grid.Row="0" Text="{Binding SelectedBackgroundVigorBonus}" FontSize="14" />
+                        <Label Grid.Column="1" Grid.Row="0" Text="{Binding SelectedBackgroundAgilityBonus}" FontSize="14" />
+                        <Label Grid.Column="0" Grid.Row="1" Text="{Binding SelectedBackgroundMindBonus}" FontSize="14" />
+                        <Label Grid.Column="1" Grid.Row="1" Text="{Binding SelectedBackgroundSpiritBonus}" FontSize="14" />
+                    </Grid>
+
+                    <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}" Margin="5"/>
+
+                    <Label Text="Skill Bonuses"
+                           FontAttributes="Bold"
+                           FontSize="14"
+                           TextColor="{DynamicResource ThemeDetailBorderColor1}" />
+                    <Label Text="{Binding SelectedBackgroundSkillBonuses}"
+                           FontSize="13"
+                           LineBreakMode="WordWrap" />
+
+                    <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}" Margin="5"/>
+
+                    <Label Text="Starting Items"
+                           FontAttributes="Bold"
+                           FontSize="14"
+                           TextColor="{DynamicResource ThemeDetailBorderColor1}" />
+                    <CollectionView ItemsSource="{Binding SelectedBackgroundStartingItems}"
+                                    HeightRequest="120">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Border Stroke="{DynamicResource ThemeSectionBorderColor}"
+                                        StrokeThickness="0.5"
+                                        StrokeShape="RoundRectangle 4"
+                                        Padding="5">
+                                    <Grid ColumnDefinitions="*, Auto" ColumnSpacing="10">
+                                        <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                            <Grid ColumnDefinitions="Auto, *, Auto" ColumnSpacing="10">
+                                                <Label Grid.Column="0" 
+                                                       Text="{Binding Quantity}" 
+                                                       FontSize="14" 
+                                                       FontAttributes="Bold" />
+                                                <Label Grid.Column="1" 
+                                                       Text="×" 
+                                                       FontSize="14" 
+                                                       TextColor="Gray" />
+                                                <Label Grid.Column="2" 
+                                                       FontSize="14">
+                                                    <Label.Text>
+                                                        <Binding Path="ItemDetails.Name" 
+                                                                 FallbackValue="Loading..." 
+                                                                 TargetNullValue="Unknown Item" />
+                                                    </Label.Text>
+                                                </Label>
+                                            </Grid>
+                                            <Label FontSize="12" TextColor="Gray">
+                                                <Label.Text>
+                                                    <Binding Path="ItemDetails.BaseDescription" 
+                                                             FallbackValue="" 
+                                                             TargetNullValue="No description" />
+                                                </Label.Text>
+                                            </Label>
+                                            <Label Text="{Binding PlayerNote}"
+                                                   FontSize="12"
+                                                   TextColor="Gray"
+                                                   IsVisible="{Binding PlayerNote, Converter={StaticResource IsNotNullConverter}}" />
+                                        </VerticalStackLayout>
+                                        <skin:SkinHost Grid.Column="1" SkinKey="generic_small"
+                                            FallbackColor="{DynamicResource ThemeDangerButtonColor}">
+                                            <Button Text="✕"
+                                                TextColor="White"
+                                                CornerRadius="10"
+                                                FontSize="12"
+                                                FontAttributes="Bold"
+                                                WidthRequest="30" HeightRequest="30" Padding="0"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:BackgroundSelectionViewModel}}, Path=RemoveStartingItemCommand}"
+                                                CommandParameter="{Binding .}"
+                                                IsVisible="{Binding ItemDetails.IsPlayerCreated}" />
+                                        </skin:SkinHost>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}"/>
+
+                    <!-- Item Choices -->
+                    <Label Text="Item Choices"
+                       FontAttributes="Bold"
+                       FontSize="14"
+                       TextColor="{DynamicResource ThemeDetailBorderColor1}"
+                       IsVisible="{Binding ItemChoiceDisplays.Any}" />
+
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding ItemChoiceDisplays}" Spacing="10" Padding="5">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate>
+                                <skin:SkinPanel StrokeColor="{DynamicResource ThemeDetailBorderColor1}"
+                                                StrokeThickness="1" CornerRadius="8" ContentPadding="10">
+                                    <VerticalStackLayout Spacing="5">
+                                        <Label Text="{Binding Choice.Prompt}" FontAttributes="Bold" FontSize="14" TextColor="{DynamicResource ThemeDetailBorderColor1}" />
+                                        <Label Text="{Binding Choice.Description}" FontSize="12" TextColor="Gray" IsVisible="{Binding Choice.Description}" />
+                                        <!-- ===== REMOVED SelectionMode and SelectedItem ===== -->
+                                        <CollectionView ItemsSource="{Binding Options}" HeightRequest="120" SelectionMode="None">
+                                            <CollectionView.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid Padding="3">
+                                                        <CheckBox IsChecked="{Binding IsSelected}" Color="{DynamicResource ThemeDetailBorderColor1}" />
+                                                        <Label Text="{Binding DisplayName}" FontSize="13" Margin="30,0,0,0" />
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </CollectionView.ItemTemplate>
+                                        </CollectionView>
+                                        <skin:SkinHost SkinKey="create"
+                                            FallbackColor="{DynamicResource ThemeCreateButtonColor}">
+                                            <Button Text="+ Create Custom Item" TextColor="White" CornerRadius="8" FontSize="12"
+                                                HeightRequest="35" Padding="14,0"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:BackgroundSelectionViewModel}}, Path=CreateCustomItemCommand}"
+                                                CommandParameter="{Binding Choice}" />
+                                        </skin:SkinHost>
+                                    </VerticalStackLayout>
+                                </skin:SkinPanel>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+
+                    <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}"/>
+
+                    <!-- Language Choices -->
+                    <Label Text="Languages"
+                           FontAttributes="Bold"
+                           FontSize="14"
+                           TextColor="{DynamicResource ThemeDetailBorderColor1}"
+                           Padding="5"/>
+
+                    <CollectionView ItemsSource="{Binding LanguageDisplays}"
+                                    HeightRequest="200"
+                                    SelectionMode="None">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="3">
+                                    <Border Stroke="{Binding IsSelected, Converter={StaticResource LanguageBorderConverter}}"
+                                            StrokeThickness="{Binding IsSelected, Converter={StaticResource LanguageBorderThicknessConverter}}"
+                                            StrokeShape="RoundRectangle 4"
+                                            Padding="8"
+                                            BackgroundColor="{Binding IsSelected, Converter={StaticResource LanguageBackgroundConverter}}">
+                                        <Grid ColumnDefinitions="Auto, *">
+                                            <CheckBox Grid.Column="0"
+                                                      IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                      Color="{DynamicResource ThemeDetailBorderColor1}"
+                                                      VerticalOptions="Center" />
+                                            <VerticalStackLayout Grid.Column="1" Spacing="2" Margin="10,0,0,0">
+                                                <Label Text="{Binding Name}"
+                                                       FontSize="14"
+                                                       FontAttributes="Bold" />
+                                                <Label Text="{Binding Description}"
+                                                       FontSize="11"
+                                                       TextColor="Gray"
+                                                       LineBreakMode="WordWrap" />
+                                            </VerticalStackLayout>
+                                        </Grid>
+                                    </Border>
+                                    <Grid.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:BackgroundSelectionViewModel}}, Path=ToggleLanguageCommand}"
+                                                              CommandParameter="{Binding .}" />
+                                    </Grid.GestureRecognizers>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}" Margin="5" />
+
+                    <!-- Familiar Choices -->
+                    <Label Text="Familiar Choices"
+                       FontAttributes="Bold"
+                       FontSize="14"
+                       TextColor="{DynamicResource ThemeDetailBorderColor2}"
+                       IsVisible="{Binding HasFamiliarChoices}" />
+
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding FamiliarChoiceDisplays}"
+                         Spacing="10"
+                         IsVisible="{Binding HasFamiliarChoices}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate>
+                                <skin:SkinPanel StrokeColor="{DynamicResource ThemeDetailBorderColor2}"
+                                                StrokeThickness="1" CornerRadius="8" ContentPadding="10">
+                                    <VerticalStackLayout Spacing="5">
+                                        <Label Text="{Binding Choice.Prompt}"
+                                           FontAttributes="Bold"
+                                           FontSize="14"
+                                           TextColor="{DynamicResource ThemeDetailBorderColor2}" />
+                                        <Label Text="{Binding Choice.Description}"
+                                           FontSize="12"
+                                           TextColor="Gray"
+                                           IsVisible="{Binding Choice.Description}" />
+
+                                        <!-- ===== NO CHECKBOX, SINGLE SELECTION BY TAP ===== -->
+                                        <CollectionView ItemsSource="{Binding Options}"
+                                            HeightRequest="120"
+                                            SelectionMode="Single">
+                                            <CollectionView.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid Padding="3">
+                                                        <Border Stroke="{Binding IsSelected, Converter={StaticResource FamiliarBorderConverter}}"
+                                                            StrokeThickness="{Binding IsSelected, Converter={StaticResource FamiliarBorderThicknessConverter}}"
+                                                            StrokeShape="RoundRectangle 4"
+                                                            Padding="8"
+                                                            BackgroundColor="{Binding IsSelected, Converter={StaticResource FamiliarBackgroundConverter}}">
+                                                            <Label Text="{Binding DisplayName}"
+                                                               FontSize="14"
+                                                               FontAttributes="Bold"
+                                                               HorizontalOptions="Center"/>
+                                                        </Border>
+                                                        <Grid.GestureRecognizers>
+                                                            <TapGestureRecognizer Command="{Binding SelectCommand}"
+                                                                CommandParameter="{Binding .}"/>
+                                                        </Grid.GestureRecognizers>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </CollectionView.ItemTemplate>
+                                        </CollectionView>
+
+                                        <skin:SkinHost SkinKey="create"
+                                            FallbackColor="{DynamicResource ThemeCreateButtonColor}">
+                                            <Button Text="+ Create Custom Familiar"
+                                                TextColor="White"
+                                                CornerRadius="8"
+                                                FontSize="12"
+                                                HeightRequest="35" Padding="14,0"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:BackgroundSelectionViewModel}}, Path=CreateCustomFamiliarCommand}"
+                                                CommandParameter="{Binding Choice}" />
+                                        </skin:SkinHost>
+                                    </VerticalStackLayout>
+                                </skin:SkinPanel>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+              ColumnDefinitions="*, *, *, *, *, *"
+              ColumnSpacing="3"
+              Margin="0,10,0,0">
+
+            <!-- Next: neutral until the background can be confirmed, then confirm -->
+            <skin:SkinHost Grid.Column="0" SkinKey="neutral" HeightRequest="45"
+                           FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                <skin:SkinHost.Triggers>
+                    <DataTrigger TargetType="skin:SkinHost" Binding="{Binding CanConfirmBackground}" Value="True">
+                        <Setter Property="SkinKey" Value="confirm" />
+                        <Setter Property="FallbackColor" Value="{DynamicResource ThemeConfirmButtonColor}" />
+                    </DataTrigger>
+                </skin:SkinHost.Triggers>
+                <Button Text="Next: Hinderance Selection"
+                        TextColor="White"
+                        CornerRadius="8"
+                        Command="{Binding ConfirmBackgroundCommand}" />
+            </skin:SkinHost>
+
+            <skin:SkinHost Grid.Column="4" SkinKey="summary" HeightRequest="45"
+                           FallbackColor="{DynamicResource ThemeSummaryButtonColor}">
+                <Button Text="📋 Summary"
+                        TextColor="Black"
+                        CornerRadius="8"
+                        Clicked="OnCharacterSummaryClicked" />
+            </skin:SkinHost>
+
+            <skin:SkinHost Grid.Column="3" SkinKey="warning" HeightRequest="45"
+                           FallbackColor="{DynamicResource ThemeWarningButtonColor}">
+                <Button Text="💾 Save For Later"
+                        TextColor="White"
+                        CornerRadius="8"
+                        FontSize="16"
+                        Clicked="OnSaveForLaterClicked" />
+            </skin:SkinHost>
+
+            <skin:SkinHost Grid.Column="1" SkinKey="neutral" HeightRequest="45"
+                           FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                <Button Text="← Back"
+                        TextColor="White"
+                        FontSize="16"
+                        CornerRadius="8"
+                        Clicked="OnBackClicked" />
+            </skin:SkinHost>
+
+            <skin:SkinHost Grid.Column="2" SkinKey="danger" HeightRequest="45"
+                           FallbackColor="{DynamicResource ThemeDangerButtonColor}">
+                <Button Text="Cancel"
+                        TextColor="White"
+                        FontSize="16"
+                        CornerRadius="8"
+                        Clicked="OnCancelClicked" />
+            </skin:SkinHost>
+
+            <skin:SkinHost Grid.Column="5" SkinKey="create" HeightRequest="45"
+                           FallbackColor="{DynamicResource ThemeCreateButtonColor}">
+                <Button Text="Create Custom Background"
+                        TextColor="White"
+                        CornerRadius="8"
+                        Command="{Binding CreateCustomBackgroundCommand}"/>
+            </skin:SkinHost>
+
+        </Grid>
+
+    </Grid>
+</ContentPage>

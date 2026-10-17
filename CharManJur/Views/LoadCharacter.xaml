@@ -2,47 +2,64 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:converters="clr-namespace:CharManJur.Converters"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
              x:Class="CharManJur.Views.LoadCharacter"
              Shell.NavBarIsVisible="False"
-             Title="Load Character"
-             BackgroundColor="{AppThemeBinding Light=#f0f0f0, Dark=#1a1a1a}">
+             Title="Load Character">
 
-    <VerticalStackLayout Padding="20" Spacing="15">
+    <VerticalStackLayout Padding="20" Spacing="15" MaximumWidthRequest="800">
 
-        <Label Text="📂 Load Character"
+        <Label Text="Load Character"
                FontSize="28"
                FontAttributes="Bold"
-               HorizontalOptions="Center"
-               TextColor="{AppThemeBinding Light=#2c3e50, Dark=#ecf0f1}" />
-        <!-- Add a subtitle to clarify -->
-        <Label Text="Complete characters will open in the Live Game view."
-               FontSize="12"
-               TextColor="#888888"
                HorizontalOptions="Center" />
 
-        <!-- Filter Options -->
+        <!-- Filter Options (selected filter = primary, others = neutral) -->
         <Grid ColumnDefinitions="*, *, *" ColumnSpacing="10">
-            <Button Grid.Column="0"
-                    Text="All Characters"
-                    BackgroundColor="{Binding IsAllFilter, Converter={StaticResource FilterColorConverter}}"
-                    TextColor="White"
-                    CornerRadius="8"
-                    HeightRequest="40"
-                    Command="{Binding SetAllFilterCommand}" />
-            <Button Grid.Column="1"
-                    Text="⏳ Incomplete"
-                    BackgroundColor="{Binding IsIncompleteFilter, Converter={StaticResource FilterColorConverter}}"
-                    TextColor="White"
-                    CornerRadius="8"
-                    HeightRequest="40"
-                    Command="{Binding SetIncompleteFilterCommand}" />
-            <Button Grid.Column="2"
-                    Text="✅ Complete"
-                    BackgroundColor="{Binding IsCompleteFilter, Converter={StaticResource FilterColorConverter}}"
-                    TextColor="White"
-                    CornerRadius="8"
-                    HeightRequest="40"
-                    Command="{Binding SetCompleteFilterCommand}" />
+            <skin:SkinHost Grid.Column="0" SkinKey="neutral"
+                           FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                <skin:SkinHost.Triggers>
+                    <DataTrigger TargetType="skin:SkinHost" Binding="{Binding IsAllFilter}" Value="True">
+                        <Setter Property="SkinKey" Value="primary"/>
+                        <Setter Property="FallbackColor" Value="{DynamicResource ThemePrimaryButtonColor}"/>
+                    </DataTrigger>
+                </skin:SkinHost.Triggers>
+                <Button Text="All Characters"
+                        TextColor="White"
+                        CornerRadius="8"
+                        HeightRequest="40"
+                        Command="{Binding SetAllFilterCommand}" />
+            </skin:SkinHost>
+
+            <skin:SkinHost Grid.Column="1" SkinKey="neutral"
+                           FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                <skin:SkinHost.Triggers>
+                    <DataTrigger TargetType="skin:SkinHost" Binding="{Binding IsIncompleteFilter}" Value="True">
+                        <Setter Property="SkinKey" Value="primary"/>
+                        <Setter Property="FallbackColor" Value="{DynamicResource ThemePrimaryButtonColor}"/>
+                    </DataTrigger>
+                </skin:SkinHost.Triggers>
+                <Button Text="⏳ Incomplete"
+                        TextColor="White"
+                        CornerRadius="8"
+                        HeightRequest="40"
+                        Command="{Binding SetIncompleteFilterCommand}" />
+            </skin:SkinHost>
+
+            <skin:SkinHost Grid.Column="2" SkinKey="neutral"
+                           FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                <skin:SkinHost.Triggers>
+                    <DataTrigger TargetType="skin:SkinHost" Binding="{Binding IsCompleteFilter}" Value="True">
+                        <Setter Property="SkinKey" Value="primary"/>
+                        <Setter Property="FallbackColor" Value="{DynamicResource ThemePrimaryButtonColor}"/>
+                    </DataTrigger>
+                </skin:SkinHost.Triggers>
+                <Button Text="✅ Complete"
+                        TextColor="White"
+                        CornerRadius="8"
+                        HeightRequest="40"
+                        Command="{Binding SetCompleteFilterCommand}" />
+            </skin:SkinHost>
         </Grid>
 
         <!-- Character List -->
@@ -50,39 +67,38 @@
                         ItemsSource="{Binding FilteredCharacters}"
                         SelectionMode="Single"
                         SelectedItem="{Binding SelectedCharacter}"
-                        HeightRequest="400">
+                        MaximumHeightRequest="250">
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <Grid Padding="5">
-                        <Border Stroke="#3498db"
-                                StrokeThickness="1"
-                                StrokeShape="RoundRectangle 8"
-                                Padding="10">
+                        <skin:SkinPanel StrokeColor="{DynamicResource ThemeSectionBorderColor}"
+                                        StrokeThickness="1"
+                                        CornerRadius="8"
+                                        ContentPadding="10">
                             <VerticalStackLayout Spacing="5">
                                 <!-- Character Name -->
-                                <Label Text="{Binding CharacterName}" 
-                                       FontSize="18" 
-                                       FontAttributes="Bold"
-                                       TextColor="White" />
+                                <Label Text="{Binding CharacterName}"
+                                       FontSize="18"
+                                       FontAttributes="Bold" />
 
                                 <!-- Player Name - Fixed -->
-                                <Label Text="{Binding PlayerName, StringFormat='Player: {0}'}" 
-                                       FontSize="14" 
-                                       TextColor="#aaaaaa" />
+                                <Label Text="{Binding PlayerName, StringFormat='Player: {0}'}"
+                                       FontSize="14"
+                                       TextColor="Gray" />
 
                                 <HorizontalStackLayout Spacing="10">
                                     <!-- Complete Status -->
-                                    <Label Text="{Binding IsComplete, Converter={StaticResource CompleteStatusConverter}}" 
-                                           FontSize="12" 
+                                    <Label Text="{Binding IsComplete, Converter={StaticResource CompleteStatusConverter}}"
+                                           FontSize="12"
                                            TextColor="{Binding IsComplete, Converter={StaticResource StatusColorConverter}}" />
 
                                     <!-- Last Saved - Fixed -->
-                                    <Label Text="{Binding LastSaved, StringFormat='Last Saved: {0:MMM dd, yyyy HH:mm}'}" 
-                                           FontSize="12" 
-                                           TextColor="#666666" />
+                                    <Label Text="{Binding LastSaved, StringFormat='Last Saved: {0:MMM dd, yyyy HH:mm}'}"
+                                           FontSize="12"
+                                           TextColor="Gray" />
                                 </HorizontalStackLayout>
                             </VerticalStackLayout>
-                        </Border>
+                        </skin:SkinPanel>
                     </Grid>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
@@ -90,32 +106,36 @@
 
         <!-- Action Buttons -->
         <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
-            <Button Grid.Column="0"
-                    Text="Load Selected"
-                    BackgroundColor="#2ecc71"
-                    TextColor="White"
-                    CornerRadius="8"
-                    HeightRequest="50"
-                    IsEnabled="{Binding HasSelectedCharacter}"
-                    Command="{Binding LoadSelectedCommand}" />
+            <skin:SkinHost Grid.Column="0" SkinKey="confirm"
+                           FallbackColor="{DynamicResource ThemeConfirmButtonColor}">
+                <Button Text="Load Selected"
+                        TextColor="White"
+                        CornerRadius="8"
+                        HeightRequest="50"
+                        IsEnabled="{Binding HasSelectedCharacter}"
+                        Command="{Binding LoadSelectedCommand}" />
+            </skin:SkinHost>
 
-            <Button Grid.Column="1"
-                    Text="Delete Selected"
-                    BackgroundColor="#e74c3c"
-                    TextColor="White"
-                    CornerRadius="8"
-                    HeightRequest="50"
-                    IsEnabled="{Binding HasSelectedCharacter}"
-                    Command="{Binding DeleteSelectedCommand}" />
+            <skin:SkinHost Grid.Column="1" SkinKey="danger"
+                           FallbackColor="{DynamicResource ThemeDangerButtonColor}">
+                <Button Text="Delete Selected"
+                        TextColor="White"
+                        CornerRadius="8"
+                        HeightRequest="50"
+                        IsEnabled="{Binding HasSelectedCharacter}"
+                        Command="{Binding DeleteSelectedCommand}" />
+            </skin:SkinHost>
         </Grid>
 
-        <Button Text="← Back to Menu"
-                BackgroundColor="{AppThemeBinding Light=#95a5a6, Dark=#7f8c8d}"
-                TextColor="White"
-                FontSize="16"
-                CornerRadius="8"
-                HeightRequest="50"
-                Clicked="OnBackClicked"/>
+        <skin:SkinHost SkinKey="neutral"
+                       FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+            <Button Text="← Back to Menu"
+                    TextColor="White"
+                    FontSize="16"
+                    CornerRadius="8"
+                    HeightRequest="50"
+                    Clicked="OnBackClicked"/>
+        </skin:SkinHost>
 
     </VerticalStackLayout>
 </ContentPage>

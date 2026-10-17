@@ -6,7 +6,12 @@
              x:Class="CharManJur.App">
     <Application.Resources>
         <ResourceDictionary>
-            
+
+            <converters:EmptyItemColorConverter x:Key="EmptyItemColorConverter" />
+            <converters:IsGreaterThanOneConverter x:Key="IsGreaterThanOneConverter" />
+            <converters:IsZeroConverter x:Key="IsZeroConverter" />
+            <converters:EnabledButtonColorConverter x:Key="EnabledButtonColorConverter" />
+
             <!--==Drop Item Button Converters==-->
             <converters:DropModeBorderColorConverter x:Key="DropModeBorderColorConverter" />
             <converters:DropModeBorderThicknessConverter x:Key="DropModeBorderThicknessConverter" />

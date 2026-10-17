@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.Godrick_LiveGame.StabilitySavePage"
+             Title="Stability Save"
+             Shell.NavBarIsVisible="False">
+
+    <VerticalStackLayout Padding="20" Spacing="12" VerticalOptions="Center" MaximumWidthRequest="600">
+
+        <Label Text="🐺 Stability Save"
+               FontSize="24"
+               FontAttributes="Bold"
+               TextColor="{DynamicResource ThemeDetailBorderColor1}"
+               HorizontalOptions="Center" />
+        <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}" />
+
+        <Label x:Name="InstructionLabel" FontSize="13" TextColor="Gray" LineBreakMode="WordWrap" />
+
+        <HorizontalStackLayout Spacing="20">
+            <RadioButton x:Name="RollForMeRadio" GroupName="StabilityRoll" Content="Roll for me" IsChecked="True" CheckedChanged="OnRollModeChanged" />
+            <RadioButton x:Name="ManualRadio" GroupName="StabilityRoll" Content="I rolled" CheckedChanged="OnRollModeChanged" />
+        </HorizontalStackLayout>
+
+        <VerticalStackLayout x:Name="RollForMeSection" Spacing="8">
+            <skin:SkinHost SkinKey="create" FallbackColor="{DynamicResource ThemeCreateButtonColor}">
+                <Button Text="🎲 Roll 1d20" TextColor="White" CornerRadius="8" HeightRequest="42" Padding="14,0"
+                        FontSize="14" Clicked="OnRollClicked" />
+            </skin:SkinHost>
+            <Label x:Name="RollResultLabel" FontSize="16" FontAttributes="Bold" HorizontalOptions="Center" />
+        </VerticalStackLayout>
+
+        <VerticalStackLayout x:Name="ManualEntrySection" IsVisible="False">
+            <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 8"
+                    BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
+                <Entry x:Name="RollEntry" Placeholder="Your d20 result (1-20)" PlaceholderColor="Gray"
+                       Keyboard="Numeric" BackgroundColor="Transparent" HorizontalTextAlignment="Center" />
+            </Border>
+        </VerticalStackLayout>
+
+        <Grid ColumnDefinitions="*, *" ColumnSpacing="10" Margin="0,10,0,0">
+            <skin:SkinHost Grid.Column="0" SkinKey="neutral" FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                <Button Text="Later" TextColor="White" CornerRadius="8" HeightRequest="45" Padding="14,0"
+                        Clicked="OnLaterClicked" />
+            </skin:SkinHost>
+            <skin:SkinHost Grid.Column="1" SkinKey="confirm" FallbackColor="{DynamicResource ThemeConfirmButtonColor}">
+                <Button Text="Confirm" TextColor="White" CornerRadius="8" HeightRequest="45" Padding="14,0"
+                        FontAttributes="Bold" Clicked="OnConfirmClicked" />
+            </skin:SkinHost>
+        </Grid>
+    </VerticalStackLayout>
+</ContentPage>

@@ -41,10 +41,10 @@ public class EquippedItemContextMenuViewModel : INotifyPropertyChanged
     }
 
     public string ItemName => _characterItem.DisplayName;
-    public string SlotLocation => $"{_slotName} (Slot {_slotNumber})";
+    public string SlotLocation => _slotName;   // callers already pass a complete label ("Left (Slot 1)", "Belt Slot 2", "Armor")
     public bool IsTwoHanded => _characterItem.SlotsRequired > 1;
-    public bool CanSwapToBelt => _charDataService.CanSwapToBelt(_characterItem.Id);
-    public bool CanSwapToHand => _charDataService.CanSwapToHand(_characterItem.Id);
+    public bool CanSwapToBelt => EquipmentActionHelper.CanEquipToBelt(_characterItem, _charDataService);
+    public bool CanSwapToHand => EquipmentActionHelper.CanEquipToHand(_characterItem, _charDataService);
 
     public bool IsProcessing
     {
@@ -73,16 +73,12 @@ public class EquippedItemContextMenuViewModel : INotifyPropertyChanged
 
         try
         {
-            if (_characterItem.SlotsRequired > 1)
+            // Releases a two-handed item's limb set as well; while the pack is dropped, warns and drops it instead.
+            if (await EquipmentActionHelper.UnequipAsync(_characterItem, _charDataService))
             {
-                _charDataService.UnequipTwoHandedItem(_characterItem.Id);
+                _onComplete?.Invoke();
+                await Application.Current.MainPage.Navigation.PopModalAsync();
             }
-            else
-            {
-                _charDataService.UnequipItem(_characterItem.Id);
-            }
-            _onComplete?.Invoke();
-            await Application.Current.MainPage.Navigation.PopModalAsync();
         }
         finally
         {
@@ -97,19 +93,8 @@ public class EquippedItemContextMenuViewModel : INotifyPropertyChanged
 
         try
         {
-            bool confirm = await Application.Current.MainPage.DisplayAlertAsync(
-                "Drop Item",
-                $"Are you sure you want to drop '{_characterItem.DisplayName}'?",
-                "Yes, Drop",
-                "Cancel");
-
-            if (confirm)
+            if (await ItemDropHelper.DropAsync(_characterItem, _charDataService))
             {
-                if (_characterItem.SlotsRequired > 1)
-                {
-                    _charDataService.UnequipTwoHandedItem(_characterItem.Id);
-                }
-                _charDataService.DropItem(_characterItem.Id);
                 _onComplete?.Invoke();
                 await Application.Current.MainPage.Navigation.PopModalAsync();
             }
@@ -181,18 +166,12 @@ public class EquippedItemContextMenuViewModel : INotifyPropertyChanged
 
         try
         {
-            if (!_charDataService.CanSwapToBelt(_characterItem.Id))
+            bool success = await EquipmentActionHelper.EquipToBeltAsync(_characterItem, _charDataService);
+            if (success)
             {
-                await Application.Current.MainPage.DisplayAlertAsync(
-                    "Cannot Swap",
-                    "No available belt slots with enough space.",
-                    "OK");
-                return;
+                _onComplete?.Invoke();
+                await Application.Current.MainPage.Navigation.PopModalAsync();
             }
-
-            _charDataService.SwapToBelt(_characterItem.Id);
-            _onComplete?.Invoke();
-            await Application.Current.MainPage.Navigation.PopModalAsync();
         }
         finally
         {
@@ -207,18 +186,12 @@ public class EquippedItemContextMenuViewModel : INotifyPropertyChanged
 
         try
         {
-            if (!_charDataService.CanSwapToHand(_characterItem.Id))
+            bool success = await EquipmentActionHelper.EquipToHandAsync(_characterItem, _charDataService);
+            if (success)
             {
-                await Application.Current.MainPage.DisplayAlertAsync(
-                    "Cannot Swap",
-                    "No available hand slots with enough space.",
-                    "OK");
-                return;
+                _onComplete?.Invoke();
+                await Application.Current.MainPage.Navigation.PopModalAsync();
             }
-
-            _charDataService.SwapToHand(_characterItem.Id);
-            _onComplete?.Invoke();
-            await Application.Current.MainPage.Navigation.PopModalAsync();
         }
         finally
         {
@@ -230,7 +203,7 @@ public class EquippedItemContextMenuViewModel : INotifyPropertyChanged
     {
         string details = $"Name: {_characterItem.DisplayName}\n";
         details += $"Description: {_characterItem.DisplayDescription}\n";
-        details += $"Slot: {_slotName} (Slot {_slotNumber})\n";
+        details += $"Slot: {_slotName}\n";
         details += $"Slots Required: {_characterItem.SlotsRequired}\n";
 
         if (_characterItem.SlotsRequired > 1)

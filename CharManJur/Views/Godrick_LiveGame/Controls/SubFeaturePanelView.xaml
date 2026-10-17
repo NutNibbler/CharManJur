@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.Godrick_LiveGame.Controls.SubFeaturePanelView">
+
+    <Grid RowDefinitions="Auto, *, Auto" RowSpacing="8">
+
+        <!-- Row 0: Spells | Techniques switch (only for those two) -->
+        <Grid Grid.Row="0"
+              ColumnDefinitions="Auto, Auto"
+              ColumnSpacing="8"
+              HorizontalOptions="Start"
+              IsVisible="{Binding ShowTypeSwitch}">
+            <skin:SkinHost Grid.Column="0"
+                           SkinKey="neutral"
+                           FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                <skin:SkinHost.Triggers>
+                    <DataTrigger TargetType="skin:SkinHost" Binding="{Binding IsSpellView}" Value="True">
+                        <Setter Property="SkinKey" Value="primary" />
+                        <Setter Property="FallbackColor" Value="{DynamicResource ThemePrimaryButtonColor}" />
+                    </DataTrigger>
+                </skin:SkinHost.Triggers>
+                <Button Text="📜 Spells"
+                        TextColor="White"
+                        CornerRadius="6"
+                        WidthRequest="120"
+                        HeightRequest="32"
+                        Padding="14,0"
+                        FontSize="12"
+                        Command="{Binding ShowSpellsCommand}" />
+            </skin:SkinHost>
+
+            <skin:SkinHost Grid.Column="1"
+                           SkinKey="neutral"
+                           FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                <skin:SkinHost.Triggers>
+                    <DataTrigger TargetType="skin:SkinHost" Binding="{Binding IsTechniqueView}" Value="True">
+                        <Setter Property="SkinKey" Value="primary" />
+                        <Setter Property="FallbackColor" Value="{DynamicResource ThemePrimaryButtonColor}" />
+                    </DataTrigger>
+                </skin:SkinHost.Triggers>
+                <Button Text="🌀 Techniques"
+                        TextColor="White"
+                        CornerRadius="6"
+                        WidthRequest="120"
+                        HeightRequest="32"
+                        Padding="14,0"
+                        FontSize="12"
+                        Command="{Binding ShowTechniquesCommand}" />
+            </skin:SkinHost>
+        </Grid>
+
+        <!-- Row 0 (Crafting panel only): what blueprints are for -->
+        <Label Grid.Row="0"
+               Text="{Binding CraftingHint}"
+               FontSize="12"
+               TextColor="Gray"
+               LineBreakMode="WordWrap"
+               IsVisible="{Binding IsCraftingView}" />
+
+        <!-- Row 1: list | details -->
+        <Grid Grid.Row="1" ColumnDefinitions="0.45*, 0.55*" ColumnSpacing="10">
+
+            <!-- LEFT: what the character knows -->
+            <Grid Grid.Column="0" RowDefinitions="Auto, *" RowSpacing="6">
+                <Label Grid.Row="0" Text="{Binding ListHeader}" FontSize="12" TextColor="Gray" />
+
+                <CollectionView Grid.Row="1"
+                                ItemsSource="{Binding Rows}"
+                                SelectionMode="Single"
+                                SelectedItem="{Binding SelectedRow, Mode=TwoWay}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                    StrokeThickness="0.5"
+                                    StrokeShape="RoundRectangle 4"
+                                    Padding="8"
+                                    Margin="2">
+                                <VerticalStackLayout Spacing="0">
+                                    <Label Text="{Binding Name}"
+                                           FontSize="13"
+                                           FontAttributes="Bold"
+                                           LineBreakMode="TailTruncation" />
+                                    <Label Text="{Binding DetailLine}"
+                                           FontSize="10"
+                                           TextColor="{DynamicResource ThemeWarningButtonColor}"
+                                           IsVisible="{Binding HasDetailLine}" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <Label Grid.Row="1"
+                       Text="{Binding EmptyText}"
+                       FontSize="13"
+                       TextColor="Gray"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"
+                       HorizontalTextAlignment="Center"
+                       IsVisible="{Binding HasNoRows}" />
+            </Grid>
+
+            <!-- RIGHT: details -->
+            <Border Grid.Column="1"
+                    StrokeShape="RoundRectangle 6"
+                    StrokeThickness="1"
+                    Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                    BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}"
+                    Padding="10">
+                <Grid RowDefinitions="*, Auto" RowSpacing="8">
+
+                    <ScrollView Grid.Row="0" IsVisible="{Binding HasSelection}">
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="{Binding SelectedName}"
+                                   FontSize="18"
+                                   FontAttributes="Bold"
+                                   TextColor="{DynamicResource ThemeDetailBorderColor1}" />
+                            <Label Text="{Binding SelectedDetail}"
+                                   FontSize="12"
+                                   TextColor="{DynamicResource ThemeWarningButtonColor}"
+                                   IsVisible="{Binding HasSelectedDetail}" />
+                            <Label Text="{Binding SelectedDescription}"
+                                   FontSize="13"
+                                   TextColor="Gray"
+                                   LineBreakMode="WordWrap"
+                                   IsVisible="{Binding HasSelectedDescription}" />
+                            <Label Text="{Binding ResultText}"
+                                   FontSize="12"
+                                   FontAttributes="Bold"
+                                   TextColor="{DynamicResource ThemeConfirmButtonColor}"
+                                   LineBreakMode="WordWrap"
+                                   IsVisible="{Binding HasResult}" />
+                        </VerticalStackLayout>
+                    </ScrollView>
+
+                    <VerticalStackLayout Grid.Row="0"
+                                         Spacing="8"
+                                         HorizontalOptions="Center"
+                                         VerticalOptions="Center"
+                                         IsVisible="{Binding HasNoSelection}">
+                        <Label Text="Select one to see its details."
+                               FontSize="13"
+                               TextColor="Gray"
+                               HorizontalTextAlignment="Center" />
+                        <Label Text="{Binding ResultText}"
+                               FontSize="12"
+                               FontAttributes="Bold"
+                               TextColor="{DynamicResource ThemeConfirmButtonColor}"
+                               HorizontalTextAlignment="Center"
+                               LineBreakMode="WordWrap"
+                               IsVisible="{Binding HasResult}" />
+                    </VerticalStackLayout>
+
+                    <HorizontalStackLayout Grid.Row="1"
+                                           Spacing="8"
+                                           IsVisible="{Binding HasSelection}">
+                        <skin:SkinHost SkinKey="primary"
+                                       FallbackColor="{DynamicResource ThemePrimaryButtonColor}"
+                                       VerticalOptions="Center"
+                                       IsVisible="{Binding CanUse}">
+                            <Button Text="{Binding UseText}"
+                                    TextColor="White"
+                                    CornerRadius="6"
+                                    WidthRequest="130"
+                                    HeightRequest="36"
+                                    Padding="14,0"
+                                    FontSize="12"
+                                    IsVisible="{Binding CanUse}"
+                                    Command="{Binding UseCommand}" />
+                        </skin:SkinHost>
+
+                        <skin:SkinHost SkinKey="danger"
+                                       FallbackColor="{DynamicResource ThemeDangerButtonColor}"
+                                       VerticalOptions="Center">
+                            <Button Text="🗑️ Forget"
+                                    TextColor="White"
+                                    CornerRadius="6"
+                                    WidthRequest="130"
+                                    HeightRequest="36"
+                                    Padding="14,0"
+                                    FontSize="12"
+                                    Command="{Binding ForgetCommand}" />
+                        </skin:SkinHost>
+                    </HorizontalStackLayout>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Row 2: bestow (+ sandbox craft in the Blueprints panel) -->
+        <Grid Grid.Row="2" ColumnDefinitions="Auto, Auto" ColumnSpacing="8">
+            <skin:SkinHost Grid.Column="0"
+                           SkinKey="confirm"
+                           FallbackColor="{DynamicResource ThemeConfirmButtonColor}">
+                <Button Text="{Binding BestowText}"
+                        TextColor="White"
+                        CornerRadius="6"
+                        WidthRequest="240"
+                        HeightRequest="38"
+                        Padding="14,0"
+                        FontSize="12"
+                        Command="{Binding BestowCommand}" />
+            </skin:SkinHost>
+
+            <skin:SkinHost Grid.Column="1"
+                           SkinKey="create"
+                           FallbackColor="{DynamicResource ThemeCreateButtonColor}"
+                           IsVisible="{Binding CanSandboxCraft}">
+                <Button Text="🛠️ Craft Without a Blueprint"
+                        TextColor="White"
+                        CornerRadius="6"
+                        WidthRequest="240"
+                        HeightRequest="38"
+                        Padding="14,0"
+                        FontSize="12"
+                        IsVisible="{Binding CanSandboxCraft}"
+                        Command="{Binding SandboxCraftCommand}" />
+            </skin:SkinHost>
+        </Grid>
+    </Grid>
+</ContentView>

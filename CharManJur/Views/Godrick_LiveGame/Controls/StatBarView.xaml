@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:CharManJur.Converters"
+             x:Class="CharManJur.Views.Godrick_LiveGame.Controls.StatBarView"
+             x:Name="Root"
+             HorizontalOptions="Start">
+
+    <ContentView.Resources>
+        <converters:RatioToStarConverter x:Key="RatioToStarConverter" />
+    </ContentView.Resources>
+
+    <Grid RowDefinitions="Auto, Auto"
+          RowSpacing="2"
+          WidthRequest="{Binding BarWidth, Source={x:Reference Root}}">
+
+        <!-- Label row - fills the explicit width set above -->
+        <Grid Grid.Row="0" ColumnDefinitions="*, Auto" HorizontalOptions="Fill">
+            <HorizontalStackLayout Grid.Column="0" Spacing="4">
+                <Label Text="{Binding StatLabel, Source={x:Reference Root}}"
+                       FontSize="11"
+                       FontAttributes="Bold"
+                       TextColor="{Binding BarColor, Source={x:Reference Root}}" />
+                <Label Text="{Binding Badge, Source={x:Reference Root}}" FontSize="11" />
+            </HorizontalStackLayout>
+            <HorizontalStackLayout Grid.Column="1" Spacing="0" HorizontalOptions="End">
+                <Label Text="{Binding CurrentValue, Source={x:Reference Root}}" FontSize="11" />
+                <Label Text=" / " FontSize="11" />
+                <Label Text="{Binding MaxValue, Source={x:Reference Root}}"
+                       FontSize="11"
+                       TextColor="{Binding MaxValueColor, Source={x:Reference Root}}" />
+            </HorizontalStackLayout>
+        </Grid>
+
+        <!-- Bar track, same width as the label row above -->
+        <Border Grid.Row="1"
+                HeightRequest="8"
+                Padding="0"
+                StrokeThickness="1"
+                Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}"
+                StrokeShape="RoundRectangle 4"
+                HorizontalOptions="Fill">
+            <Grid ColumnSpacing="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="{Binding FillRatio, Source={x:Reference Root}, Converter={StaticResource RatioToStarConverter}}" />
+                    <ColumnDefinition Width="{Binding FillRatio, Source={x:Reference Root}, Converter={StaticResource RatioToStarConverter}, ConverterParameter=invert}" />
+                </Grid.ColumnDefinitions>
+                <BoxView Grid.Column="0" Color="{Binding BarColor, Source={x:Reference Root}}" />
+                <BoxView Grid.Column="1" Color="Transparent" />
+            </Grid>
+        </Border>
+
+    </Grid>
+</ContentView>

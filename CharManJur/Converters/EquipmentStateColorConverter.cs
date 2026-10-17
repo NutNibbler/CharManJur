@@ -9,9 +9,12 @@ public class EquipmentStateColorConverter : IValueConverter
     {
         if (value is string state)
         {
-            if (state.Contains("Armor")) return Colors.Green;
-            if (state.Contains("Belted")) return Colors.Orange;
-            if (state.Contains("Equipped")) return Colors.Cyan;
+            if (state.Contains("Armor"))
+                return ThemeColorLookup.Get("ThemeConfirmButtonColor", Colors.Green);
+            if (state.Contains("Belted"))
+                return ThemeColorLookup.Get("ThemeWarningButtonColor", Colors.Orange);
+            if (state.Contains("Equipped"))
+                return ThemeColorLookup.Get("ThemeDetailBorderColor1", Colors.Cyan);
         }
         return Colors.Gray;
     }

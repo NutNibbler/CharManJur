@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.Godrick_LiveGame.VigorSavePopup"
+             Title="Vigor Save"
+             Shell.NavBarIsVisible="False">
+
+    <VerticalStackLayout Padding="20" Spacing="15" VerticalOptions="Center">
+
+        <Label Text="⚠️ Vigor Save Required"
+               FontSize="22"
+               FontAttributes="Bold"
+               TextColor="{DynamicResource ThemeDangerButtonColor}"
+               HorizontalOptions="Center" />
+
+        <Label x:Name="InstructionLabel"
+               FontSize="13"
+               TextColor="Gray"
+               HorizontalOptions="Center"
+               HorizontalTextAlignment="Center" />
+
+        <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}" />
+
+        <HorizontalStackLayout Spacing="20" HorizontalOptions="Center">
+            <RadioButton x:Name="ManualRadio" GroupName="RollMode" Content="Manual Entry" IsChecked="True" CheckedChanged="OnRollModeChanged" />
+            <RadioButton x:Name="RollForMeRadio" GroupName="RollMode" Content="Roll for Me" CheckedChanged="OnRollModeChanged" />
+        </HorizontalStackLayout>
+
+        <Border x:Name="ManualEntrySection" Stroke="{DynamicResource ThemeDetailBorderColor2}" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
+            <Entry x:Name="RollEntry" Placeholder="d20 result" Keyboard="Numeric" PlaceholderColor="Gray" BackgroundColor="Transparent" HorizontalTextAlignment="Center" />
+        </Border>
+
+        <VerticalStackLayout x:Name="RollForMeSection" Spacing="8" IsVisible="False" HorizontalOptions="Center">
+            <skin:SkinHost SkinKey="primary" FallbackColor="{DynamicResource ThemePrimaryButtonColor}">
+                <Button Text="🎲 Roll d20" TextColor="White" CornerRadius="8" HeightRequest="40" WidthRequest="150" Padding="14,0" Clicked="OnRollClicked" />
+            </skin:SkinHost>
+            <Label x:Name="RollResultLabel" FontSize="16" FontAttributes="Bold" HorizontalOptions="Center" />
+        </VerticalStackLayout>
+
+        <skin:SkinHost SkinKey="confirm" FallbackColor="{DynamicResource ThemeConfirmButtonColor}">
+            <Button Text="Confirm Result"
+                    TextColor="White"
+                    CornerRadius="8"
+                    HeightRequest="45"
+                    Padding="14,0"
+                    Clicked="OnConfirmClicked" />
+        </skin:SkinHost>
+
+    </VerticalStackLayout>
+</ContentPage>

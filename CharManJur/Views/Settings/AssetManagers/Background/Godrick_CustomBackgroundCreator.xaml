@@ -1,0 +1,504 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:CharManJur.Converters"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.Godrick_CustomBackgroundCreator"
+             Shell.NavBarIsVisible="False"
+             Title="Custom Background Creator">
+
+    <ContentPage.Resources>
+        <converters:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+
+        <!-- Skin hosts for the small stepper / remove buttons -->
+        <Style x:Key="StepperHostStyle" TargetType="skin:SkinHost">
+            <Setter Property="SkinKey" Value="generic_small"/>
+            <Setter Property="FallbackColor" Value="{DynamicResource ThemeNeutralButtonColor}"/>
+            <Setter Property="VerticalOptions" Value="Center"/>
+        </Style>
+        <Style x:Key="RemoveHostStyle" TargetType="skin:SkinHost">
+            <Setter Property="SkinKey" Value="generic_small"/>
+            <Setter Property="FallbackColor" Value="{DynamicResource ThemeDangerButtonColor}"/>
+            <Setter Property="VerticalOptions" Value="Center"/>
+        </Style>
+
+        <Style x:Key="StepperButtonStyle" TargetType="Button">
+            <Setter Property="TextColor" Value="White"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontAttributes" Value="Bold"/>
+            <Setter Property="WidthRequest" Value="30"/>
+            <Setter Property="HeightRequest" Value="30"/>
+            <Setter Property="Padding" Value="0"/>
+        </Style>
+
+        <Style x:Key="RemoveButtonStyle" TargetType="Button">
+            <Setter Property="TextColor" Value="White"/>
+            <Setter Property="CornerRadius" Value="15"/>
+            <Setter Property="WidthRequest" Value="30"/>
+            <Setter Property="HeightRequest" Value="30"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontAttributes" Value="Bold"/>
+            <Setter Property="Padding" Value="0"/>
+        </Style>
+
+        <Style x:Key="SectionHeaderStyle" TargetType="Label">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontAttributes" Value="Bold"/>
+            <Setter Property="TextColor" Value="{DynamicResource ThemeConfirmButtonColor}"/>
+            <Setter Property="Margin" Value="0,10,0,5"/>
+        </Style>
+        <Style x:Key="FieldLabelStyle" TargetType="Label">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Margin" Value="0,5"/>
+        </Style>
+        <Style x:Key="EntryStyle" TargetType="Entry">
+            <Setter Property="BackgroundColor" Value="{DynamicResource ThemePanelBackgroundColor}"/>
+            <Setter Property="PlaceholderColor" Value="Gray"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        <Style x:Key="EditorStyle" TargetType="Editor">
+            <Setter Property="BackgroundColor" Value="{DynamicResource ThemePanelBackgroundColor}"/>
+            <Setter Property="PlaceholderColor" Value="Gray"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="HeightRequest" Value="80"/>
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*">
+        <!-- Header -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10" Padding="10,5">
+            <Label Grid.Column="0" Text="{Binding PageTitle}" FontSize="28" FontAttributes="Bold" TextColor="{DynamicResource ThemeConfirmButtonColor}" VerticalTextAlignment="Center"/>
+            <skin:SkinHost Grid.Column="1" SkinKey="danger" VerticalOptions="Center"
+                           FallbackColor="{DynamicResource ThemeDangerButtonColor}">
+                <Button Text="Cancel" TextColor="White" CornerRadius="8" HeightRequest="40" WidthRequest="100" Command="{Binding CancelCommand}"/>
+            </skin:SkinHost>
+            <skin:SkinHost Grid.Column="2" SkinKey="confirm" VerticalOptions="Center"
+                           FallbackColor="{DynamicResource ThemeConfirmButtonColor}">
+                <Button Text="{Binding SaveButtonText}" TextColor="White" CornerRadius="8" HeightRequest="40" WidthRequest="160" IsEnabled="{Binding CanSave}" Command="{Binding SaveBackgroundCommand}"/>
+            </skin:SkinHost>
+        </Grid>
+
+        <!-- Main Content -->
+        <ScrollView Grid.Row="1" Padding="10">
+            <VerticalStackLayout Spacing="5">
+
+                <!-- Clone from existing (only in create mode, not edit) -->
+                <VerticalStackLayout IsVisible="{Binding ShowCloneSection}">
+                    <Label Text="Clone From Existing Background" Style="{StaticResource SectionHeaderStyle}"/>
+                    <Label Text="Select a background to clone its data (optional)" Style="{StaticResource FieldLabelStyle}" TextColor="Gray" FontSize="12"/>
+                    <Picker ItemsSource="{Binding AllBackgrounds}" 
+                            SelectedItem="{Binding SelectedCloneSource}"
+                            ItemDisplayBinding="{Binding Name}"
+                            Title="Select background to clone..."
+                            BackgroundColor="{DynamicResource ThemePanelBackgroundColor}"/>
+                </VerticalStackLayout>
+
+                <!-- Basic Information -->
+                <BoxView Color="{DynamicResource ThemeConfirmButtonColor}" HeightRequest="2" Margin="5"/>
+                <Label Text="Basic Information" Style="{StaticResource SectionHeaderStyle}"/>
+                <Label Text="Background Name*" Style="{StaticResource FieldLabelStyle}"/>
+                <Entry Text="{Binding Name}" Placeholder="Enter background name..." Style="{StaticResource EntryStyle}"/>
+
+                <Label Text="Description" Style="{StaticResource FieldLabelStyle}"/>
+                <Editor Text="{Binding Description}" Placeholder="Describe this background..." Style="{StaticResource EditorStyle}" HeightRequest="80"/>
+
+                <!-- Stat Modifiers -->
+                <BoxView Color="{DynamicResource ThemeConfirmButtonColor}" HeightRequest="2" Margin="5"/>
+                <Label Text="Ability Score Modifiers" Style="{StaticResource SectionHeaderStyle}"/>
+
+                <Grid ColumnDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="5">
+                    <!-- Vigor -->
+                    <Border Grid.Column="0" Padding="3" StrokeThickness="2" Stroke="{StaticResource VigorColor}" StrokeShape="RoundRectangle 4">
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="2">
+                            <Label Grid.Column="0" Text="Vigor" FontAttributes="Bold" TextColor="{StaticResource VigorColor}" FontSize="16" VerticalOptions="Center" HorizontalTextAlignment="Center" WidthRequest="60"/>
+                            <Entry Grid.Column="1" Text="{Binding VigorModifier}" Keyboard="Numeric" FontSize="16" Style="{StaticResource EntryStyle}"/>
+                            <skin:SkinHost Grid.Column="2" Style="{StaticResource StepperHostStyle}">
+                                <Button Text="−" Style="{StaticResource StepperButtonStyle}" Command="{Binding DecrementVigorCommand}"/>
+                            </skin:SkinHost>
+                            <skin:SkinHost Grid.Column="3" Style="{StaticResource StepperHostStyle}">
+                                <Button Text="+" Style="{StaticResource StepperButtonStyle}" Command="{Binding IncrementVigorCommand}"/>
+                            </skin:SkinHost>
+                        </Grid>
+                    </Border>
+                    <!-- Agility -->
+                    <Border Grid.Column="1" Padding="3" StrokeThickness="2" Stroke="{StaticResource AgilityColor}" StrokeShape="RoundRectangle 4">
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="2">
+                            <Label Grid.Column="0" Text="Agility" FontAttributes="Bold" TextColor="{StaticResource AgilityColor}" FontSize="16" VerticalOptions="Center" HorizontalTextAlignment="Center" WidthRequest="60"/>
+                            <Entry Grid.Column="1" Text="{Binding AgilityModifier}" Keyboard="Numeric" FontSize="16" Style="{StaticResource EntryStyle}"/>
+                            <skin:SkinHost Grid.Column="2" Style="{StaticResource StepperHostStyle}">
+                                <Button Text="−" Style="{StaticResource StepperButtonStyle}" Command="{Binding DecrementAgilityCommand}"/>
+                            </skin:SkinHost>
+                            <skin:SkinHost Grid.Column="3" Style="{StaticResource StepperHostStyle}">
+                                <Button Text="+" Style="{StaticResource StepperButtonStyle}" Command="{Binding IncrementAgilityCommand}"/>
+                            </skin:SkinHost>
+                        </Grid>
+                    </Border>
+                    <!-- Mind -->
+                    <Border Grid.Column="2" Padding="3" StrokeThickness="2" Stroke="{StaticResource MindColor}" StrokeShape="RoundRectangle 4">
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="2">
+                            <Label Grid.Column="0" Text="Mind" FontAttributes="Bold" TextColor="{StaticResource MindColor}" FontSize="16" VerticalOptions="Center" HorizontalTextAlignment="Center" WidthRequest="60"/>
+                            <Entry Grid.Column="1" Text="{Binding MindModifier}" Keyboard="Numeric" FontSize="16" Style="{StaticResource EntryStyle}"/>
+                            <skin:SkinHost Grid.Column="2" Style="{StaticResource StepperHostStyle}">
+                                <Button Text="−" Style="{StaticResource StepperButtonStyle}" Command="{Binding DecrementMindCommand}"/>
+                            </skin:SkinHost>
+                            <skin:SkinHost Grid.Column="3" Style="{StaticResource StepperHostStyle}">
+                                <Button Text="+" Style="{StaticResource StepperButtonStyle}" Command="{Binding IncrementMindCommand}"/>
+                            </skin:SkinHost>
+                        </Grid>
+                    </Border>
+                    <!-- Spirit -->
+                    <Border Grid.Column="3" Padding="3" StrokeThickness="2" Stroke="{StaticResource SpiritColor}" StrokeShape="RoundRectangle 4">
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="2">
+                            <Label Grid.Column="0" Text="Spirit" FontAttributes="Bold" TextColor="{StaticResource SpiritColor}" FontSize="16" VerticalOptions="Center" HorizontalTextAlignment="Center" WidthRequest="60"/>
+                            <Entry Grid.Column="1" Text="{Binding SpiritModifier}" Keyboard="Numeric" FontSize="16" Style="{StaticResource EntryStyle}"/>
+                            <skin:SkinHost Grid.Column="2" Style="{StaticResource StepperHostStyle}">
+                                <Button Text="−" Style="{StaticResource StepperButtonStyle}" Command="{Binding DecrementSpiritCommand}"/>
+                            </skin:SkinHost>
+                            <skin:SkinHost Grid.Column="3" Style="{StaticResource StepperHostStyle}">
+                                <Button Text="+" Style="{StaticResource StepperButtonStyle}" Command="{Binding IncrementSpiritCommand}"/>
+                            </skin:SkinHost>
+                        </Grid>
+                    </Border>
+                </Grid>
+
+                <!-- Skill Bonuses -->
+                <BoxView Color="{DynamicResource ThemeConfirmButtonColor}" HeightRequest="2" Margin="5"/>
+                <Label Text="Skill Bonuses" Style="{StaticResource SectionHeaderStyle}"/>
+                <Grid ColumnDefinitions="150,Auto,Auto,Auto,Auto" ColumnSpacing="5">
+                    <Picker Grid.Column="0" ItemsSource="{Binding PredefinedSkills}" SelectedItem="{Binding SelectedSkillName}" Title="Select Skill..." BackgroundColor="{DynamicResource ThemePanelBackgroundColor}"/>
+                    <Entry Grid.Column="1" Text="{Binding SelectedSkillBonus}" Keyboard="Numeric" Placeholder="Bonus" WidthRequest="60" FontSize="20" HorizontalTextAlignment="Center" Style="{StaticResource EntryStyle}"/>
+                    <skin:SkinHost Grid.Column="2" Style="{StaticResource StepperHostStyle}">
+                        <Button Text="−" Style="{StaticResource StepperButtonStyle}" Command="{Binding DecrementSkillBonusCommand}"/>
+                    </skin:SkinHost>
+                    <skin:SkinHost Grid.Column="3" Style="{StaticResource StepperHostStyle}">
+                        <Button Text="+" Style="{StaticResource StepperButtonStyle}" Command="{Binding IncrementSkillBonusCommand}"/>
+                    </skin:SkinHost>
+                    <skin:SkinHost Grid.Column="4" SkinKey="primary" VerticalOptions="Center"
+                                   FallbackColor="{DynamicResource ThemeDetailBorderColor1}">
+                        <Button Text="Add" Command="{Binding AddSkillCommand}" IsEnabled="{Binding CanAddSkill}" TextColor="White" CornerRadius="8" HeightRequest="40" Padding="14,0"/>
+                    </skin:SkinHost>
+                </Grid>
+
+                <CollectionView ItemsSource="{Binding SkillBonuses}" HeightRequest="100">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid ColumnDefinitions="*,Auto" Padding="5" BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" Margin="0,2">
+                                <Label Grid.Column="0" VerticalTextAlignment="Center">
+                                    <Label.Text>
+                                        <MultiBinding StringFormat="{}{0} +{1}">
+                                            <Binding Path="SkillName"/>
+                                            <Binding Path="Bonus"/>
+                                        </MultiBinding>
+                                    </Label.Text>
+                                </Label>
+                                <skin:SkinHost Grid.Column="1" Style="{StaticResource RemoveHostStyle}">
+                                    <Button Text="✕" Style="{StaticResource RemoveButtonStyle}" Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.RemoveSkillCommand}" CommandParameter="{Binding}"/>
+                                </skin:SkinHost>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <!-- Starting Items -->
+                <BoxView Color="{DynamicResource ThemeConfirmButtonColor}" HeightRequest="2" Margin="5"/>
+                <Label Text="Starting Items" Style="{StaticResource SectionHeaderStyle}"/>
+                <Border Padding="3" StrokeThickness="2" Stroke="{DynamicResource ThemeConfirmButtonColor}" StrokeShape="RoundRectangle 4">
+                    <Grid ColumnDefinitions="400,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="5">
+                        <Picker Grid.Column="0"
+                                WidthRequest="400"
+                                x:Name="StartingItemPicker"
+                                ItemsSource="{Binding AvailableItems}" 
+                                SelectedItem="{Binding SelectedStartingItem}"
+                                ItemDisplayBinding="{Binding Name}"
+                                Title="Select item..."
+                                BackgroundColor="{DynamicResource ThemePanelBackgroundColor}"/>
+                        <Entry Grid.Column="1" Text="{Binding SelectedStartingItemQuantity}" Keyboard="Numeric" Placeholder="Qty" WidthRequest="60" HeightRequest="40" Style="{StaticResource EntryStyle}"/>
+                        <skin:SkinHost Grid.Column="2" Style="{StaticResource StepperHostStyle}">
+                            <Button Text="−" Style="{StaticResource StepperButtonStyle}" Command="{Binding DecrementQuantityCommand}"/>
+                        </skin:SkinHost>
+                        <skin:SkinHost Grid.Column="3" Style="{StaticResource StepperHostStyle}">
+                            <Button Text="+" Style="{StaticResource StepperButtonStyle}" Command="{Binding IncrementQuantityCommand}"/>
+                        </skin:SkinHost>
+                        <skin:SkinHost Grid.Column="4" SkinKey="confirm" VerticalOptions="Center"
+                                       FallbackColor="{DynamicResource ThemeConfirmButtonColor}">
+                            <Button Text="Add" Command="{Binding AddStartingItemCommand}" IsEnabled="{Binding CanAddStartingItem}" TextColor="White" CornerRadius="8" HeightRequest="40" Padding="14,0"/>
+                        </skin:SkinHost>
+                        <skin:SkinHost Grid.Column="5" SkinKey="create" VerticalOptions="Center"
+                                       FallbackColor="{DynamicResource ThemeCreateButtonColor}">
+                            <Button Text="+ Create Item" Command="{Binding CreateCustomItemCommand}" TextColor="White" CornerRadius="8" HeightRequest="40" Padding="14,0"/>
+                        </skin:SkinHost>
+                    </Grid>
+                </Border>
+
+                <CollectionView ItemsSource="{Binding StartingItems}" HeightRequest="120">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid ColumnDefinitions="*,Auto,Auto" Padding="5" BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" Margin="0,2" ColumnSpacing="5">
+                                <Label Grid.Column="0" VerticalTextAlignment="Center">
+                                    <Label.Text>
+                                        <MultiBinding StringFormat="{}{0} × {1}">
+                                            <Binding Path="Quantity"/>
+                                            <Binding Path="ItemDetails.Name" FallbackValue="Loading..."/>
+                                        </MultiBinding>
+                                    </Label.Text>
+                                </Label>
+                                <Label Grid.Column="1" Text="{Binding PlayerNote}" FontSize="10" TextColor="Gray" VerticalTextAlignment="Center" IsVisible="{Binding PlayerNote}"/>
+                                <skin:SkinHost Grid.Column="2" Style="{StaticResource RemoveHostStyle}">
+                                    <Button Text="✕" Style="{StaticResource RemoveButtonStyle}" Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.RemoveStartingItemCommand}" CommandParameter="{Binding}"/>
+                                </skin:SkinHost>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <!-- ===== ITEM CHOICES ===== -->
+                <BoxView Color="{DynamicResource ThemeWarningButtonColor}" HeightRequest="2" Margin="5"/>
+                <Label Text="Item Choices" Style="{StaticResource SectionHeaderStyle}" TextColor="{DynamicResource ThemeWarningButtonColor}"/>
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="5">
+                    <Label Grid.Column="0" Text="Enable item choices for this background" Style="{StaticResource FieldLabelStyle}" VerticalTextAlignment="Center"/>
+                    <Switch Grid.Column="1" IsToggled="{Binding HasItemChoices}"/>
+                </Grid>
+
+                <VerticalStackLayout IsVisible="{Binding HasItemChoices}">
+                    <skin:SkinHost SkinKey="warning"
+                                   FallbackColor="{DynamicResource ThemeWarningButtonColor}">
+                        <Button Text="+ Add Item Choice" Command="{Binding AddItemChoiceCommand}" TextColor="White" CornerRadius="8" HeightRequest="40"/>
+                    </skin:SkinHost>
+
+                    <CollectionView ItemsSource="{Binding ItemChoices}" HeightRequest="350">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <skin:SkinPanel StrokeColor="{DynamicResource ThemeWarningButtonColor}"
+                                                StrokeThickness="1" CornerRadius="8" ContentPadding="10" Margin="0,5">
+                                    <VerticalStackLayout Spacing="5">
+                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="5">
+                                            <Label Grid.Column="0" Text="Item Choice" FontAttributes="Bold" FontSize="14" TextColor="{DynamicResource ThemeWarningButtonColor}" VerticalTextAlignment="Center"/>
+                                            <skin:SkinHost Grid.Column="1" Style="{StaticResource RemoveHostStyle}">
+                                                <Button Text="✕" Style="{StaticResource RemoveButtonStyle}" Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.RemoveItemChoiceCommand}" CommandParameter="{Binding}"/>
+                                            </skin:SkinHost>
+                                        </Grid>
+
+                                        <Entry Text="{Binding Prompt}" Placeholder="Prompt..." Style="{StaticResource EntryStyle}"/>
+                                        <Entry Text="{Binding Description}" Placeholder="Description..." Style="{StaticResource EntryStyle}"/>
+
+                                        <Grid ColumnDefinitions="Auto,*,Auto,*" ColumnSpacing="5">
+                                            <Label Grid.Column="0" Text="Min:" FontSize="12" TextColor="Gray" VerticalTextAlignment="Center"/>
+                                            <Entry Grid.Column="1" Text="{Binding RecommendedMin}" Keyboard="Numeric" WidthRequest="50" Style="{StaticResource EntryStyle}"/>
+                                            <Label Grid.Column="2" Text="Max:" FontSize="12" TextColor="Gray" VerticalTextAlignment="Center"/>
+                                            <Entry Grid.Column="3" Text="{Binding RecommendedMax}" Keyboard="Numeric" WidthRequest="50" Style="{StaticResource EntryStyle}"/>
+                                        </Grid>
+
+                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="5">
+                                            <Switch Grid.Column="0" IsToggled="{Binding AllowCustomItems}" HorizontalOptions="Start"/>
+                                            <Label Grid.Column="1" Text="Allow Custom Items" FontSize="12" TextColor="Gray" VerticalTextAlignment="Center"/>
+                                        </Grid>
+
+                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="5">
+                                            <Switch Grid.Column="0" IsToggled="{Binding AllowDuplicates}" HorizontalOptions="Start"/>
+                                            <Label Grid.Column="1" Text="Allow Duplicates" FontSize="12" TextColor="Gray" VerticalTextAlignment="Center"/>
+                                        </Grid>
+
+                                        <!-- Category Filters -->
+                                        <Label Text="Categories:" FontSize="12" TextColor="Gray"/>
+                                        <CollectionView ItemsSource="{Binding Categories}" HeightRequest="100">
+                                            <CollectionView.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid ColumnDefinitions="*,Auto" Padding="2" ColumnSpacing="5">
+                                                        <Picker Grid.Column="0" 
+                                                            ItemsSource="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.AvailableItemCategories}" 
+                                                            SelectedItem="{Binding Value}" 
+                                                            Title="Category..." 
+                                                            BackgroundColor="{DynamicResource ThemePanelBackgroundColor}"/>
+                                                        <skin:SkinHost Grid.Column="1" Style="{StaticResource RemoveHostStyle}">
+                                                            <Button Text="✕" 
+                                                                Style="{StaticResource RemoveButtonStyle}" 
+                                                                WidthRequest="25" 
+                                                                HeightRequest="25" 
+                                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.RemoveItemChoiceCategoryCommand}" 
+                                                                CommandParameter="{Binding}"/>
+                                                        </skin:SkinHost>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </CollectionView.ItemTemplate>
+                                        </CollectionView>
+                                        <skin:SkinHost SkinKey="warning"
+                                                       FallbackColor="{DynamicResource ThemeWarningButtonColor}">
+                                            <Button Text="+ Add Category Filter" 
+                                                TextColor="White" 
+                                                CornerRadius="8" 
+                                                HeightRequest="30" 
+                                                FontSize="12" 
+                                                Padding="14,0"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.AddItemChoiceCategoryCommand}" 
+                                                CommandParameter="{Binding}"/>
+                                        </skin:SkinHost>
+                                    </VerticalStackLayout>
+                                </skin:SkinPanel>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+
+                <!-- ===== FAMILIAR CHOICES ===== -->
+                <BoxView Color="{DynamicResource ThemeSummaryButtonColor}" HeightRequest="2" Margin="5"/>
+                <Label Text="Familiar Choices" Style="{StaticResource SectionHeaderStyle}" TextColor="{DynamicResource ThemeSummaryButtonColor}"/>
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="5">
+                    <Label Grid.Column="0" Text="Enable familiar selection for this background" Style="{StaticResource FieldLabelStyle}" VerticalTextAlignment="Center"/>
+                    <Switch Grid.Column="1" IsToggled="{Binding HasFamiliarChoices}"/>
+                </Grid>
+
+                <VerticalStackLayout IsVisible="{Binding HasFamiliarChoices}">
+                    <skin:SkinHost SkinKey="summary"
+                                   FallbackColor="{DynamicResource ThemeSummaryButtonColor}">
+                        <Button Text="+ Add Familiar Choice" Command="{Binding AddFamiliarChoiceCommand}" TextColor="White" CornerRadius="8" HeightRequest="40"/>
+                    </skin:SkinHost>
+
+                    <CollectionView ItemsSource="{Binding FamiliarChoices}" HeightRequest="500">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <skin:SkinPanel StrokeColor="{DynamicResource ThemeSummaryButtonColor}"
+                                                StrokeThickness="1" CornerRadius="8" ContentPadding="10" Margin="0,5">
+                                    <VerticalStackLayout Spacing="5">
+                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="5">
+                                            <Label Grid.Column="0" Text="Familiar Choice" FontAttributes="Bold" FontSize="14" TextColor="{DynamicResource ThemeSummaryButtonColor}" VerticalTextAlignment="Center"/>
+                                            <skin:SkinHost Grid.Column="1" Style="{StaticResource RemoveHostStyle}">
+                                                <Button Text="✕" Style="{StaticResource RemoveButtonStyle}" Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.RemoveFamiliarChoiceCommand}" CommandParameter="{Binding}"/>
+                                            </skin:SkinHost>
+                                        </Grid>
+
+                                        <Entry Text="{Binding Prompt}" Placeholder="Prompt..." Style="{StaticResource EntryStyle}"/>
+                                        <Entry Text="{Binding Description}" Placeholder="Description..." Style="{StaticResource EntryStyle}"/>
+
+                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="5">
+                                            <Switch Grid.Column="0" IsToggled="{Binding AllowCustomFamiliar}" HorizontalOptions="Start"/>
+                                            <Label Grid.Column="1" Text="Allow Custom Familiar" FontSize="12" TextColor="Gray" VerticalTextAlignment="Center"/>
+                                        </Grid>
+
+                                        <!-- Size Filters -->
+                                        <Label Text="Size Filters:" FontSize="12" TextColor="Gray"/>
+                                        <CollectionView ItemsSource="{Binding Sizes}" HeightRequest="100">
+                                            <CollectionView.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid ColumnDefinitions="*,Auto" Padding="2" ColumnSpacing="5">
+                                                        <Picker Grid.Column="0" 
+                                                            ItemsSource="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.AvailableSizes}" 
+                                                            SelectedItem="{Binding Value}" 
+                                                            Title="Size..." 
+                                                            BackgroundColor="{DynamicResource ThemePanelBackgroundColor}"/>
+                                                        <skin:SkinHost Grid.Column="1" Style="{StaticResource RemoveHostStyle}">
+                                                            <Button Text="✕" 
+                                                                Style="{StaticResource RemoveButtonStyle}" 
+                                                                WidthRequest="25" 
+                                                                HeightRequest="25" 
+                                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.RemoveFamiliarFilterCommand}" 
+                                                                CommandParameter="{Binding}"/>
+                                                        </skin:SkinHost>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </CollectionView.ItemTemplate>
+                                        </CollectionView>
+                                        <skin:SkinHost SkinKey="primary"
+                                                       FallbackColor="{DynamicResource ThemeDetailBorderColor1}">
+                                            <Button Text="+ Add Size Filter" 
+                                                TextColor="White" 
+                                                CornerRadius="8" 
+                                                HeightRequest="30" 
+                                                FontSize="12" 
+                                                Padding="14,0"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.AddSizeFilterCommand}" 
+                                                CommandParameter="{Binding}"/>
+                                        </skin:SkinHost>
+
+                                        <!-- Intelligence Filters -->
+                                        <Label Text="Intelligence Filters:" FontSize="12" TextColor="Gray"/>
+                                        <CollectionView ItemsSource="{Binding Intelligences}" HeightRequest="100">
+                                            <CollectionView.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid ColumnDefinitions="*,Auto" Padding="2" ColumnSpacing="5">
+                                                        <Picker Grid.Column="0" 
+                                                            ItemsSource="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.AvailableIntelligences}" 
+                                                            SelectedItem="{Binding Value}" 
+                                                            Title="Intelligence..." 
+                                                            BackgroundColor="{DynamicResource ThemePanelBackgroundColor}"/>
+                                                        <skin:SkinHost Grid.Column="1" Style="{StaticResource RemoveHostStyle}">
+                                                            <Button Text="✕" 
+                                                                Style="{StaticResource RemoveButtonStyle}" 
+                                                                WidthRequest="25" 
+                                                                HeightRequest="25" 
+                                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.RemoveFamiliarFilterCommand}" 
+                                                                CommandParameter="{Binding}"/>
+                                                        </skin:SkinHost>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </CollectionView.ItemTemplate>
+                                        </CollectionView>
+                                        <skin:SkinHost SkinKey="primary"
+                                                       FallbackColor="{DynamicResource ThemeDetailBorderColor1}">
+                                            <Button Text="+ Add Intelligence Filter" 
+                                                TextColor="White" 
+                                                CornerRadius="8" 
+                                                HeightRequest="30" 
+                                                FontSize="12" 
+                                                Padding="14,0"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.AddIntelligenceFilterCommand}" 
+                                                CommandParameter="{Binding}"/>
+                                        </skin:SkinHost>
+
+                                        <!-- Species Filters -->
+                                        <Label Text="Species Filters:" FontSize="12" TextColor="Gray"/>
+                                        <CollectionView ItemsSource="{Binding Species}" HeightRequest="100">
+                                            <CollectionView.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid ColumnDefinitions="*,Auto" Padding="2" ColumnSpacing="5">
+                                                        <Picker Grid.Column="0" 
+                                                            ItemsSource="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.AvailableSpecies}" 
+                                                            SelectedItem="{Binding Value}" 
+                                                            Title="Species..." 
+                                                            BackgroundColor="{DynamicResource ThemePanelBackgroundColor}"/>
+                                                        <skin:SkinHost Grid.Column="1" Style="{StaticResource RemoveHostStyle}">
+                                                            <Button Text="✕" 
+                                                                Style="{StaticResource RemoveButtonStyle}" 
+                                                                WidthRequest="25" 
+                                                                HeightRequest="25" 
+                                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.RemoveFamiliarFilterCommand}" 
+                                                                CommandParameter="{Binding}"/>
+                                                        </skin:SkinHost>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </CollectionView.ItemTemplate>
+                                        </CollectionView>
+                                        <skin:SkinHost SkinKey="primary"
+                                                       FallbackColor="{DynamicResource ThemeDetailBorderColor1}">
+                                            <Button Text="+ Add Species Filter" 
+                                                TextColor="White" 
+                                                CornerRadius="8" 
+                                                HeightRequest="30" 
+                                                FontSize="12" 
+                                                Padding="14,0"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.AddSpeciesFilterCommand}" 
+                                                CommandParameter="{Binding}"/>
+                                        </skin:SkinHost>
+
+                                        <skin:SkinHost SkinKey="create"
+                                                       FallbackColor="{DynamicResource ThemeCreateButtonColor}">
+                                            <Button Text="+ Create Custom Familiar" 
+                                                TextColor="White" 
+                                                CornerRadius="8" 
+                                                HeightRequest="30" 
+                                                FontSize="12" 
+                                                Padding="14,0"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.CreateCustomFamiliarCommand}" 
+                                                CommandParameter="{Binding}"/>
+                                        </skin:SkinHost>
+                                    </VerticalStackLayout>
+                                </skin:SkinPanel>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+                <Label Text="* Required fields" FontSize="12" TextColor="Gray" Margin="0,10"/>
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

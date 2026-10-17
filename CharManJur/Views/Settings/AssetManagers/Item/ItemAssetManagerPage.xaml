@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:CharManJur.Converters"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.ItemAssetManagerPage"
+             Shell.NavBarIsVisible="False"
+             Title="Item Asset Manager">
+
+    <ContentPage.Resources>
+        <converters:LoadedButtonTextConverter x:Key="LoadedButtonTextConverter" />
+        <converters:PackIdToNameConverter x:Key="PackIdToNameConverter" />
+    </ContentPage.Resources>
+
+    <VerticalStackLayout Padding="0" Spacing="0">
+
+        <Label Text="Custom Items"
+               FontSize="32"
+               FontAttributes="Bold"
+               HorizontalOptions="Center"
+               Margin="0,15"/>
+
+        <Picker Title="Filter by Pack"
+        Margin="10,0"
+        ItemsSource="{Binding AvailablePacks}"
+        ItemDisplayBinding="{Binding Name}"
+        SelectedItem="{Binding SelectedPackFilter}"/>
+
+        <skin:SkinHost SkinKey="create" Margin="10,0"
+                       FallbackColor="{DynamicResource ThemeCreateButtonColor}">
+            <Button Text="+ Create New Item"
+                    TextColor="White"
+                    CornerRadius="8"
+                    HeightRequest="45"
+                    Command="{Binding CreateNewCommand}"/>
+        </skin:SkinHost>
+
+        <Label Text="Installed Custom Items" FontSize="20" FontAttributes="Bold" Margin="10,15,10,0"/>
+
+        <ScrollView HeightRequest="300">
+            <VerticalStackLayout Padding="10" Spacing="8" BindableLayout.ItemsSource="{Binding CustomItems}">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate>
+                        <skin:SkinPanel StrokeColor="{DynamicResource ThemeSectionBorderColor}"
+                                        StrokeThickness="1" CornerRadius="8" ContentPadding="10">
+                            <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="6" RowDefinitions="Auto,Auto">
+
+                                <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="4"
+                                       Text="{Binding Name}"
+                                       FontSize="18"
+                                       FontAttributes="Bold"/>
+
+                                <Label Grid.Row="1" Grid.Column="0"
+                                   FontSize="12"
+                                   TextColor="Gray"
+                                   VerticalTextAlignment="Center">
+                                    <Label.Text>
+                                        <MultiBinding Converter="{StaticResource PackIdToNameConverter}">
+                                            <Binding Path="SourcePackId" />
+                                            <Binding Source="{RelativeSource AncestorType={x:Type ContentPage}}" Path="BindingContext.AvailablePacks" />
+                                        </MultiBinding>
+                                    </Label.Text>
+                                </Label>
+
+                                <skin:SkinHost Grid.Row="1" Grid.Column="1" SkinKey="confirm"
+                                               FallbackColor="{DynamicResource ThemeConfirmButtonColor}">
+                                    <Button Text="{Binding IsLoaded, Converter={StaticResource LoadedButtonTextConverter}}"
+                                            FontSize="12"
+                                            TextColor="White"
+                                            CornerRadius="6"
+                                            HeightRequest="36"
+                                            Padding="14,0"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.ToggleLoadedCommand}"
+                                            CommandParameter="{Binding .}"/>
+                                </skin:SkinHost>
+
+                                <skin:SkinHost Grid.Row="1" Grid.Column="2" SkinKey="primary"
+                                               FallbackColor="{DynamicResource ThemePrimaryButtonColor}">
+                                    <Button Text="Edit"
+                                            FontSize="12"
+                                            TextColor="White"
+                                            CornerRadius="6"
+                                            HeightRequest="36"
+                                            Padding="14,0"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditCommand}"
+                                            CommandParameter="{Binding .}"/>
+                                </skin:SkinHost>
+
+                                <skin:SkinHost Grid.Row="1" Grid.Column="3" SkinKey="danger"
+                                               FallbackColor="{DynamicResource ThemeDangerButtonColor}">
+                                    <Button Text="Delete"
+                                            FontSize="12"
+                                            TextColor="White"
+                                            CornerRadius="6"
+                                            HeightRequest="36"
+                                            Padding="14,0"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteCommand}"
+                                            CommandParameter="{Binding .}"/>
+                                </skin:SkinHost>
+
+                            </Grid>
+                        </skin:SkinPanel>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <skin:SkinHost SkinKey="neutral" Margin="10"
+                       FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+            <Button Text="← Back"
+                    TextColor="White"
+                    CornerRadius="8"
+                    HeightRequest="45"
+                    Clicked="OnBackClicked"/>
+        </skin:SkinHost>
+
+    </VerticalStackLayout>
+</ContentPage>

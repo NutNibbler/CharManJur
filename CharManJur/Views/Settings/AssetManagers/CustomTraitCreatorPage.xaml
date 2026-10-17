@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.CustomTraitCreatorPage"
+             Shell.NavBarIsVisible="False"
+             Title="Create Custom Trait">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="12">
+
+            <Label Text="🐺 Create Custom Trait" FontSize="24" FontAttributes="Bold" HorizontalOptions="Center"/>
+
+            <Label Text="Name" FontAttributes="Bold"/>
+            <Entry x:Name="entryName" Placeholder="Trait name"/>
+
+            <Label Text="Polymorph Dice needed" FontAttributes="Bold"/>
+            <Picker x:Name="pickerPD" Title="Choose a PD list"/>
+
+            <Label Text="Effect" FontAttributes="Bold"/>
+            <Editor x:Name="editorEffect" Placeholder="What does this trait do?" HeightRequest="110" AutoSize="TextChanges"/>
+
+            <BoxView HeightRequest="1" Color="{DynamicResource ThemeDetailBorderColor1}"/>
+
+            <!-- ===== Form scores & armor ===== -->
+            <Label Text="Form scores &amp; armor (all optional)" FontAttributes="Bold"
+                   TextColor="{DynamicResource ThemeWarningButtonColor}"/>
+            <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
+                <VerticalStackLayout Grid.Column="0" Spacing="2">
+                    <Label Text="Form VIG (1-30)" FontSize="11" TextColor="Gray"/>
+                    <Entry x:Name="entryVigor" Keyboard="Numeric" Placeholder="blank = none"/>
+                </VerticalStackLayout>
+                <VerticalStackLayout Grid.Column="1" Spacing="2">
+                    <Label Text="Form AGI (1-30)" FontSize="11" TextColor="Gray"/>
+                    <Entry x:Name="entryAgility" Keyboard="Numeric" Placeholder="blank = none"/>
+                </VerticalStackLayout>
+                <VerticalStackLayout Grid.Column="2" Spacing="2">
+                    <Label Text="Armor (0-3)" FontSize="11" TextColor="Gray"/>
+                    <Entry x:Name="entryArmor" Keyboard="Numeric" Text="0"/>
+                </VerticalStackLayout>
+            </Grid>
+            <Label Text="If armor is above 0, this trait's name is shown as the armor's name."
+                   FontSize="10" TextColor="Gray"/>
+
+            <BoxView HeightRequest="1" Color="{DynamicResource ThemeDetailBorderColor1}"/>
+
+            <!-- ===== Natural weapon ===== -->
+            <Grid ColumnDefinitions="*, Auto">
+                <Label Grid.Column="0" Text="Natural weapon" FontAttributes="Bold"
+                       TextColor="{DynamicResource ThemeWarningButtonColor}" VerticalOptions="Center"/>
+                <Switch x:Name="switchWeapon" Grid.Column="1" Toggled="OnWeaponToggled"/>
+            </Grid>
+
+            <VerticalStackLayout x:Name="weaponSection" Spacing="8" IsVisible="False">
+                <Label Text="The weapon is named after this trait." FontSize="10" TextColor="Gray"/>
+
+                <Label Text="Damage die" FontSize="12"/>
+                <Picker x:Name="pickerDie" Title="Die"/>
+
+                <Label Text="Weapon type" FontSize="12"/>
+                <Picker x:Name="pickerType" Title="Type"/>
+
+                <Label Text="Element" FontSize="12"/>
+                <Picker x:Name="pickerElement" Title="Element"/>
+
+                <HorizontalStackLayout Spacing="6">
+                    <CheckBox x:Name="chkBlast"/>
+                    <Label Text="Blast (hits an area)" VerticalOptions="Center" FontSize="13"/>
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
+
+            <BoxView HeightRequest="1" Color="{DynamicResource ThemeDetailBorderColor1}"/>
+
+            <!-- ===== Form rules (guidelines: they warn, never block) ===== -->
+            <Label Text="Form rules" FontAttributes="Bold"
+                   TextColor="{DynamicResource ThemeWarningButtonColor}"/>
+            <HorizontalStackLayout Spacing="6">
+                <CheckBox x:Name="chkSmall"/>
+                <Label Text="Makes the form Small" VerticalOptions="Center" FontSize="13"/>
+            </HorizontalStackLayout>
+            <HorizontalStackLayout Spacing="6">
+                <CheckBox x:Name="chkLarge"/>
+                <Label Text="Makes the form Large" VerticalOptions="Center" FontSize="13"/>
+            </HorizontalStackLayout>
+            <HorizontalStackLayout Spacing="6">
+                <CheckBox x:Name="chkRequiresSmall"/>
+                <Label Text="Requires a Small form" VerticalOptions="Center" FontSize="13"/>
+            </HorizontalStackLayout>
+            <HorizontalStackLayout Spacing="6">
+                <CheckBox x:Name="chkForbidsLarge"/>
+                <Label Text="Not allowed on a Large form" VerticalOptions="Center" FontSize="13"/>
+            </HorizontalStackLayout>
+            <HorizontalStackLayout Spacing="6">
+                <CheckBox x:Name="chkPack"/>
+                <Label Text="Gives the form its own pack (capacity from equipped containers)" VerticalOptions="Center" FontSize="13"/>
+            </HorizontalStackLayout>
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,15,0,0">
+                <skin:SkinHost Grid.Column="0" SkinKey="neutral"
+                               FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                    <Button Text="Cancel"
+                            TextColor="White" CornerRadius="8" HeightRequest="45"
+                            Clicked="OnCancelClicked"/>
+                </skin:SkinHost>
+                <skin:SkinHost Grid.Column="1" SkinKey="create"
+                               FallbackColor="{DynamicResource ThemeCreateButtonColor}">
+                    <Button x:Name="btnSave"
+                            Text="Create Trait"
+                            TextColor="White" CornerRadius="8" HeightRequest="45"
+                            Clicked="OnSaveClicked"/>
+                </skin:SkinHost>
+            </Grid>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

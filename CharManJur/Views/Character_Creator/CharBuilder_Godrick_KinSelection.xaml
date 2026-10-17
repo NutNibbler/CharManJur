@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:CharManJur.Converters"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.CharBuilder_Godrick_KinSelection"
+             Shell.NavBarIsVisible="False"
+             Title="Character Builder: Kin Selection">
+
+    <ContentPage.Resources>
+        <converters:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+    </ContentPage.Resources>
+
+    <VerticalStackLayout>
+        <!--=====Builder Page Header=====-->
+        <Label Text="Character Build - Kin Selection"
+            FontSize="48"
+            FontAttributes="Bold"
+            HorizontalOptions="Center"/>
+
+        <!--=====Builder Kin Selection Body=====-->
+        <Grid ColumnDefinitions="250,*" RowDefinitions="*,120">
+            <skin:SkinPanel StrokeColor="{DynamicResource ThemeSectionBorderColor}"
+                            StrokeThickness="3" CornerRadius="8" ContentPadding="0">
+                <ScrollView>
+                    <CollectionView x:Name="RacesCollectionView" 
+                                    ItemsSource="{Binding Races}" 
+                                    SelectedItem="{Binding SelectedRace}" 
+                                    SelectionMode="Single">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="10,8" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="5">
+                                    <Label Grid.Column="0" Text="{Binding Name}" FontSize="16" FontAttributes="Bold" VerticalTextAlignment="Center"/>
+
+                                    <!-- Edit Button - Only visible for custom races (ID >= 90001) -->
+                                    <skin:SkinHost Grid.Column="1" SkinKey="generic_small"
+                                        FallbackColor="{DynamicResource ThemeDetailBorderColor1}">
+                                        <Button Text="✏️"
+                                            TextColor="White"
+                                            CornerRadius="15"
+                                            FontSize="12"
+                                            WidthRequest="35" HeightRequest="35" Padding="0"
+                                            IsVisible="{Binding Id, Converter={StaticResource IsCustomRaceConverter}}"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditCustomRaceCommand}"
+                                            CommandParameter="{Binding .}"/>
+                                    </skin:SkinHost>
+                                    <skin:SkinHost Grid.Column="2" SkinKey="generic_small"
+                                        FallbackColor="{DynamicResource ThemeDangerButtonColor}">
+                                        <Button Text="🗑️"
+                                            TextColor="White"
+                                            CornerRadius="15"
+                                            FontSize="12"
+                                            WidthRequest="35" HeightRequest="35" Padding="0"
+                                            IsVisible="{Binding Id, Converter={StaticResource IsCustomRaceConverter}}"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteCustomRaceCommand}"
+                                            CommandParameter="{Binding .}"/>
+                                    </skin:SkinHost>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </ScrollView>
+            </skin:SkinPanel>
+
+            <skin:SkinPanel Grid.Column="1"
+                            StrokeColor="{DynamicResource ThemeSectionBorderColor}"
+                            StrokeThickness="3" CornerRadius="8" ContentPadding="0">
+                <Grid ColumnDefinitions="*,*,*,*" RowDefinitions="50,50,*,Auto" RowSpacing="5">
+                    <!-- Race Name -->
+                    <Border Grid.Row="0" Grid.ColumnSpan="2" Stroke="{DynamicResource ThemeDetailBorderColor1}" StrokeThickness="2" StrokeShape="RoundRectangle 4" Margin="3">
+                        <Label Margin="3" Text="{Binding SelectedRaceName}" FontSize="30" FontAttributes="Bold" VerticalTextAlignment="Center"/>
+                    </Border>
+
+                    <!-- Race Description -->
+                    <Border Grid.Row="1" Grid.RowSpan="2" Grid.ColumnSpan="2" Stroke="{DynamicResource ThemeDetailBorderColor1}" StrokeThickness="2" StrokeShape="RoundRectangle 4" Margin="3">
+                        <ScrollView>
+                            <Label Margin="3" Text="{Binding SelectedRaceDescription}" FontSize="16" LineBreakMode="WordWrap" />
+                        </ScrollView>
+                    </Border>
+
+                    <!-- Feature Name -->
+                    <Border Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="2" Stroke="{DynamicResource ThemeDetailBorderColor2}" StrokeThickness="2" StrokeShape="RoundRectangle 4" Margin="3">
+                        <Grid ColumnDefinitions="95,*">
+                            <Label Margin="3" Text="Feature: " FontAttributes="Bold" FontSize="20" VerticalTextAlignment="Center"/>
+                            <Label Margin="3" Grid.Row="0" Grid.Column="3" Text="{Binding SelectedRaceFeatureName}" FontSize="20" VerticalTextAlignment="Center"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Feature Description -->
+                    <Border Grid.Row="1" Grid.RowSpan="2" Grid.ColumnSpan="2" Grid.Column="2" Stroke="{DynamicResource ThemeDetailBorderColor2}" StrokeThickness="2" StrokeShape="RoundRectangle 4" Margin="3">
+                        <ScrollView>
+                            <Label Margin="3" Text="{Binding SelectedRaceFeatureDescription}" FontSize="16" LineBreakMode="WordWrap"/>
+                        </ScrollView>
+                    </Border>
+
+                    <!-- ===== RACE BONUSES DISPLAY SECTION ===== -->
+                    <!-- The entire green panel only shows when there are bonuses -->
+                    <skin:SkinPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="4"
+                                    StrokeColor="Green" StrokeThickness="2" CornerRadius="8" ContentPadding="8"
+                                    IsVisible="{Binding HasAnyBonuses}">
+                        <VerticalStackLayout Spacing="4">
+                            <!-- Ability Score Bonuses (only shown if there are any) -->
+                            <Grid ColumnDefinitions="*, *, *, *" ColumnSpacing="8"
+                                  IsVisible="{Binding HasAbilityBonuses}">
+                                <Border Grid.Column="0" Stroke="{StaticResource VigorColor}" StrokeThickness="1" StrokeShape="RoundRectangle 4" Padding="4">
+                                    <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                                        <Label Text="Vigor" FontAttributes="Bold" FontSize="10" TextColor="{StaticResource VigorColor}" HorizontalOptions="Center"/>
+                                        <Label Text="{Binding SelectedRaceVigorBonus}" FontSize="14" HorizontalOptions="Center"/>
+                                    </VerticalStackLayout>
+                                </Border>
+                                <Border Grid.Column="1" Stroke="{StaticResource AgilityColor}" StrokeThickness="1" StrokeShape="RoundRectangle 4" Padding="4">
+                                    <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                                        <Label Text="Agility" FontAttributes="Bold" FontSize="10" TextColor="{StaticResource AgilityColor}" HorizontalOptions="Center"/>
+                                        <Label Text="{Binding SelectedRaceAgilityBonus}" FontSize="14" HorizontalOptions="Center"/>
+                                    </VerticalStackLayout>
+                                </Border>
+                                <Border Grid.Column="2" Stroke="{StaticResource MindColor}" StrokeThickness="1" StrokeShape="RoundRectangle 4" Padding="4">
+                                    <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                                        <Label Text="Mind" FontAttributes="Bold" FontSize="10" TextColor="{StaticResource MindColor}" HorizontalOptions="Center"/>
+                                        <Label Text="{Binding SelectedRaceMindBonus}" FontSize="14" HorizontalOptions="Center"/>
+                                    </VerticalStackLayout>
+                                </Border>
+                                <Border Grid.Column="3" Stroke="{StaticResource SpiritColor}" StrokeThickness="1" StrokeShape="RoundRectangle 4" Padding="4">
+                                    <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                                        <Label Text="Spirit" FontAttributes="Bold" FontSize="10" TextColor="{StaticResource SpiritColor}" HorizontalOptions="Center"/>
+                                        <Label Text="{Binding SelectedRaceSpiritBonus}" FontSize="14" HorizontalOptions="Center"/>
+                                    </VerticalStackLayout>
+                                </Border>
+                            </Grid>
+
+                            <!-- Skill Bonuses (only shown if there are any) -->
+                            <Border Stroke="#9b59b6" StrokeThickness="1" StrokeShape="RoundRectangle 4" Padding="4"
+                                    IsVisible="{Binding HasSkillBonuses}">
+                                <VerticalStackLayout Spacing="2">
+                                    <Label Text="Skill Bonuses" FontAttributes="Bold" FontSize="10" TextColor="#9b59b6"/>
+                                    <Label Text="{Binding SelectedRaceSkillBonuses}" FontSize="12"/>
+                                </VerticalStackLayout>
+                            </Border>
+                        </VerticalStackLayout>
+                    </skin:SkinPanel>
+
+                    <!-- Empty spacer row when no bonuses - takes up the same space as the bonus panel would -->
+                    <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="4" HeightRequest="0"
+                          IsVisible="{Binding HasAnyBonuses, Converter={StaticResource InvertedBoolConverter}}" />
+
+                </Grid>
+            </skin:SkinPanel>
+
+            <!-- =====Custom Race Interfaces=====-->
+            <Grid Grid.Row="1" Grid.ColumnSpan="2" ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowDefinitions="50" Padding="10" ColumnSpacing="3">
+                <skin:SkinHost Grid.Column="5" SkinKey="create" HeightRequest="50"
+                               FallbackColor="{DynamicResource ThemeCreateButtonColor}">
+                    <Button Text="➕ Create Custom Kin"
+                            TextColor="White"
+                            CornerRadius="10"
+                            Command="{Binding CreateCustomRaceCommand}"/>
+                </skin:SkinHost>
+                <!-- =====Interface Transition Buttons=====-->
+                <skin:SkinHost Grid.Column="0" SkinKey="confirm" HeightRequest="50"
+                               FallbackColor="{DynamicResource ThemeConfirmButtonColor}">
+                    <Button Text="Next:Class Selection"
+                            TextColor="White"
+                            CornerRadius="10"
+                            IsEnabled="{Binding HasSelectedRace}"
+                            Command="{Binding ConfirmRaceCommand}" />
+                </skin:SkinHost>
+                <skin:SkinHost Grid.Column="1" SkinKey="neutral" HeightRequest="50"
+                               FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                    <Button Text="← Back"
+                            TextColor="White"
+                            FontSize="16"
+                            CornerRadius="10"
+                            Clicked="OnBackClicked"/>
+                </skin:SkinHost>
+                <skin:SkinHost Grid.Column="2" SkinKey="danger" HeightRequest="50"
+                               FallbackColor="{DynamicResource ThemeDangerButtonColor}">
+                    <Button Text="Cancel"
+                            TextColor="White"
+                            FontSize="16"
+                            CornerRadius="10"
+                            Clicked="OnCancelClicked"/>
+                </skin:SkinHost>
+                <skin:SkinHost Grid.Column="4" SkinKey="summary" HeightRequest="50"
+                               FallbackColor="{DynamicResource ThemeSummaryButtonColor}">
+                    <Button Text="📋 Character Summary"
+                            TextColor="White"
+                            CornerRadius="10"
+                            Clicked="OnCharacterSummaryClicked" />
+                </skin:SkinHost>
+                <skin:SkinHost Grid.Column="3" SkinKey="warning" HeightRequest="50"
+                               FallbackColor="{DynamicResource ThemeWarningButtonColor}">
+                    <Button Text="💾 Save For Later"
+                            TextColor="White"
+                            FontSize="16"
+                            CornerRadius="10"
+                            Clicked="OnSaveForLaterClicked"/>
+                </skin:SkinHost>
+            </Grid>
+        </Grid>
+
+    </VerticalStackLayout>
+</ContentPage>

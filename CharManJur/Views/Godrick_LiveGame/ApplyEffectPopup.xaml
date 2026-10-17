@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.Godrick_LiveGame.ApplyEffectPopup"
+             Title="Apply Effect"
+             Shell.NavBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="12" MaximumWidthRequest="1000">
+
+            <Label x:Name="HeaderLabel"
+                   Text="✨ Apply Effect"
+                   FontSize="24"
+                   FontAttributes="Bold"
+                   TextColor="{DynamicResource ThemeDetailBorderColor1}"
+                   HorizontalOptions="Center" />
+            <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}" />
+
+            <Label Text="Effect Name" FontSize="13" TextColor="Gray" />
+            <Border Stroke="{DynamicResource ThemeDetailBorderColor2}" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
+                <Entry x:Name="NameEntry" Placeholder="e.g. Cursed, Blessed, Poisoned" PlaceholderColor="Gray" BackgroundColor="Transparent" />
+            </Border>
+
+            <Label Text="Duration" FontSize="13" TextColor="Gray" />
+            <HorizontalStackLayout Spacing="20">
+                <RadioButton x:Name="PersistentRadio" GroupName="Duration" Content="Persistent" IsChecked="True" CheckedChanged="OnDurationChanged" />
+                <RadioButton x:Name="OneShotRadio" GroupName="Duration" Content="One-Shot" CheckedChanged="OnDurationChanged" />
+            </HorizontalStackLayout>
+            <Label Text="Persistent effects stay on the character until manually cleared, and are the only kind that can modify a Max value. One-Shot effects apply once, immediately, to a Current value only, and are never stored."
+                   FontSize="11" TextColor="Gray" />
+
+            <Label Text="Target" FontSize="13" TextColor="Gray" />
+            <Border Stroke="{DynamicResource ThemeDetailBorderColor2}" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
+                <Picker x:Name="TargetPicker" BackgroundColor="Transparent" SelectedIndexChanged="OnTargetChanged" />
+            </Border>
+
+            <VerticalStackLayout x:Name="SkillPickerSection" Spacing="6" IsVisible="False">
+                <Label Text="Skill" FontSize="13" TextColor="Gray" />
+                <Border Stroke="{DynamicResource ThemeDetailBorderColor2}" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
+                    <Picker x:Name="SkillPicker" BackgroundColor="Transparent">
+                        <Picker.Items>
+                            <x:String>Athletics</x:String>
+                            <x:String>Acrobatics</x:String>
+                            <x:String>Aim</x:String>
+                            <x:String>Arcana</x:String>
+                            <x:String>Artifice</x:String>
+                            <x:String>Commune</x:String>
+                            <x:String>Constitution</x:String>
+                            <x:String>Deception</x:String>
+                            <x:String>Diplomacy</x:String>
+                            <x:String>Drive</x:String>
+                            <x:String>Grapple</x:String>
+                            <x:String>Heal</x:String>
+                            <x:String>Investigate</x:String>
+                            <x:String>Lore</x:String>
+                            <x:String>Sight</x:String>
+                            <x:String>Presence</x:String>
+                            <x:String>Ride</x:String>
+                            <x:String>Stealth</x:String>
+                            <x:String>Survival</x:String>
+                            <x:String>Thief</x:String>
+                        </Picker.Items>
+                    </Picker>
+                </Border>
+            </VerticalStackLayout>
+
+            <Label Text="Direction" FontSize="13" TextColor="Gray" />
+            <HorizontalStackLayout Spacing="20">
+                <RadioButton x:Name="BuffRadio" GroupName="Direction" Content="Buff (+)" IsChecked="True" />
+                <RadioButton x:Name="DebuffRadio" GroupName="Direction" Content="Debuff (-)" />
+            </HorizontalStackLayout>
+
+            <Label Text="Amount" FontSize="13" TextColor="Gray" />
+            <Border Stroke="{DynamicResource ThemeDetailBorderColor2}" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
+                <Entry x:Name="AmountEntry" Text="1" Keyboard="Numeric" BackgroundColor="Transparent" HorizontalTextAlignment="Center" />
+            </Border>
+
+            <Label Text="Note (optional — describe anything outside the app's scope)" FontSize="13" TextColor="Gray" />
+            <Border Stroke="{DynamicResource ThemeDetailBorderColor2}" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
+                <Editor x:Name="NoteEditor" HeightRequest="70" BackgroundColor="Transparent" />
+            </Border>
+
+            <Grid ColumnDefinitions="*, *" ColumnSpacing="10" Margin="0,10,0,0" MaximumWidthRequest="800">
+                <skin:SkinHost Grid.Column="0" SkinKey="confirm" FallbackColor="{DynamicResource ThemeConfirmButtonColor}">
+                    <Button x:Name="ApplyButton" Text="Apply" TextColor="White" CornerRadius="8" HeightRequest="45" Padding="14,0" Clicked="OnApplyClicked" />
+                </skin:SkinHost>
+                <skin:SkinHost Grid.Column="1" SkinKey="neutral" FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                    <Button Text="Cancel" TextColor="White" CornerRadius="8" HeightRequest="45" Padding="14,0" Clicked="OnCancelClicked" />
+                </skin:SkinHost>
+            </Grid>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

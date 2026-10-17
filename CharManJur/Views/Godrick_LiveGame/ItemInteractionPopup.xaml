@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
              x:Class="CharManJur.Views.Godrick_LiveGame.ItemInteractionPopup"
              Title="Item Actions"
-             Shell.NavBarIsVisible="False"
-             BackgroundColor="#1a1a2e">
+             Shell.NavBarIsVisible="False">
 
     <Grid Padding="20" RowDefinitions="Auto, *, Auto">
 
@@ -13,13 +13,12 @@
             <Label Text="Item Actions"
                    FontSize="24"
                    FontAttributes="Bold"
-                   TextColor="DeepSkyBlue"
+                   TextColor="{DynamicResource ThemeDetailBorderColor1}"
                    HorizontalOptions="Center" />
             <Label Text="{Binding ItemName}"
                    FontSize="18"
-                   TextColor="White"
                    HorizontalOptions="Center" />
-            <BoxView HeightRequest="2" Color="#3498db" />
+            <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}" />
         </VerticalStackLayout>
 
         <!-- Action Buttons -->
@@ -27,68 +26,93 @@
             <VerticalStackLayout Spacing="10">
 
                 <!-- Equip to Hand -->
-                <Button Text="🖐️ Equip to Hand"
-                        BackgroundColor="#3498db"
-                        TextColor="White"
-                        CornerRadius="8"
-                        HeightRequest="45"
-                        IsVisible="{Binding CanEquipHand}"
-                        Command="{Binding EquipHandCommand}" />
+                <skin:SkinHost SkinKey="primary"
+                               FallbackColor="{DynamicResource ThemePrimaryButtonColor}"
+                               IsVisible="{Binding CanEquipHand}">
+                    <Button Text="🖐️ Equip to Hand"
+                            TextColor="White"
+                            CornerRadius="8"
+                            HeightRequest="45"
+                            Padding="14,0"
+                            IsVisible="{Binding CanEquipHand}"
+                            Command="{Binding EquipHandCommand}" />
+                </skin:SkinHost>
 
                 <!-- Equip to Belt -->
-                <Button Text="🪢 Equip to Belt"
-                        BackgroundColor="#f39c12"
-                        TextColor="White"
-                        CornerRadius="8"
-                        HeightRequest="45"
-                        IsVisible="{Binding CanEquipBelt}"
-                        Command="{Binding EquipBeltCommand}" />
+                <skin:SkinHost SkinKey="warning"
+                               FallbackColor="{DynamicResource ThemeWarningButtonColor}"
+                               IsVisible="{Binding CanEquipBelt}">
+                    <Button Text="🪢 Equip to Belt"
+                            TextColor="White"
+                            CornerRadius="8"
+                            HeightRequest="45"
+                            Padding="14,0"
+                            IsVisible="{Binding CanEquipBelt}"
+                            Command="{Binding EquipBeltCommand}" />
+                </skin:SkinHost>
 
                 <!-- Equip as Armor -->
-                <Button Text="🛡️ Equip as Armor"
-                        BackgroundColor="#2ecc71"
-                        TextColor="White"
-                        CornerRadius="8"
-                        HeightRequest="45"
-                        IsVisible="{Binding CanEquipArmor}"
-                        Command="{Binding EquipArmorCommand}" />
+                <skin:SkinHost SkinKey="confirm"
+                               FallbackColor="{DynamicResource ThemeConfirmButtonColor}"
+                               IsVisible="{Binding CanEquipArmor}">
+                    <Button Text="🛡️ Equip as Armor"
+                            TextColor="White"
+                            CornerRadius="8"
+                            HeightRequest="45"
+                            Padding="14,0"
+                            IsVisible="{Binding CanEquipArmor}"
+                            Command="{Binding EquipArmorCommand}" />
+                </skin:SkinHost>
 
                 <!-- Unequip -->
-                <Button Text="↩️ Unequip"
-                        BackgroundColor="#e67e22"
-                        TextColor="White"
-                        CornerRadius="8"
-                        HeightRequest="45"
-                        IsVisible="{Binding IsEquipped}"
-                        Command="{Binding UnequipCommand}" />
+                <skin:SkinHost SkinKey="warning"
+                               FallbackColor="{DynamicResource ThemeWarningButtonColor}"
+                               IsVisible="{Binding IsEquipped}">
+                    <Button Text="↩️ Unequip"
+                            TextColor="White"
+                            CornerRadius="8"
+                            HeightRequest="45"
+                            Padding="14,0"
+                            IsVisible="{Binding IsEquipped}"
+                            Command="{Binding UnequipCommand}" />
+                </skin:SkinHost>
 
                 <!-- Drop -->
-                <Button Text="🗑️ Drop Item"
-                        BackgroundColor="#e74c3c"
-                        TextColor="White"
-                        CornerRadius="8"
-                        HeightRequest="45"
-                        Command="{Binding DropCommand}" />
+                <skin:SkinHost SkinKey="danger"
+                               FallbackColor="{DynamicResource ThemeDangerButtonColor}">
+                    <Button Text="🗑️ Drop Item"
+                            TextColor="White"
+                            CornerRadius="8"
+                            HeightRequest="45"
+                            Padding="14,0"
+                            Command="{Binding DropCommand}" />
+                </skin:SkinHost>
 
                 <!-- Transfer (Future) -->
-                <Button Text="📤 Transfer to Player"
-                        BackgroundColor="#9b59b6"
-                        TextColor="White"
-                        CornerRadius="8"
-                        HeightRequest="45"
-                        Command="{Binding TransferCommand}" />
+                <skin:SkinHost SkinKey="summary"
+                               FallbackColor="{DynamicResource ThemeSummaryButtonColor}">
+                    <Button Text="📤 Transfer to Player"
+                            TextColor="White"
+                            CornerRadius="8"
+                            HeightRequest="45"
+                            Padding="14,0"
+                            Command="{Binding TransferCommand}" />
+                </skin:SkinHost>
 
             </VerticalStackLayout>
         </ScrollView>
 
         <!-- Cancel Button -->
-        <Button Grid.Row="2"
-                Text="Cancel"
-                BackgroundColor="#95a5a6"
-                TextColor="White"
-                CornerRadius="8"
-                HeightRequest="45"
-                Command="{Binding CancelCommand}" />
+        <skin:SkinHost Grid.Row="2"
+                       SkinKey="neutral"
+                       FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+            <Button Text="Cancel"
+                    TextColor="White"
+                    CornerRadius="8"
+                    HeightRequest="45"
+                    Padding="14,0"
+                    Command="{Binding CancelCommand}" />
+        </skin:SkinHost>
 
     </Grid>
 </ContentPage>

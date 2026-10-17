@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.Godrick_LiveGame.Controls.FamiliarPanelView">
+
+    <ContentView.Resources>
+        <!-- Size and look live on the Button; the host supplies the skin art -->
+        <Style x:Key="StepButton" TargetType="Button">
+            <Setter Property="WidthRequest" Value="34" />
+            <Setter Property="HeightRequest" Value="28" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="TextColor" Value="White" />
+        </Style>
+        <Style x:Key="StepHostStyle" TargetType="skin:SkinHost">
+            <Setter Property="SkinKey" Value="generic_small" />
+            <Setter Property="FallbackColor" Value="{DynamicResource ThemeNeutralButtonColor}" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+    </ContentView.Resources>
+
+    <Grid RowDefinitions="Auto, *, Auto" RowSpacing="8" MaximumWidthRequest="1000">
+
+        <!-- Row 0: familiar picker (only when more than one) -->
+        <Picker Grid.Row="0"
+                Title="Choose familiar or construct"
+                ItemsSource="{Binding Familiars}"
+                ItemDisplayBinding="{Binding DisplayName}"
+                SelectedItem="{Binding SelectedFamiliar, Mode=TwoWay}"
+                IsVisible="{Binding HasMultiple}"
+                BackgroundColor="{DynamicResource ThemePanelBackgroundColor}"
+                TitleColor="Gray" />
+
+        <!-- Row 1: details -->
+        <ScrollView Grid.Row="1" IsVisible="{Binding HasFamiliar}" Padding="15">
+            <VerticalStackLayout Spacing="8">
+
+                <!-- Name + mini dashboard + buttons -->
+                <Grid ColumnDefinitions="*, Auto, Auto, Auto" ColumnSpacing="8">
+                    <VerticalStackLayout Grid.Column="0" Spacing="0" VerticalOptions="Center">
+                        <Label Text="{Binding Name}" FontSize="20" FontAttributes="Bold" />
+                        <Label Text="{Binding Subtitle}" FontSize="12" TextColor="Gray" />
+                        <Label Text="{Binding Description}" FontSize="12" TextColor="Gray"
+                               IsVisible="{Binding HasDescription}" Margin="0,4,0,0" />
+                    </VerticalStackLayout>
+
+                    <!-- Pack capacity -->
+                    <Border Grid.Column="1" StrokeShape="RoundRectangle 6" StrokeThickness="1"
+                            Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                            BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}"
+                            Padding="12,6" MinimumWidthRequest="90" VerticalOptions="Center">
+                        <VerticalStackLayout Spacing="0" HorizontalOptions="Center">
+                            <Label Text="🎒 PACK" FontSize="10" TextColor="Gray" HorizontalOptions="Center" />
+                            <Label Text="{Binding PackHeadline}" FontSize="18" FontAttributes="Bold"
+                                   TextColor="{Binding PackHeadlineColor}" HorizontalOptions="Center" />
+                            <Label Text="used / available" FontSize="9" TextColor="Gray"
+                                   HorizontalOptions="Center" IsVisible="{Binding HasInventory}" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Natural weapon -->
+                    <Border Grid.Column="2" IsVisible="{Binding ShowLifeStats}"
+                            Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                            BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}"
+                            Padding="12,6" MinimumWidthRequest="150" MaximumWidthRequest="260"
+                            VerticalOptions="Center">
+                        <VerticalStackLayout Spacing="0">
+                            <Label Text="⚔ NATURAL WEAPON" FontSize="10" TextColor="Gray" />
+                            <Label Text="{Binding WeaponSummary}" FontSize="14" FontAttributes="Bold"
+                                   TextColor="{DynamicResource ThemeWarningButtonColor}" MaxLines="2" LineBreakMode="WordWrap" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <VerticalStackLayout Grid.Column="3" Spacing="4" VerticalOptions="Center"
+                                         IsVisible="{Binding CanRenameOrRemove}">
+                        <skin:SkinHost SkinKey="neutral" FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                            <Button Text="✏️ Name" FontSize="11" HeightRequest="32" Padding="10,0"
+                                    CornerRadius="6" TextColor="White"
+                                    Command="{Binding RenameCommand}" />
+                        </skin:SkinHost>
+                        <skin:SkinHost SkinKey="danger" FallbackColor="{DynamicResource ThemeDangerButtonColor}">
+                            <Button Text="🗑️ Remove" FontSize="11" HeightRequest="32" Padding="10,0"
+                                    CornerRadius="6" TextColor="White"
+                                    Command="{Binding RemoveCommand}" />
+                        </skin:SkinHost>
+                    </VerticalStackLayout>
+                </Grid>
+
+                <!-- Dead banner -->
+                <Border StrokeShape="RoundRectangle 6" StrokeThickness="1"
+                        Stroke="{DynamicResource ThemeDangerButtonColor}"
+                        BackgroundColor="#33e74c3c" Padding="8" IsVisible="{Binding IsDead}">
+                    <Label Text="☠ DEAD — Vigor reached 0. Take what you need from its pack, then remove it."
+                           FontSize="12" FontAttributes="Bold" TextColor="{DynamicResource ThemeDangerButtonColor}" />
+                </Border>
+
+                <!-- Ability scores -->
+                <Grid ColumnDefinitions="*, *, *, *" ColumnSpacing="6" IsVisible="{Binding ShowLifeStats}">
+                    <Border Grid.Column="0" StrokeShape="RoundRectangle 6" StrokeThickness="1"
+                            Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                            BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}" Padding="6">
+                        <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
+                            <Label Text="VIG" FontSize="10" TextColor="Gray" HorizontalOptions="Center" />
+                            <Label Text="{Binding VigorDisplay}" FontSize="15" FontAttributes="Bold" HorizontalOptions="Center" />
+                            <HorizontalStackLayout HorizontalOptions="Center" Spacing="4">
+                                <skin:SkinHost Style="{StaticResource StepHostStyle}">
+                                    <Button Text="−" Style="{StaticResource StepButton}" IsEnabled="{Binding IsAlive}"
+                                            Command="{Binding StatDownCommand}" CommandParameter="Vigor" />
+                                </skin:SkinHost>
+                                <skin:SkinHost Style="{StaticResource StepHostStyle}">
+                                    <Button Text="+" Style="{StaticResource StepButton}" IsEnabled="{Binding IsAlive}"
+                                            Command="{Binding StatUpCommand}" CommandParameter="Vigor" />
+                                </skin:SkinHost>
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Column="1" StrokeShape="RoundRectangle 6" StrokeThickness="1"
+                            Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                            BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}" Padding="6">
+                        <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
+                            <Label Text="AGI" FontSize="10" TextColor="Gray" HorizontalOptions="Center" />
+                            <Label Text="{Binding AgilityDisplay}" FontSize="15" FontAttributes="Bold" HorizontalOptions="Center" />
+                            <HorizontalStackLayout HorizontalOptions="Center" Spacing="4">
+                                <skin:SkinHost Style="{StaticResource StepHostStyle}">
+                                    <Button Text="−" Style="{StaticResource StepButton}" IsEnabled="{Binding IsAlive}"
+                                            Command="{Binding StatDownCommand}" CommandParameter="Agility" />
+                                </skin:SkinHost>
+                                <skin:SkinHost Style="{StaticResource StepHostStyle}">
+                                    <Button Text="+" Style="{StaticResource StepButton}" IsEnabled="{Binding IsAlive}"
+                                            Command="{Binding StatUpCommand}" CommandParameter="Agility" />
+                                </skin:SkinHost>
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Column="2" StrokeShape="RoundRectangle 6" StrokeThickness="1"
+                            Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                            BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}" Padding="6">
+                        <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
+                            <Label Text="MND" FontSize="10" TextColor="Gray" HorizontalOptions="Center" />
+                            <Label Text="{Binding MindDisplay}" FontSize="15" FontAttributes="Bold" HorizontalOptions="Center" />
+                            <HorizontalStackLayout HorizontalOptions="Center" Spacing="4">
+                                <skin:SkinHost Style="{StaticResource StepHostStyle}">
+                                    <Button Text="−" Style="{StaticResource StepButton}" IsEnabled="{Binding IsAlive}"
+                                            Command="{Binding StatDownCommand}" CommandParameter="Mind" />
+                                </skin:SkinHost>
+                                <skin:SkinHost Style="{StaticResource StepHostStyle}">
+                                    <Button Text="+" Style="{StaticResource StepButton}" IsEnabled="{Binding IsAlive}"
+                                            Command="{Binding StatUpCommand}" CommandParameter="Mind" />
+                                </skin:SkinHost>
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Column="3" StrokeShape="RoundRectangle 6" StrokeThickness="1"
+                            Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                            BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}" Padding="6">
+                        <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
+                            <Label Text="SPI" FontSize="10" TextColor="Gray" HorizontalOptions="Center" />
+                            <Label Text="{Binding SpiritDisplay}" FontSize="15" FontAttributes="Bold" HorizontalOptions="Center" />
+                            <HorizontalStackLayout HorizontalOptions="Center" Spacing="4">
+                                <skin:SkinHost Style="{StaticResource StepHostStyle}">
+                                    <Button Text="−" Style="{StaticResource StepButton}" IsEnabled="{Binding IsAlive}"
+                                            Command="{Binding StatDownCommand}" CommandParameter="Spirit" />
+                                </skin:SkinHost>
+                                <skin:SkinHost Style="{StaticResource StepHostStyle}">
+                                    <Button Text="+" Style="{StaticResource StepButton}" IsEnabled="{Binding IsAlive}"
+                                            Command="{Binding StatUpCommand}" CommandParameter="Spirit" />
+                                </skin:SkinHost>
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+
+                <!-- HP and fatigue -->
+                <Grid ColumnDefinitions="*, *" ColumnSpacing="8" IsVisible="{Binding ShowLifeStats}">
+                    <Border Grid.Column="0" StrokeShape="RoundRectangle 6" StrokeThickness="1"
+                            Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                            BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}" Padding="8">
+                        <Grid ColumnDefinitions="*, Auto, Auto" ColumnSpacing="4">
+                            <VerticalStackLayout Grid.Column="0">
+                                <Label Text="Hit Protection" FontSize="10" TextColor="Gray" />
+                                <Label Text="{Binding HpDisplay}" FontSize="18" FontAttributes="Bold" />
+                            </VerticalStackLayout>
+                            <skin:SkinHost Grid.Column="1" Style="{StaticResource StepHostStyle}">
+                                <Button Text="−" Style="{StaticResource StepButton}" HeightRequest="34"
+                                        IsEnabled="{Binding IsAlive}" Command="{Binding HpDownCommand}" />
+                            </skin:SkinHost>
+                            <skin:SkinHost Grid.Column="2" Style="{StaticResource StepHostStyle}">
+                                <Button Text="+" Style="{StaticResource StepButton}" HeightRequest="34"
+                                        IsEnabled="{Binding IsAlive}" Command="{Binding HpUpCommand}" />
+                            </skin:SkinHost>
+                        </Grid>
+                    </Border>
+                    <Border Grid.Column="1" StrokeShape="RoundRectangle 6" StrokeThickness="1"
+                            Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                            BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}" Padding="8">
+                        <Grid ColumnDefinitions="*, Auto, Auto" ColumnSpacing="4">
+                            <VerticalStackLayout Grid.Column="0">
+                                <Label Text="Fatigue" FontSize="10" TextColor="Gray" />
+                                <Label Text="{Binding FatigueDisplay}" FontSize="18" FontAttributes="Bold" />
+                                <Label Text="{Binding FatigueOverflowText}" FontSize="10"
+                                       TextColor="{DynamicResource ThemeDangerButtonColor}"
+                                       IsVisible="{Binding HasFatigueOverflow}" />
+                            </VerticalStackLayout>
+                            <skin:SkinHost Grid.Column="1" Style="{StaticResource StepHostStyle}">
+                                <Button Text="−" Style="{StaticResource StepButton}" HeightRequest="34"
+                                        IsEnabled="{Binding IsAlive}" Command="{Binding RemoveFatigueCommand}" />
+                            </skin:SkinHost>
+                            <skin:SkinHost Grid.Column="2" Style="{StaticResource StepHostStyle}">
+                                <Button Text="+" Style="{StaticResource StepButton}" HeightRequest="34"
+                                        IsEnabled="{Binding IsAlive}" Command="{Binding AddFatigueCommand}" />
+                            </skin:SkinHost>
+                        </Grid>
+                    </Border>
+                </Grid>
+
+                <skin:SkinHost SkinKey="neutral" FallbackColor="{DynamicResource ThemeNeutralButtonColor}" IsVisible="{Binding ShowLifeStats}">
+                    <Button Text="↺ Restore Stats" FontSize="11" HeightRequest="30" Padding="14,0" CornerRadius="6"
+                        TextColor="White"
+                        IsVisible="{Binding ShowLifeStats}"
+                        IsEnabled="{Binding IsAlive}" Command="{Binding RestoreAllCommand}" />
+                </skin:SkinHost>
+
+                <!-- Abilities -->
+                <Border StrokeShape="RoundRectangle 6" StrokeThickness="1" IsVisible="{Binding ShowLifeStats}"
+                        Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                        BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}" Padding="8">
+                    <VerticalStackLayout>
+                        <Label Text="Abilities" FontSize="10" TextColor="Gray" />
+                        <Label Text="{Binding AbilitiesText}" FontSize="12" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Pack -->
+                <Border StrokeShape="RoundRectangle 6" StrokeThickness="1"
+                        Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                        BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}" Padding="8">
+                    <VerticalStackLayout Spacing="4">
+                        <Grid ColumnDefinitions="*, Auto, Auto" ColumnSpacing="8" IsVisible="{Binding HasInventory}">
+                            <Label Grid.Column="0" Text="🎒 Pack" FontSize="12" FontAttributes="Bold" />
+                            <Border Grid.Column="1" StrokeShape="RoundRectangle 8"
+                                    Stroke="{DynamicResource ThemeDangerButtonColor}" StrokeThickness="1"
+                                    Padding="6,1" BackgroundColor="#33e74c3c" IsVisible="{Binding IsEncumbered}">
+                                <Label Text="ENCUMBERED" FontSize="8" FontAttributes="Bold"
+                                       TextColor="{DynamicResource ThemeDangerButtonColor}" />
+                            </Border>
+                            <Label Grid.Column="2" Text="{Binding PackDisplay}" FontSize="12" TextColor="Gray" />
+                        </Grid>
+
+                        <Label Text="Equip a container to carry items." FontSize="12" TextColor="Gray"
+                               IsVisible="{Binding ShowNoInventory}" />
+
+                        <VerticalStackLayout Spacing="3" BindableLayout.ItemsSource="{Binding PackItems}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="*, Auto, Auto, Auto, Auto, Auto" ColumnSpacing="6">
+                                        <Label Grid.Column="0" Text="{Binding Name}" FontSize="12"
+                                               LineBreakMode="TailTruncation" VerticalOptions="Center" />
+                                        <Label Grid.Column="1" Text="{Binding UsesText}" FontSize="9"
+                                               TextColor="{DynamicResource ThemeDetailBorderColor1}"
+                                               VerticalOptions="Center" IsVisible="{Binding HasUses}" />
+                                        <Label Grid.Column="2" Text="{Binding SizeLabel}" FontSize="9"
+                                               TextColor="{DynamicResource ThemeWarningButtonColor}"
+                                               VerticalOptions="Center" IsVisible="{Binding HasSizeLabel}" />
+                                        <Label Grid.Column="3" Text="{Binding QuantityText}" FontSize="12" TextColor="Gray"
+                                               VerticalOptions="Center" IsVisible="{Binding ShowQuantity}" />
+                                        <skin:SkinHost Grid.Column="4"
+                                                       SkinKey="primary"
+                                                       FallbackColor="{DynamicResource ThemePrimaryButtonColor}"
+                                                       VerticalOptions="Center"
+                                                       IsVisible="{Binding CanEquip}">
+                                            <Button Text="{Binding EquipText}"
+                                                    Command="{Binding EquipCommand}"
+                                                    IsVisible="{Binding CanEquip}"
+                                                    FontSize="11" Padding="8,0" HeightRequest="28"
+                                                    TextColor="White" CornerRadius="6" />
+                                        </skin:SkinHost>
+                                        <skin:SkinHost Grid.Column="5"
+                                                       SkinKey="primary"
+                                                       FallbackColor="{DynamicResource ThemePrimaryButtonColor}"
+                                                       VerticalOptions="Center">
+                                            <Button Text="Take" FontSize="10" HeightRequest="26"
+                                                    Padding="8,0" CornerRadius="4"
+                                                    TextColor="White"
+                                                    Command="{Binding TakeCommand}" />
+                                        </skin:SkinHost>
+                                    </Grid>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Empty state -->
+        <Label Grid.Row="1" Text="Nothing here yet. Use Bestow to add a familiar or construct, or craft a construct in the Crafting panel."
+               FontSize="13" TextColor="Gray" HorizontalOptions="Center" VerticalOptions="Center"
+               HorizontalTextAlignment="Center" IsVisible="{Binding HasNoFamiliar}" />
+
+        <!-- Row 2: bestow -->
+        <skin:SkinHost Grid.Row="2" SkinKey="confirm" FallbackColor="{DynamicResource ThemeConfirmButtonColor}" MaximumWidthRequest="500">
+            <Button Text="Bestow Familiar / Construct"
+                    TextColor="White"
+                    CornerRadius="6" HeightRequest="38" Padding="14,0" FontSize="12"
+                    Command="{Binding BestowFamiliarCommand}" />
+        </skin:SkinHost>
+    </Grid>
+</ContentView>

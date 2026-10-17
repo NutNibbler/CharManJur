@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.Godrick_LiveGame.Controls.StartingUsesView">
+
+    <FlexLayout Wrap="Wrap" Direction="Row" AlignItems="Center" JustifyContent="Center">
+
+        <Label Text="Starting uses"
+               FontSize="13"
+               FontAttributes="Bold"
+               VerticalOptions="Center"
+               Margin="0,0,8,4" />
+
+        <skin:SkinHost SkinKey="generic_small"
+                       FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
+                       VerticalOptions="Center"
+                       Margin="0,0,6,4">
+            <Button Text="−"
+                    TextColor="White"
+                    CornerRadius="6"
+                    WidthRequest="34"
+                    HeightRequest="34"
+                    Padding="0"
+                    FontSize="16"
+                    Clicked="OnDownClicked" />
+        </skin:SkinHost>
+
+        <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 6"
+                BackgroundColor="{DynamicResource ThemePanelBackgroundColor}"
+                WidthRequest="70"
+                HeightRequest="34"
+                VerticalOptions="Center"
+                Margin="0,0,6,4">
+            <Entry x:Name="UsesEntry"
+                   Keyboard="Numeric"
+                   BackgroundColor="Transparent"
+                   HorizontalTextAlignment="Center"
+                   VerticalOptions="Center"
+                   TextChanged="OnEntryTextChanged" />
+        </Border>
+
+        <skin:SkinHost SkinKey="generic_small"
+                       FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
+                       VerticalOptions="Center"
+                       Margin="0,0,6,4">
+            <Button Text="+"
+                    TextColor="White"
+                    CornerRadius="6"
+                    WidthRequest="34"
+                    HeightRequest="34"
+                    Padding="0"
+                    FontSize="16"
+                    Clicked="OnUpClicked" />
+        </skin:SkinHost>
+
+        <Label x:Name="MaxLabel"
+               FontSize="12"
+               TextColor="Gray"
+               VerticalOptions="Center"
+               Margin="0,0,10,4" />
+
+        <skin:SkinHost SkinKey="neutral"
+                       FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
+                       VerticalOptions="Center"
+                       Margin="0,0,6,4">
+            <Button Text="Empty"
+                    TextColor="White"
+                    CornerRadius="6"
+                    WidthRequest="64"
+                    HeightRequest="34"
+                    Padding="0"
+                    FontSize="11"
+                    Clicked="OnEmptyClicked" />
+        </skin:SkinHost>
+
+        <skin:SkinHost SkinKey="neutral"
+                       FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
+                       VerticalOptions="Center"
+                       Margin="0,0,6,4">
+            <Button Text="Full"
+                    TextColor="White"
+                    CornerRadius="6"
+                    WidthRequest="64"
+                    HeightRequest="34"
+                    Padding="0"
+                    FontSize="11"
+                    Clicked="OnFullClicked" />
+        </skin:SkinHost>
+    </FlexLayout>
+</ContentView>

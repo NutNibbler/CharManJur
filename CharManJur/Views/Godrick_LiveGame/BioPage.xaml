@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.Godrick_LiveGame.BioPage"
+             Title="Character Bio"
+             Shell.NavBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="14">
+
+            <Label Text="📖 Character Bio"
+                   FontSize="24"
+                   FontAttributes="Bold"
+                   TextColor="{DynamicResource ThemeDetailBorderColor1}"
+                   HorizontalOptions="Center" />
+            <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}" />
+
+            <!-- Identity -->
+            <skin:SkinPanel StrokeColor="{DynamicResource ThemeSectionBorderColor}" StrokeThickness="1" CornerRadius="8" ContentPadding="12" MaximumWidthRequest="600">
+                <VerticalStackLayout Spacing="4">
+                    <Label x:Name="CharacterNameLabel" FontSize="20" FontAttributes="Bold" />
+                    <Label x:Name="PlayerNameLabel" FontSize="13" TextColor="Gray" />
+                </VerticalStackLayout>
+            </skin:SkinPanel>
+
+            <!-- Race -->
+            <skin:SkinPanel StrokeColor="{DynamicResource ThemeSectionBorderColor}" StrokeThickness="1" CornerRadius="8" ContentPadding="12" MaximumWidthRequest="600">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Race" FontSize="12" TextColor="Gray" />
+                    <Label x:Name="RaceNameLabel" FontSize="16" FontAttributes="Bold" />
+                    <BoxView HeightRequest="1" Color="{DynamicResource ThemeDetailBorderColor1}" Margin="0,4" />
+                    <Label x:Name="RaceFeatureNameLabel" FontSize="13" FontAttributes="Bold" TextColor="{DynamicResource ThemeWarningButtonColor}" />
+                    <Label x:Name="RaceFeatureDescriptionLabel" FontSize="12" TextColor="Gray" />
+                </VerticalStackLayout>
+            </skin:SkinPanel>
+
+            <!-- Original Class -->
+            <skin:SkinPanel StrokeColor="{DynamicResource ThemeSectionBorderColor}" StrokeThickness="1" CornerRadius="8" ContentPadding="12" MaximumWidthRequest="600">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Original Class" FontSize="12" TextColor="Gray" />
+                    <Label x:Name="ClassNameLabel" FontSize="16" FontAttributes="Bold" />
+                </VerticalStackLayout>
+            </skin:SkinPanel>
+
+            <!-- Background -->
+            <skin:SkinPanel StrokeColor="{DynamicResource ThemeSectionBorderColor}" StrokeThickness="1" CornerRadius="8" ContentPadding="12" MaximumWidthRequest="600">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Background" FontSize="12" TextColor="Gray" />
+                    <Label x:Name="BackgroundNameLabel" FontSize="16" FontAttributes="Bold" />
+                    <Label x:Name="BackgroundDescriptionLabel" FontSize="12" TextColor="Gray" />
+                </VerticalStackLayout>
+            </skin:SkinPanel>
+
+            <!-- Hinderance -->
+            <skin:SkinPanel StrokeColor="{DynamicResource ThemeSectionBorderColor}" StrokeThickness="1" CornerRadius="8" ContentPadding="12" MaximumWidthRequest="600">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Hinderance" FontSize="12" TextColor="Gray" />
+                    <Label x:Name="HinderanceNameLabel" FontSize="16" FontAttributes="Bold" />
+                    <Label x:Name="HinderanceDescriptionLabel" FontSize="12" TextColor="Gray" />
+                    <Label x:Name="HinderanceRewardLabel" FontSize="12" TextColor="{DynamicResource ThemeWarningButtonColor}" IsVisible="False" />
+                </VerticalStackLayout>
+            </skin:SkinPanel>
+
+            <!-- Languages -->
+            <skin:SkinPanel StrokeColor="{DynamicResource ThemeSectionBorderColor}" StrokeThickness="1" CornerRadius="8" ContentPadding="12" MaximumWidthRequest="600">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Known Languages" FontSize="12" TextColor="Gray" />
+                    <VerticalStackLayout x:Name="LanguagesContainer" Spacing="4" />
+                </VerticalStackLayout>
+            </skin:SkinPanel>
+
+            <!-- Ability Scores + Skills -->
+            <skin:SkinPanel StrokeColor="{DynamicResource ThemeSectionBorderColor}" StrokeThickness="1" CornerRadius="8" ContentPadding="12" MaximumWidthRequest="400">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Ability Scores &amp; Skills" FontSize="12" TextColor="Gray" />
+                    <VerticalStackLayout x:Name="StatsSkillsContainer" Spacing="12" />
+                </VerticalStackLayout>
+            </skin:SkinPanel>
+
+            <!-- Character Story -->
+            <skin:SkinPanel StrokeColor="{DynamicResource ThemeSectionBorderColor}" StrokeThickness="1" CornerRadius="8" ContentPadding="12" MaximumWidthRequest="800">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Character Story" FontSize="12" TextColor="Gray" />
+                    <Border Stroke="{DynamicResource ThemeDetailBorderColor2}" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
+                        <Editor x:Name="StoryEditor"
+                                Placeholder="Write your character's story..."
+                                PlaceholderColor="Gray"
+                                BackgroundColor="Transparent"
+                                AutoSize="TextChanges"
+                                MinimumHeightRequest="150"
+                                TextChanged="OnStoryTextChanged" />
+                    </Border>
+                    <skin:SkinHost SkinKey="confirm"
+                                   FallbackColor="{DynamicResource ThemeConfirmButtonColor}"
+                                   HorizontalOptions="End">
+                        <Button Text="💾 Save Story"
+                                TextColor="White"
+                                CornerRadius="6"
+                                HeightRequest="40"
+                                WidthRequest="150"
+                                Padding="14,0"
+                                Clicked="OnSaveStoryClicked" />
+                    </skin:SkinHost>
+                </VerticalStackLayout>
+            </skin:SkinPanel>
+
+            <skin:SkinHost SkinKey="neutral" MaximumWidthRequest="400"
+                           FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
+                           Margin="0,5,0,0">
+                <Button Text="Close"
+                        TextColor="White"
+                        CornerRadius="8"
+                        HeightRequest="45"
+                        Padding="14,0"
+                        Clicked="OnCloseClicked" />
+            </skin:SkinHost>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

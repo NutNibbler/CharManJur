@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.Godrick_LiveGame.BeltSlotSwapPopup"
+             Title="Belt Full"
+             Shell.NavBarIsVisible="False">
+
+    <VerticalStackLayout Padding="20" Spacing="12" VerticalOptions="Center">
+
+        <Label Text="🪢 Belt is Full" FontSize="22" FontAttributes="Bold" TextColor="{DynamicResource ThemeDetailBorderColor1}" HorizontalOptions="Center" />
+        <Label x:Name="InstructionLabel" FontSize="13" TextColor="Gray" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+        <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}" />
+
+        <VerticalStackLayout x:Name="OptionsContainer" Spacing="8" />
+
+        <Label x:Name="ErrorLabel" FontSize="12" TextColor="{DynamicResource ThemeDangerButtonColor}" HorizontalOptions="Center" IsVisible="False" />
+
+        <Grid ColumnDefinitions="*, *" ColumnSpacing="10" Margin="0,10,0,0">
+            <skin:SkinHost Grid.Column="0" SkinKey="confirm" FallbackColor="{DynamicResource ThemeConfirmButtonColor}">
+                <Button Text="Confirm" TextColor="White" CornerRadius="8" HeightRequest="45" Padding="14,0" Clicked="OnConfirmClicked" />
+            </skin:SkinHost>
+            <skin:SkinHost Grid.Column="1" SkinKey="neutral" FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                <Button Text="Cancel" TextColor="White" CornerRadius="8" HeightRequest="45" Padding="14,0" Clicked="OnCancelClicked" />
+            </skin:SkinHost>
+        </Grid>
+
+    </VerticalStackLayout>
+</ContentPage>

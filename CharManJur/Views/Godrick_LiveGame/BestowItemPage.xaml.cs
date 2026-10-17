@@ -16,7 +16,8 @@ public partial class BestowItemPage : ContentPage, INotifyPropertyChanged
     private ObservableCollection<Item> _filteredItems = new();
     private Item? _selectedItem;
     private int _selectedQuantity = 1;
-    private int _maxQuantity = 99;
+    private int _maxQuantity = 999999;
+    private readonly List<Familiar?> _recipients = new();   // index 0 = the character itself
 
     public ObservableCollection<Item> FilteredItems
     {
@@ -57,6 +58,22 @@ public partial class BestowItemPage : ContentPage, INotifyPropertyChanged
         BindingContext = this;
 
         LoadItems();
+    }
+
+    private void BuildRecipients()
+    {
+        var names = new List<string> { $"{_charDataService.CharacterName} (character)" };
+        _recipients.Add(null);
+
+        foreach (var f in _charDataService.AcquiredFamiliars.Where(f => !f.IsDead))
+        {
+            _recipients.Add(f);
+            names.Add($"{(f.FmlrIntelligence == FmlrIntelligences.Inanimate ? "⚙️" : "🐾")} {f.DisplayName}");
+        }
+
+        RecipientPicker.ItemsSource = names;
+        RecipientPicker.SelectedIndex = 0;
+        RecipientRow.IsVisible = _recipients.Count > 1;   // hidden when there's nobody else to give to
     }
 
     private async void LoadItems()
@@ -117,15 +134,18 @@ public partial class BestowItemPage : ContentPage, INotifyPropertyChanged
             SelectedItem = selectedItem;
             _selectedQuantity = 1;
             QuantityEntry.Text = "1";
+            NoteValueRow.IsVisible = selectedItem.IsValueEditable;
+            if (selectedItem.IsValueEditable) NoteValueEntry.Text = CurrencyHelper.MinNoteMarks.ToString();
 
             if (selectedItem.IsStackableItem)
             {
-                _maxQuantity = 99;
+                _maxQuantity = 999999;
             }
             else
             {
                 _maxQuantity = 1;
             }
+            ConfigureStartingUses(selectedItem);
         }
     }
 
@@ -135,6 +155,7 @@ public partial class BestowItemPage : ContentPage, INotifyPropertyChanged
         {
             _selectedQuantity++;
             QuantityEntry.Text = _selectedQuantity.ToString();
+            UpdateStartingUsesVisibility();
         }
     }
 
@@ -144,6 +165,7 @@ public partial class BestowItemPage : ContentPage, INotifyPropertyChanged
         {
             _selectedQuantity--;
             QuantityEntry.Text = _selectedQuantity.ToString();
+            UpdateStartingUsesVisibility();
         }
     }
 
@@ -178,39 +200,77 @@ public partial class BestowItemPage : ContentPage, INotifyPropertyChanged
     {
         if (SelectedItem == null) return;
 
+        // A Note carries a written value, entered in Marks (default 10)
+        int? writtenValue = null;
+        if (SelectedItem.IsValueEditable)
+        {
+            if (!CurrencyHelper.TryParseNoteMarks(NoteValueEntry.Text, out int chips))
+            {
+                await DisplayAlertAsync("Invalid Value",
+                    $"Enter a whole number of Marks from {CurrencyHelper.MinNoteMarks} to {CurrencyHelper.MaxNoteMarks:N0}.", "OK");
+                return;
+            }
+            writtenValue = chips;
+        }
+
+        int index = RecipientPicker.SelectedIndex;
+        var familiar = index > 0 && index < _recipients.Count ? _recipients[index] : null;
+        string recipientName = familiar != null ? familiar.DisplayName : "character";
+
+        // Starting uses (only offered for items with uses; null = full)
+        int? startingUses = StartingUsesControl.IsVisible ? StartingUsesControl.Uses : null;
+        string usesNote = startingUses.HasValue && SelectedItem.Uses.HasValue && startingUses.Value < SelectedItem.Uses.Value
+            ? $" (starting with {startingUses}/{SelectedItem.Uses} uses)"
+            : string.Empty;
+
         bool confirm = await DisplayAlertAsync(
             "Confirm Bestow",
-            $"Bestow {_selectedQuantity}x '{SelectedItem.Name}' to character?",
+            $"Bestow {_selectedQuantity}x '{SelectedItem.Name}'{usesNote} to {recipientName}?",
             "Yes",
             "Cancel");
 
         if (!confirm) return;
 
-        CharacterItem? bestowedItem;
-
-        if (SelectedItem.IsStackableItem)
+        if (familiar != null)
         {
-            bestowedItem = _charDataService.AddItemToInventory(SelectedItem, _selectedQuantity);
+            if (!_charDataService.AddItemToFamiliarInventory(familiar.InstanceId, SelectedItem, _selectedQuantity, writtenValue, startingUses))
+            {
+                await DisplayAlertAsync("Could Not Bestow", $"{recipientName} can't receive items right now.", "OK");
+                return;
+            }
         }
         else
         {
-            bestowedItem = null;
-            for (int i = 0; i < _selectedQuantity; i++)
-            {
-                bestowedItem = _charDataService.AddItemToInventory(SelectedItem, 1);
-            }
-        }
+            CharacterItem? bestowedItem;
 
-        if (bestowedItem != null)
-        {
-            _ = _actionLogService.LogItemBestowedAsync(
-                bestowedItem, _charDataService.PlayerName, _charDataService.PlayerId);
+            if (SelectedItem.IsStackableItem)
+            {
+                bestowedItem = _charDataService.AddItemToInventory(SelectedItem, _selectedQuantity, null, startingUses);
+            }
+            else
+            {
+                bestowedItem = null;
+                for (int i = 0; i < _selectedQuantity; i++)
+                {
+                    bestowedItem = _charDataService.AddItemToInventory(SelectedItem, 1, writtenValue, startingUses);
+                }
+            }
+
+            if (bestowedItem != null)
+            {
+                _ = _actionLogService.LogItemBestowedAsync(
+                    bestowedItem,
+                    _charDataService.PlayerName,
+                    _charDataService.PlayerId,
+                    _charDataService.CharacterName,
+                    _charDataService.CharacterGuid);
+            }
         }
 
         _onItemsBestowed?.Invoke();
 
         await DisplayAlertAsync("Success!",
-            $"Granted {_selectedQuantity}x {SelectedItem.Name} to character.",
+            $"Granted {_selectedQuantity}x {SelectedItem.Name} to {recipientName}.",
             "OK");
 
         await Navigation.PopModalAsync();
@@ -226,5 +286,20 @@ public partial class BestowItemPage : ContentPage, INotifyPropertyChanged
     protected new void OnPropertyChanged([CallerMemberName] string propertyName = "")
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    // A new item starts full; the player can lower it (an empty flask, a half-used torch).
+    private void ConfigureStartingUses(Item item)
+    {
+        StartingUsesControl.MaximumUses = item.HasUses ? item.Uses!.Value : 1;
+        StartingUsesControl.Uses = StartingUsesControl.MaximumUses;
+        UpdateStartingUsesVisibility();
+    }
+
+    // Offered for items with uses. A stack of more than one always starts full.
+    private void UpdateStartingUsesVisibility()
+    {
+        StartingUsesControl.IsVisible =
+            SelectedItem is { HasUses: true } item && (!item.IsStackableItem || _selectedQuantity == 1);
     }
 }

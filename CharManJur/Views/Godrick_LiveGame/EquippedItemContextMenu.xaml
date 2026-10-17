@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
              x:Class="CharManJur.Views.Godrick_LiveGame.EquippedItemContextMenu"
              Shell.NavBarIsVisible="False"
              BackgroundColor="Transparent">
@@ -20,9 +21,9 @@
         <Border x:Name="MenuBorder"
                 Grid.Row="0"
                 Grid.Column="0"
-                BackgroundColor="#1a1a2e"
+                BackgroundColor="{DynamicResource ThemePanelBackgroundColor}"
                 StrokeThickness="1"
-                Stroke="#f39c12"
+                Stroke="{DynamicResource ThemeDetailBorderColor2}"
                 StrokeShape="RoundRectangle 8"
                 Padding="8,5"
                 WidthRequest="200"
@@ -34,88 +35,105 @@
                 <Label Text="{Binding ItemName}"
                        FontSize="13"
                        FontAttributes="Bold"
-                       TextColor="White"
                        HorizontalOptions="Center"
                        Margin="0,0,0,2" />
 
                 <Label Text="{Binding SlotLocation}"
                        FontSize="10"
-                       TextColor="#888888"
+                       TextColor="Gray"
                        HorizontalOptions="Center" />
 
                 <BoxView HeightRequest="1"
-                         Color="#333333"
+                         Color="{DynamicResource ThemeDetailBorderColor1}"
                          Margin="0,3" />
 
                 <!-- Two-Handed Indicator -->
                 <Label Text="⚔️ Two-Handed (takes 2 slots)"
                        FontSize="9"
-                       TextColor="#f39c12"
+                       TextColor="{DynamicResource ThemeWarningButtonColor}"
                        HorizontalOptions="Center"
                        IsVisible="{Binding IsTwoHanded}" />
 
                 <!-- ===== SWAP BUTTONS ===== -->
-                <Button Text="🔄 Swap to Belt"
-                        BackgroundColor="#8e44ad"
-                        TextColor="White"
-                        CornerRadius="4"
-                        HeightRequest="32"
-                        FontSize="11"
-                        IsEnabled="{Binding CanSwapToBelt}"
-                        Command="{Binding SwapToBeltCommand}" />
+                <skin:SkinHost SkinKey="generic"
+                               FallbackColor="{Binding CanSwapToBelt, Converter={StaticResource EnabledButtonColorConverter}}">
+                    <Button Text="🔄 Swap to Belt"
+                            TextColor="White"
+                            CornerRadius="4"
+                            HeightRequest="32"
+                            Padding="14,0"
+                            FontSize="11"
+                            IsEnabled="{Binding CanSwapToBelt}"
+                            Command="{Binding SwapToBeltCommand}" />
+                </skin:SkinHost>
 
-                <Button Text="🔄 Swap to Hand"
-                        BackgroundColor="#8e44ad"
-                        TextColor="White"
-                        CornerRadius="4"
-                        HeightRequest="32"
-                        FontSize="11"
-                        IsEnabled="{Binding CanSwapToHand}"
-                        Command="{Binding SwapToHandCommand}" />
+                <skin:SkinHost SkinKey="generic"
+                               FallbackColor="{Binding CanSwapToHand, Converter={StaticResource EnabledButtonColorConverter}}">
+                    <Button Text="🔄 Swap to Hand"
+                            TextColor="White"
+                            CornerRadius="4"
+                            HeightRequest="32"
+                            Padding="14,0"
+                            FontSize="11"
+                            IsEnabled="{Binding CanSwapToHand}"
+                            Command="{Binding SwapToHandCommand}" />
+                </skin:SkinHost>
 
                 <BoxView HeightRequest="1"
-                         Color="#333333"
+                         Color="{DynamicResource ThemeDetailBorderColor1}"
                          Margin="0,3" />
 
                 <!-- Unequip -->
-                <Button Text="↩️ Unequip"
-                        BackgroundColor="#e67e22"
-                        TextColor="White"
-                        CornerRadius="4"
-                        HeightRequest="32"
-                        FontSize="12"
-                        Command="{Binding UnequipCommand}" />
+                <skin:SkinHost SkinKey="warning"
+                               FallbackColor="{DynamicResource ThemeWarningButtonColor}">
+                    <Button Text="↩️ Unequip"
+                            TextColor="White"
+                            CornerRadius="4"
+                            HeightRequest="32"
+                            Padding="14,0"
+                            FontSize="12"
+                            Command="{Binding UnequipCommand}" />
+                </skin:SkinHost>
 
                 <!-- Drop -->
-                <Button Text="🗑️ Drop"
-                        BackgroundColor="#e74c3c"
-                        TextColor="White"
-                        CornerRadius="4"
-                        HeightRequest="32"
-                        FontSize="12"
-                        Command="{Binding DropCommand}" />
+                <skin:SkinHost SkinKey="danger"
+                               FallbackColor="{DynamicResource ThemeDangerButtonColor}">
+                    <Button Text="🗑️ Drop"
+                            TextColor="White"
+                            CornerRadius="4"
+                            HeightRequest="32"
+                            Padding="14,0"
+                            FontSize="12"
+                            Command="{Binding DropCommand}" />
+                </skin:SkinHost>
 
                 <!-- Details -->
-                <Button Text="📋 Details"
-                        BackgroundColor="#3498db"
-                        TextColor="White"
-                        CornerRadius="4"
-                        HeightRequest="32"
-                        FontSize="12"
-                        Command="{Binding ViewDetailsCommand}" />
+                <skin:SkinHost SkinKey="primary"
+                               FallbackColor="{DynamicResource ThemePrimaryButtonColor}">
+                    <Button Text="📋 Details"
+                            TextColor="White"
+                            CornerRadius="4"
+                            HeightRequest="32"
+                            Padding="14,0"
+                            FontSize="12"
+                            Command="{Binding ViewDetailsCommand}" />
+                </skin:SkinHost>
 
                 <BoxView HeightRequest="1"
-                         Color="#333333"
+                         Color="{DynamicResource ThemeDetailBorderColor1}"
                          Margin="0,3" />
 
                 <!-- Cancel -->
-                <Button Text="Cancel"
-                        BackgroundColor="#444444"
-                        TextColor="White"
-                        CornerRadius="4"
-                        HeightRequest="28"
-                        FontSize="11"
-                        Command="{Binding CancelCommand}" />
+                <skin:SkinHost SkinKey="neutral"
+                               FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                    <Button Text="Cancel"
+                            TextColor="White"
+                            CornerRadius="4"
+                            HeightRequest="28"
+                            Padding="14,0"
+                            FontSize="11"
+                            Command="{Binding CancelCommand}" />
+                </skin:SkinHost>
 
             </VerticalStackLayout>
         </Border>

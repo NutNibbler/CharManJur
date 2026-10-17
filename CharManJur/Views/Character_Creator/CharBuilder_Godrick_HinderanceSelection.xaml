@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:CharManJur.Converters"
+             xmlns:viewmodels="clr-namespace:CharManJur.ViewModels"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.CharBuilder_Godrick_HinderanceSelection"
+             Title="Hinderance Selection"
+             Shell.NavBarIsVisible="False">
+
+    <Grid RowDefinitions="Auto, *, Auto"
+          Padding="20"
+          RowSpacing="10">
+
+        <!-- Header -->
+        <VerticalStackLayout Grid.Row="0" Spacing="5">
+            <Label Text="⚠️ Hinderance Selection"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   TextColor="{DynamicResource ThemeDangerButtonColor}"
+                   HorizontalOptions="Center" />
+
+            <Label Text="Select a hinderance to gain a bonus to a stat or training point."
+                   FontSize="14"
+                   TextColor="Gray"
+                   HorizontalOptions="Center" />
+
+            <Label Text="You may select no hinderance."
+                   FontSize="12"
+                   TextColor="Gray"
+                   HorizontalOptions="Center" />
+
+            <BoxView HeightRequest="2" Color="{DynamicResource ThemeDangerButtonColor}" />
+        </VerticalStackLayout>
+
+        <!-- Content -->
+        <Grid Grid.Row="1" ColumnDefinitions="0.40*, 0.60*" ColumnSpacing="15">
+
+            <!-- LEFT: Hinderance List -->
+            <skin:SkinPanel StrokeColor="{DynamicResource ThemeDangerButtonColor}"
+                            StrokeThickness="1" CornerRadius="8" ContentPadding="0">
+                <CollectionView x:Name="HinderancesCollectionView"
+                                ItemsSource="{Binding Hinderances}"
+                                SelectedItem="{Binding SelectedHinderance}"
+                                SelectionMode="Single">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Padding="10">
+                                <Border Stroke="{DynamicResource ThemeDangerButtonColor}"
+                                    StrokeThickness="0.5"
+                                    StrokeShape="RoundRectangle 4"
+                                    Padding="10">
+                                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="5">
+                                        <Label Grid.Column="0"
+                                           Text="{Binding Name}"
+                                           FontSize="16"
+                                           FontAttributes="Bold"
+                                           VerticalTextAlignment="Center" />
+
+                                        <!-- Edit Button - Only visible for custom hinderances -->
+                                        <skin:SkinHost Grid.Column="1" SkinKey="generic_small"
+                                            FallbackColor="{DynamicResource ThemeDetailBorderColor1}">
+                                            <Button Text="✏️"
+                                                TextColor="White"
+                                                CornerRadius="15"
+                                                FontSize="12"
+                                                WidthRequest="35" HeightRequest="35" Padding="0"
+                                                IsVisible="{Binding IsPlayerCreated}"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditCustomHinderanceCommand}"
+                                                CommandParameter="{Binding .}"/>
+                                        </skin:SkinHost>
+                                        <skin:SkinHost Grid.Column="2" SkinKey="generic_small"
+                                            FallbackColor="{DynamicResource ThemeDangerButtonColor}">
+                                            <Button Text="🗑️"
+                                                TextColor="White"
+                                                CornerRadius="15"
+                                                FontSize="12"
+                                                WidthRequest="35" HeightRequest="35" Padding="0"
+                                                IsVisible="{Binding IsPlayerCreated}"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteCustomHinderanceCommand}"
+                                                CommandParameter="{Binding .}"/>
+                                        </skin:SkinHost>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </skin:SkinPanel>
+
+            <!-- RIGHT: Hinderance Details -->
+            <skin:SkinPanel Grid.Column="1"
+                            StrokeColor="{DynamicResource ThemeDangerButtonColor}"
+                            StrokeThickness="1" CornerRadius="8" ContentPadding="10">
+                <ScrollView>
+                    <VerticalStackLayout Spacing="10">
+
+                        <Label Text="Hinderance Details"
+                               FontAttributes="Bold"
+                               FontSize="16"
+                               TextColor="{DynamicResource ThemeDangerButtonColor}" />
+
+                        <!-- Name -->
+                        <Label Text="{Binding SelectedHinderanceName}"
+                               FontSize="20"
+                               FontAttributes="Bold" />
+
+                        <!-- Description -->
+                        <Label Text="{Binding SelectedHinderanceDescription}"
+                               FontSize="14"
+                               TextColor="Gray"
+                               LineBreakMode="WordWrap" />
+
+                        <BoxView HeightRequest="1" Color="Gray" Opacity="0.5" />
+
+                        <!-- Reward Selection (Only visible when a hinderance is selected) -->
+                        <VerticalStackLayout IsVisible="{Binding HasSelectedHinderance}" Spacing="8">
+                            <Label Text="Select Your Reward:"
+                               FontAttributes="Bold"
+                               FontSize="14"
+                               TextColor="{DynamicResource ThemeWarningButtonColor}" />
+
+                            <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
+                                <skin:SkinHost Grid.Column="0" SkinKey="neutral" HeightRequest="40"
+                                               FallbackColor="{Binding IsStatBonusSelected, Converter={StaticResource RewardButtonColorConverter}}">
+                                    <skin:SkinHost.Triggers>
+                                        <DataTrigger TargetType="skin:SkinHost" Binding="{Binding IsStatBonusSelected}" Value="True">
+                                            <Setter Property="SkinKey" Value="primary" />
+                                        </DataTrigger>
+                                    </skin:SkinHost.Triggers>
+                                    <Button Text="+1 Stat Bonus"
+                                        TextColor="White"
+                                        CornerRadius="8"
+                                        Command="{Binding SelectStatBonusCommand}" />
+                                </skin:SkinHost>
+
+                                <skin:SkinHost Grid.Column="1" SkinKey="neutral" HeightRequest="40"
+                                               FallbackColor="{Binding IsTrainingPointSelected, Converter={StaticResource RewardButtonColorConverter}}">
+                                    <skin:SkinHost.Triggers>
+                                        <DataTrigger TargetType="skin:SkinHost" Binding="{Binding IsTrainingPointSelected}" Value="True">
+                                            <Setter Property="SkinKey" Value="primary" />
+                                        </DataTrigger>
+                                    </skin:SkinHost.Triggers>
+                                    <Button Text="+1 Training Point"
+                                        TextColor="White"
+                                        CornerRadius="8"
+                                        Command="{Binding SelectTrainingPointCommand}" />
+                                </skin:SkinHost>
+                            </Grid>
+
+                            <!-- Stat Selection (only visible when stat bonus is chosen) -->
+                            <VerticalStackLayout IsVisible="{Binding IsStatBonusSelected}" Spacing="5">
+                                <Label Text="Choose a stat to increase:"
+                                   FontAttributes="Bold"
+                                   FontSize="13"
+                                   TextColor="{DynamicResource ThemeWarningButtonColor}" />
+
+                                <Grid ColumnDefinitions="*, *" RowDefinitions="Auto,Auto" ColumnSpacing="5" RowSpacing="5">
+                                    <skin:SkinHost Grid.Column="0" Grid.Row="0" SkinKey="neutral"
+                                        FallbackColor="{Binding SelectedStat, Converter={StaticResource StatButtonColorConverter}, ConverterParameter=Vigor}">
+                                        <skin:SkinHost.Triggers>
+                                            <DataTrigger TargetType="skin:SkinHost" Binding="{Binding SelectedStat}" Value="Vigor">
+                                                <Setter Property="SkinKey" Value="primary" />
+                                            </DataTrigger>
+                                        </skin:SkinHost.Triggers>
+                                        <Button Text="Vigor" TextColor="White" CornerRadius="6" HeightRequest="35" Padding="14,0"
+                                            Command="{Binding SelectStatToIncreaseCommand}" CommandParameter="Vigor" />
+                                    </skin:SkinHost>
+
+                                    <skin:SkinHost Grid.Column="1" Grid.Row="0" SkinKey="neutral"
+                                        FallbackColor="{Binding SelectedStat, Converter={StaticResource StatButtonColorConverter}, ConverterParameter=Agility}">
+                                        <skin:SkinHost.Triggers>
+                                            <DataTrigger TargetType="skin:SkinHost" Binding="{Binding SelectedStat}" Value="Agility">
+                                                <Setter Property="SkinKey" Value="primary" />
+                                            </DataTrigger>
+                                        </skin:SkinHost.Triggers>
+                                        <Button Text="Agility" TextColor="White" CornerRadius="6" HeightRequest="35" Padding="14,0"
+                                            Command="{Binding SelectStatToIncreaseCommand}" CommandParameter="Agility" />
+                                    </skin:SkinHost>
+
+                                    <skin:SkinHost Grid.Column="0" Grid.Row="1" SkinKey="neutral"
+                                        FallbackColor="{Binding SelectedStat, Converter={StaticResource StatButtonColorConverter}, ConverterParameter=Mind}">
+                                        <skin:SkinHost.Triggers>
+                                            <DataTrigger TargetType="skin:SkinHost" Binding="{Binding SelectedStat}" Value="Mind">
+                                                <Setter Property="SkinKey" Value="primary" />
+                                            </DataTrigger>
+                                        </skin:SkinHost.Triggers>
+                                        <Button Text="Mind" TextColor="White" CornerRadius="6" HeightRequest="35" Padding="14,0"
+                                            Command="{Binding SelectStatToIncreaseCommand}" CommandParameter="Mind" />
+                                    </skin:SkinHost>
+
+                                    <skin:SkinHost Grid.Column="1" Grid.Row="1" SkinKey="neutral"
+                                        FallbackColor="{Binding SelectedStat, Converter={StaticResource StatButtonColorConverter}, ConverterParameter=Spirit}">
+                                        <skin:SkinHost.Triggers>
+                                            <DataTrigger TargetType="skin:SkinHost" Binding="{Binding SelectedStat}" Value="Spirit">
+                                                <Setter Property="SkinKey" Value="primary" />
+                                            </DataTrigger>
+                                        </skin:SkinHost.Triggers>
+                                        <Button Text="Spirit" TextColor="White" CornerRadius="6" HeightRequest="35" Padding="14,0"
+                                            Command="{Binding SelectStatToIncreaseCommand}" CommandParameter="Spirit" />
+                                    </skin:SkinHost>
+                                </Grid>
+                            </VerticalStackLayout>
+
+                            <!-- Training Point Info (visible when training point is chosen) -->
+                            <VerticalStackLayout IsVisible="{Binding IsTrainingPointSelected}" Spacing="5">
+                                <Label Text="You will receive +1 Training Point to allocate on the Training page."
+                                   FontSize="13"
+                                   TextColor="{DynamicResource ThemeDetailBorderColor1}"
+                                   HorizontalOptions="Center" />
+                            </VerticalStackLayout>
+
+                            <BoxView HeightRequest="1" Color="Gray" Opacity="0.5" />
+                            <Label Text="{Binding RewardSummary}"
+                               FontSize="13"
+                               TextColor="{DynamicResource ThemeDetailBorderColor1}"
+                               HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+
+                        <!-- No Hinderance Selected Message -->
+                        <VerticalStackLayout IsVisible="{Binding HasSelectedHinderance, Converter={StaticResource InvertedBoolConverter}}"
+                                             Spacing="10"
+                                             VerticalOptions="Center">
+                            <Label Text="Select a hinderance from the list, or use the 'Skip' button to proceed without one."
+                                   FontSize="14"
+                                   TextColor="Gray"
+                                   HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+
+                    </VerticalStackLayout>
+                </ScrollView>
+            </skin:SkinPanel>
+
+        </Grid>
+
+        <!-- Footer Buttons -->
+        <Grid Grid.Row="2" ColumnDefinitions="*, *, *, *, *, *" ColumnSpacing="3">
+
+            <skin:SkinHost Grid.Column="0" SkinKey="confirm" HeightRequest="45"
+                           FallbackColor="{DynamicResource ThemeConfirmButtonColor}">
+                <Button Text="Next: Training"
+                        TextColor="White"
+                        FontSize="16"
+                        CornerRadius="8"
+                        FontAttributes="Bold"
+                        Command="{Binding ConfirmHinderanceCommand}" />
+            </skin:SkinHost>
+
+            <skin:SkinHost Grid.Column="1" SkinKey="neutral" HeightRequest="45"
+                           FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                <Button Text="Skip (No Hinderance)"
+                        TextColor="White"
+                        FontSize="14"
+                        CornerRadius="8"
+                        Command="{Binding SkipHinderanceCommand}" />
+            </skin:SkinHost>
+
+            <skin:SkinHost Grid.Column="2" SkinKey="neutral" HeightRequest="45"
+                           FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                <Button Text="← Back"
+                        TextColor="White"
+                        FontSize="16"
+                        CornerRadius="8"
+                        Clicked="OnBackClicked" />
+            </skin:SkinHost>
+
+            <skin:SkinHost Grid.Column="3" SkinKey="danger" HeightRequest="45"
+                           FallbackColor="{DynamicResource ThemeDangerButtonColor}">
+                <Button Text="Cancel"
+                        TextColor="White"
+                        FontSize="16"
+                        CornerRadius="8"
+                        Clicked="OnCancelClicked" />
+            </skin:SkinHost>
+
+            <skin:SkinHost Grid.Column="4" SkinKey="warning" HeightRequest="45"
+                           FallbackColor="{DynamicResource ThemeWarningButtonColor}">
+                <Button Text="💾 Save For Later"
+                        TextColor="White"
+                        CornerRadius="8"
+                        FontSize="14"
+                        Clicked="OnSaveForLaterClicked" />
+            </skin:SkinHost>
+
+            <skin:SkinHost Grid.Column="5" SkinKey="create" HeightRequest="45"
+                           FallbackColor="{DynamicResource ThemeCreateButtonColor}">
+                <Button Text="+ Create Custom"
+                        TextColor="White"
+                        FontSize="14"
+                        CornerRadius="8"
+                        Command="{Binding CreateCustomHinderanceCommand}" />
+            </skin:SkinHost>
+
+        </Grid>
+
+    </Grid>
+</ContentPage>

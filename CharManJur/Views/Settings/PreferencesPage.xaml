@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:views="clr-namespace:CharManJur.Views"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.PreferencesPage"
+             Shell.NavBarIsVisible="False"
+             Title="Preferences">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="0" Spacing="0" MaximumWidthRequest="1200">
+
+            <Label Text="Preferences"
+                   FontSize="32"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"
+                   Margin="0,15"/>
+
+            <!-- ===== Tab Header ===== -->
+            <Grid ColumnDefinitions="*,*,*" ColumnSpacing="4" Padding="10,0">
+                <skin:SkinHost x:Name="PreferencesTabHost" Grid.Column="0">
+                    <Button Text="Preferences"
+                            TextColor="White"
+                            CornerRadius="8"
+                            HeightRequest="45"
+                            Clicked="OnPreferencesTabClicked"/>
+                </skin:SkinHost>
+                <skin:SkinHost x:Name="ThemeTabHost" Grid.Column="1">
+                    <Button Text="Theme"
+                            TextColor="White"
+                            CornerRadius="8"
+                            HeightRequest="45"
+                            Clicked="OnThemeTabClicked"/>
+                </skin:SkinHost>
+                <skin:SkinHost x:Name="SkinsTabHost" Grid.Column="2">
+                    <Button Text="Skins"
+                            TextColor="White"
+                            CornerRadius="8"
+                            HeightRequest="45"
+                            Clicked="OnSkinsTabClicked"/>
+                </skin:SkinHost>
+            </Grid>
+
+            <!-- ===== Unsaved changes bar (theme edits) ===== -->
+            <Grid ColumnDefinitions="*" Padding="10">
+                <Label Text="⚠️ You have unsaved changes"
+                       TextColor="{DynamicResource ThemeWarningButtonColor}"
+                       VerticalTextAlignment="Center"
+                       IsVisible="{Binding HasUnsavedChanges}"/>
+            </Grid>
+
+            <VerticalStackLayout Padding="20" Spacing="15">
+
+                <!-- ===== PREFERENCES TAB ===== -->
+                <VerticalStackLayout x:Name="PreferencesSection" Spacing="15">
+                    <views:CurrencyPreferenceView />
+                </VerticalStackLayout>
+
+                <!-- ===== THEME TAB (same view as Settings) ===== -->
+                <views:ThemeSettingsView x:Name="ThemeSection" IsVisible="False" />
+
+                <!-- ===== SKINS TAB (same view as Settings) ===== -->
+                <views:SkinsSettingsView x:Name="SkinsSection" IsVisible="False" />
+
+            </VerticalStackLayout>
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="2" Margin="10">
+                <skin:SkinHost Grid.Column="0" SkinKey="neutral"
+                               FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                    <Button Text="← Back"
+                            TextColor="White"
+                            CornerRadius="8"
+                            HeightRequest="45"
+                            Clicked="OnBackClicked"/>
+                </skin:SkinHost>
+                <skin:SkinHost Grid.Column="1" SkinKey="confirm"
+                               FallbackColor="{DynamicResource ThemeConfirmButtonColor}">
+                    <Button Text="💾 Save Changes"
+                            TextColor="White"
+                            CornerRadius="8"
+                            HeightRequest="40"
+                            IsEnabled="{Binding HasUnsavedChanges}"
+                            Command="{Binding SaveChangesCommand}"/>
+                </skin:SkinHost>
+            </Grid>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

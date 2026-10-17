@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.Godrick_LiveGame.CustomFamiliarCreatorPage"
+             Title="Create Custom Familiar or Construct"
+             Shell.NavBarIsVisible="False">
+
+    <ScrollView MaximumWidthRequest="1000">
+        <VerticalStackLayout Padding="20" Spacing="10">
+
+            <!-- Header -->
+            <Label Text="Create Custom Familiar or Construct"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   TextColor="{DynamicResource ThemeSummaryButtonColor}"
+                   HorizontalOptions="Center" />
+
+            <BoxView HeightRequest="2" Color="{DynamicResource ThemeSummaryButtonColor}" />
+
+            <!-- ===== BASIC INFO ===== -->
+            <Label Text="Basic Information"
+                   FontAttributes="Bold"
+                   FontSize="16"
+                   TextColor="{DynamicResource ThemeSummaryButtonColor}" />
+
+            <skin:SkinPanel StrokeColor="{DynamicResource ThemeSummaryButtonColor}"
+                            StrokeThickness="1" CornerRadius="8" ContentPadding="10">
+                <VerticalStackLayout Spacing="8">
+
+                    <!-- Name (Required) -->
+                    <Label Text="Name *" FontAttributes="Bold" FontSize="14" />
+                    <Entry x:Name="entryName"
+                           Placeholder="Enter familiar name"
+                           BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+
+                    <!-- Description -->
+                    <Label Text="Description" FontAttributes="Bold" FontSize="14" />
+                    <Editor x:Name="editorDescription"
+                            Placeholder="Enter description"
+                            BackgroundColor="{DynamicResource ThemePanelBackgroundColor}"
+                            HeightRequest="60"
+                            AutoSize="TextChanges" />
+
+                    <!-- Class/Species -->
+                    <Label Text="Class/Species" FontAttributes="Bold" FontSize="14" />
+                    <Picker x:Name="pickerClass"
+                            SelectedIndexChanged="OnClassSelectedIndexChanged"
+                            Title="Select Class"
+                            TitleColor="Gray"
+                            BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+
+                    <!-- Size -->
+                    <Label Text="Size" FontAttributes="Bold" FontSize="14" />
+                    <Picker x:Name="pickerSize"
+                            Title="Select Size"
+                            TitleColor="Gray"
+                            BackgroundColor="{DynamicResource ThemePanelBackgroundColor}"
+                            SelectedIndexChanged="OnSizeSelectedIndexChanged" />
+                    <Label x:Name="lblSizeDescription"
+                           FontSize="12"
+                           FontAttributes="Italic"
+                           TextColor="Gray"
+                           IsVisible="False" />
+
+                    <!-- Intelligence -->
+                    <Label Text="Intelligence" FontAttributes="Bold" FontSize="14" />
+                    <Picker x:Name="pickerIntelligence"
+                            Title="Select Intelligence"
+                            TitleColor="Gray"
+                            BackgroundColor="{DynamicResource ThemePanelBackgroundColor}"
+                            SelectedIndexChanged="OnIntelligenceSelectedIndexChanged" />
+                    <Label x:Name="lblIntelligenceDescription"
+                           FontSize="12"
+                           FontAttributes="Italic"
+                           TextColor="Gray"
+                           IsVisible="False" />
+
+                    <!-- Base capacity (constructs only) -->
+                    <VerticalStackLayout x:Name="capacityStack" Spacing="4" IsVisible="False">
+                        <Label Text="Base Inventory Capacity (pack slots)" FontAttributes="Bold" FontSize="14" />
+                        <Entry x:Name="entryBaseCapacity"
+                               Placeholder="0"
+                               Keyboard="Numeric"
+                               BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+                        <Label Text="A construct's own pack space. A container it carries adds to this."
+                               FontSize="12"
+                               FontAttributes="Italic"
+                               TextColor="Gray" />
+                    </VerticalStackLayout>
+
+                    <!-- HP -->
+                    <Label Text="HP" FontAttributes="Bold" FontSize="14" />
+                    <Entry x:Name="entryHP"
+                       Placeholder="0"
+                       Keyboard="Numeric"
+                       BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+
+                    <!-- Stats -->
+                    <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
+                        <VerticalStackLayout Grid.Column="0">
+                            <Label Text="Spirit" FontAttributes="Bold" FontSize="14" />
+                                <Entry x:Name="entrySpirit"
+                                   Placeholder="0"
+                                   Keyboard="Numeric"
+                                   BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+
+                            <Label Text="Vigor" FontAttributes="Bold" FontSize="14" />
+                                <Entry x:Name="entryVigor"
+                                       Placeholder="0"
+                                       Keyboard="Numeric"
+                                       BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Grid.Column="1">
+                            <Label Text="Agility" FontAttributes="Bold" FontSize="14" />
+                            <Entry x:Name="entryAgility"
+                                   Placeholder="0"
+                                   Keyboard="Numeric"
+                                   BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+                            
+                            <Label Text="Mind" FontAttributes="Bold" FontSize="14" />
+                            <Entry x:Name="entryMind"
+                                   Placeholder="0"
+                                   Keyboard="Numeric"
+                                   BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+                        </VerticalStackLayout>
+                    </Grid>
+
+                </VerticalStackLayout>
+            </skin:SkinPanel>
+
+            <!-- ===== WEAPON INFO ===== -->
+            <Label Text="⚔️ Weapon Information"
+                   FontAttributes="Bold"
+                   FontSize="16"
+                   TextColor="{DynamicResource ThemeWarningButtonColor}" />
+
+            <skin:SkinPanel StrokeColor="{DynamicResource ThemeWarningButtonColor}"
+                            StrokeThickness="1" CornerRadius="8" ContentPadding="10">
+                <VerticalStackLayout Spacing="8">
+
+                    <!-- Weapon Name -->
+                    <Label Text="Weapon Name" FontAttributes="Bold" FontSize="14" />
+                    <Entry x:Name="entryWeaponName"
+                           Placeholder="Enter weapon name (e.g., Claw, Bite)"
+                           BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+
+                    <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
+                        <!-- Weapon Speed -->
+                        <VerticalStackLayout>
+                            <Label Text="Weapon Speed" FontAttributes="Bold" FontSize="14" />
+                            <Picker x:Name="pickerWeaponSpeed"
+                                    Title="Select Speed"
+                                    TitleColor="Gray"
+                                    BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+                        </VerticalStackLayout>
+
+                        <!-- Weapon Damage Die -->
+                        <VerticalStackLayout Grid.Column="1">
+                            <Label Text="Damage Die" FontAttributes="Bold" FontSize="14" />
+                            <Picker x:Name="pickerWeaponDamageDie"
+                                    Title="Select Die"
+                                    TitleColor="Gray"
+                                    BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+                        </VerticalStackLayout>
+                    </Grid>
+
+                </VerticalStackLayout>
+            </skin:SkinPanel>
+
+            <!-- ===== ABILITIES ===== -->
+            <Label Text="✨ Abilities"
+                   FontAttributes="Bold"
+                   FontSize="16"
+                   TextColor="{DynamicResource ThemeDetailBorderColor1}" />
+
+            <skin:SkinPanel StrokeColor="{DynamicResource ThemeDetailBorderColor1}"
+                            StrokeThickness="1" CornerRadius="8" ContentPadding="10">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Enter abilities (one per line)" FontSize="12" TextColor="Gray" />
+                    <Editor x:Name="editorAbilities"
+                            Placeholder="e.g., Can speak Common&#10;Darkvision 60ft&#10;Keen Smell"
+                            BackgroundColor="{DynamicResource ThemePanelBackgroundColor}"
+                            HeightRequest="80"
+                            AutoSize="TextChanges" />
+                </VerticalStackLayout>
+            </skin:SkinPanel>
+
+            <BoxView HeightRequest="2" Color="{DynamicResource ThemeSummaryButtonColor}" />
+
+            <!-- ===== FOOTER BUTTONS ===== -->
+            <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
+                <skin:SkinHost Grid.Column="0" SkinKey="neutral"
+                               FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                    <Button Text="Cancel"
+                            TextColor="White"
+                            CornerRadius="8"
+                            HeightRequest="50"
+                            Clicked="OnCancelClicked" />
+                </skin:SkinHost>
+
+                <skin:SkinHost Grid.Column="1" SkinKey="confirm"
+                               FallbackColor="{DynamicResource ThemeConfirmButtonColor}">
+                    <Button x:Name="btnSave"
+                            Text="Create"
+                            TextColor="White"
+                            CornerRadius="8"
+                            HeightRequest="50"
+                            FontAttributes="Bold"
+                            Clicked="OnCreateClicked" />
+                </skin:SkinHost>
+            </Grid>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CharManJur.Views.Godrick_LiveGame.EditItemPopup"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="#99000000">
+
+    <Border Stroke="{DynamicResource ThemeSectionBorderColor}"
+            StrokeThickness="1"
+            StrokeShape="RoundRectangle 8"
+            BackgroundColor="{DynamicResource ThemePanelBackgroundColor}"
+            Padding="14"
+            WidthRequest="380"
+            HorizontalOptions="Center"
+            VerticalOptions="Center">
+        <VerticalStackLayout Spacing="10">
+
+            <Label x:Name="TitleLabel"
+                   FontSize="16"
+                   FontAttributes="Bold"
+                   TextColor="White"
+                   HorizontalOptions="Center" />
+
+            <!-- Written value (Notes only) -->
+            <VerticalStackLayout x:Name="ValueSection" Spacing="3" IsVisible="False">
+                <Label Text="Written value (Marks, 10 minimum)" FontSize="12" TextColor="#aaaaaa" />
+                <Border Stroke="#444444"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 6"
+                        BackgroundColor="#2a2a3e"
+                        HeightRequest="38">
+                    <Entry x:Name="ValueEntry"
+                           Keyboard="Numeric"
+                           TextColor="White"
+                           BackgroundColor="Transparent"
+                           VerticalOptions="Center" />
+                </Border>
+            </VerticalStackLayout>
+
+            <!-- Player note -->
+            <VerticalStackLayout Spacing="3">
+                <Label Text="Personal note" FontSize="12" TextColor="#aaaaaa" />
+                <Border Stroke="#444444"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 6"
+                        BackgroundColor="#2a2a3e">
+                    <Editor x:Name="NoteEditor"
+                            Placeholder="Add your note here..."
+                            PlaceholderColor="#888888"
+                            TextColor="White"
+                            BackgroundColor="Transparent"
+                            HeightRequest="110"
+                            MaxLength="500" />
+                </Border>
+            </VerticalStackLayout>
+
+            <Grid ColumnDefinitions="*, *" ColumnSpacing="8">
+                <Button Grid.Column="0"
+                        Text="Save"
+                        BackgroundColor="{DynamicResource ThemeConfirmButtonColor}"
+                        TextColor="White"
+                        CornerRadius="6"
+                        HeightRequest="38"
+                        Clicked="OnSaveClicked" />
+                <Button Grid.Column="1"
+                        Text="Cancel"
+                        BackgroundColor="{DynamicResource ThemeNeutralButtonColor}"
+                        TextColor="White"
+                        CornerRadius="6"
+                        HeightRequest="38"
+                        Clicked="OnCancelClicked" />
+            </Grid>
+        </VerticalStackLayout>
+    </Border>
+</ContentPage>
