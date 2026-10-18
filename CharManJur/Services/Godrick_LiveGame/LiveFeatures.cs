@@ -378,12 +378,24 @@ public class LiveFeatures
 
     // ===== DAYS =====
     // Single-player: the player passes days by hand. In multiplayer the GM will trigger this.
+    // Ending the day also settles deprivation: a missing Needs Met or Rested chip makes the character
+    // Deprived (+1 Fatigue per further day), then both chips clear.
     public async Task<FeatureUseResult> PassDayAsync()
     {
+        var end = _svc.EndDay();
         _svc.DaysPassed++;
         await LogAsync(PlayerActionType.DayPassed, $"A day passes (day {_svc.DaysPassed})");
         await _svc.SaveNowAsync();
-        return new FeatureUseResult { Success = true, Message = "A day has passed. Features limited to once per day are available again." };
+
+        string message = "A day has passed. Features limited to once per day are available again. Needs Met and Rested have cleared.";
+        if (end.BecameDeprived)
+            message += " You are now Deprived: you can't recover Hit Protection or ability scores until you take a Long Rest and meet your needs.";
+        else if (end.StillDeprived && end.FatigueGained > 0)
+            message += $" You're still Deprived (day {end.DeprivedDays}): +{end.FatigueGained} Fatigue.";
+        else if (end.StillDeprived)
+            message += " You're still Deprived.";
+
+        return new FeatureUseResult { Success = true, Message = message };
     }
 
     // ===== PLUMBING =====

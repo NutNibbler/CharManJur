@@ -74,6 +74,9 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
         RemoveEffectCommand = new Command<CharacterEffect>(OnRemoveEffect);
         TogglePackCommand = new Command(async () => await OnTogglePack());
         ExplainEncumbranceCommand = new Command(async () => await OnExplainEncumbrance());
+        PassDayCommand = new Command(async () => await OnPassDay());
+        DailyNeedsCommand = new Command(async () => await OnDailyNeeds());
+        ExplainDeprivationCommand = new Command(async () => await DailyNeedsActions.ExplainDeprivationAsync(_charDataService));
     }
 
     private async void OnRecoverItem()
@@ -1091,6 +1094,9 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(FatigueBarMax));
         OnPropertyChanged(nameof(FatigueInInventory));
         OnPropertyChanged(nameof(HasFatigueOverflow));
+        OnPropertyChanged(nameof(NeedsMet));
+        OnPropertyChanged(nameof(IsRested));
+        OnPropertyChanged(nameof(IsDeprived));
         OnPropertyChanged(nameof(ArmorRating));
         OnPropertyChanged(nameof(ArmorChevronsDisplay));
         OnPropertyChanged(nameof(MaxHPColor));
@@ -1372,6 +1378,30 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
             "(equipped items don't use pack slots).";
 
         await Application.Current!.MainPage!.DisplayAlertAsync("Encumbered", message, "OK");
+    }
+
+    // ===== DAILY NEEDS / DEPRIVATION =====
+    public bool NeedsMet => _charDataService.NeedsMet;
+    public bool IsRested => _charDataService.Rested;
+    public bool IsDeprived => _charDataService.IsDeprived;
+
+    public ICommand PassDayCommand { get; }
+    public ICommand DailyNeedsCommand { get; }
+    public ICommand ExplainDeprivationCommand { get; }
+
+    // Set by the home page: runs LiveFeatures.PassDayAsync and refreshes the Features panel.
+    public Func<Task<FeatureUseResult>>? PassDayHandler { get; set; }
+
+    private async Task OnPassDay()
+    {
+        if (await DailyNeedsActions.PassDayAsync(_charDataService, PassDayHandler))
+            await LoadCharacterDataAsync();
+    }
+
+    private async Task OnDailyNeeds()
+    {
+        if (await DailyNeedsActions.AffirmNeedsAsync(_charDataService))
+            await LoadCharacterDataAsync();
     }
 
     // ===== INotifyPropertyChanged =====

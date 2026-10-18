@@ -65,6 +65,12 @@ public partial class CharacterHomePage
         _featurePanelVm = new FeaturePanelViewModel(_liveFeatures, _viewModel.FavourTracker);
         _featurePanelVm.UseRequested += OnFeatureUseRequested;
         _featurePanelVm.CharacterChanged += async () => await _viewModel.LoadCharacterDataAsync();
+        _viewModel.PassDayHandler = async () =>
+        {
+            var result = await _liveFeatures!.PassDayAsync();
+            if (_featurePanelVm != null) await _featurePanelVm.RefreshAsync();   // Days passed, once-per-day statuses
+            return result;
+        };
         FeaturePanel.BindingContext = _featurePanelVm;
         _viewModel.TransformationChanged += async () =>
         {

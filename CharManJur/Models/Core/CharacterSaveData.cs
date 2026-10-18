@@ -87,6 +87,13 @@ public class CharacterData
     public int CurrentMindAdjustment { get; set; }
     public int CurrentSpiritAdjustment { get; set; }
     public int FatigueCount { get; set; }
+
+    // Daily needs. A missing property in an older save keeps these defaults:
+    // needs met, not rested, not deprived.
+    public bool NeedsMet { get; set; } = true;
+    public bool Rested { get; set; }
+    public bool IsDeprived { get; set; }
+    public int DeprivedDays { get; set; }
     public bool IsPackDropped { get; set; } = false;
     public List<CharacterEffect> ActiveEffects { get; set; } = new();
     public string CharacterStory { get; set; } = string.Empty;

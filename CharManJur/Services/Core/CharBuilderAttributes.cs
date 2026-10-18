@@ -98,6 +98,14 @@ public interface ICharAttribDataService
     int TotalStatSpirit { get; }
     int PackVigorModifier { get; }   // the character's own Vigor modifier; sizes the pack, ignores the form
 
+    // === DEPRIVATION / DAILY NEEDS ===
+    bool NeedsMet { get; }
+    bool Rested { get; }
+    bool IsDeprived { get; }
+    int DeprivedDays { get; }
+    void AffirmNeedsMet();
+    DayEndResult EndDay();
+
     // === TOTAL ASM (Modifier from Total Stats) ===
     int TotalASMStatVigor { get; }
     int TotalASMStatAgility { get; }
@@ -1538,8 +1546,25 @@ public class CharAttribDataService : ICharAttribDataService
 
     public void RestoreHitProtection()
     {
-        HitpointsDamage = 0;
         ShortRestsTaken++;
+
+        if (IsDeprived)
+        {
+            // A deprived character can't recover HP.
+            _ = _actionLogService.LogEventAsync(new PlayerActionLogEntry
+            {
+                ActionType = PlayerActionType.ShortRestTaken,
+                PlayerName = PlayerName,
+                PlayerId = PlayerId,
+                CharacterName = CharacterName,
+                CharacterGuid = CharacterGuid,
+                Summary = "Took a short rest — deprived, Hit Protection not restored"
+            });
+            _ = TriggerAutosaveAsync();
+            return;
+        }
+
+        HitpointsDamage = 0;
         _ = _actionLogService.LogEventAsync(new PlayerActionLogEntry
         {
             ActionType = PlayerActionType.ShortRestTaken,
@@ -1552,41 +1577,50 @@ public class CharAttribDataService : ICharAttribDataService
         _ = TriggerAutosaveAsync();
     }
 
-    // Long Rest table per the rulebook: None leaves the character Deprived; Perilous
-    // clears Deprived only; Normal also clears Fatigue; Comfortable also restores all
-    // four ability scores by a single roll of a six-sided die. "Deprived" itself isn't
-    // tracked as a state yet, so only the effects that ARE implemented actually run —
-    // the summary text still reflects the rulebook outcome.
+    // Only a Long Rest grants the Rested chip. Rest types per the rulebook: Perilous restores Hit
+    // Protection; Normal also clears Fatigue; Comfortable also restores all four ability scores by
+    // one d6. A deprived character whose needs are NOT met gets the Rested chip but no recovery at
+    // all. If their needs are met, the rest clears deprivation first and then recovers normally.
     public LongRestResult TakeLongRest(LongRestType type, int? comfortableRoll = null)
     {
-        HitpointsDamage = 0;   // every rest type restores Hit Protection, short or long
         ShortRestsTaken++;
+        Rested = true;
 
-        bool clearsFatigue = type == LongRestType.Normal || type == LongRestType.Comfortable;
+        bool recoveryBlocked = IsDeprived && !NeedsMet;
+        bool clearsFatigue = false;
         int? roll = null;
+        string summary;
 
-        if (clearsFatigue)
+        if (recoveryBlocked)
         {
-            ClearFatigue();   // logs its own event and autosaves
+            summary = $"Took a long rest ({type}) — Rested, but deprived with needs unmet: no recovery";
         }
-
-        if (type == LongRestType.Comfortable)
+        else
         {
-            roll = Math.Clamp(comfortableRoll ?? Random.Shared.Next(1, 7), 1, 6);   // six-sided die: 1-6
-            AdjustCurrentStat("vigor", roll.Value);
-            AdjustCurrentStat("agility", roll.Value);
-            AdjustCurrentStat("mind", roll.Value);
-            AdjustCurrentStat("spirit", roll.Value);
+            ClearDeprivationIfEligible();
+
+            HitpointsDamage = 0;
+            clearsFatigue = type == LongRestType.Normal || type == LongRestType.Comfortable;
+
+            if (clearsFatigue) ClearFatigue();   // logs its own event and autosaves
+
+            if (type == LongRestType.Comfortable)
+            {
+                roll = Math.Clamp(comfortableRoll ?? Random.Shared.Next(1, 7), 1, 6);   // six-sided die: 1-6
+                AdjustCurrentStat("vigor", roll.Value);
+                AdjustCurrentStat("agility", roll.Value);
+                AdjustCurrentStat("mind", roll.Value);
+                AdjustCurrentStat("spirit", roll.Value);
+            }
+
+            string detail = type switch
+            {
+                LongRestType.Normal => "Hit Protection restored, fatigue cleared",
+                LongRestType.Comfortable => $"Hit Protection restored, fatigue cleared, rolled a {roll} on a six-sided die to restore all ability scores",
+                _ => "Hit Protection restored"
+            };
+            summary = $"Took a long rest ({type}) — {detail}";
         }
-
-        string summary = type switch
-        {
-            LongRestType.None => "Took a long rest (None) — Hit Protection restored, still deprived",
-            LongRestType.Perilous => "Took a long rest (Perilous) — Hit Protection restored, no longer deprived",
-            LongRestType.Normal => "Took a long rest (Normal) — Hit Protection restored, no longer deprived, fatigue cleared",
-            LongRestType.Comfortable => $"Took a long rest (Comfortable) — Hit Protection restored, no longer deprived, fatigue cleared, rolled a {roll} on a six-sided die to restore all ability scores",
-            _ => "Took a long rest"
-        };
 
         _ = _actionLogService.LogEventAsync(new PlayerActionLogEntry
         {
@@ -1749,6 +1783,82 @@ public class CharAttribDataService : ICharAttribDataService
         }
         FatigueCount = 0;
         _ = TriggerAutosaveAsync();
+    }
+
+    // === DEPRIVATION / DAILY NEEDS ===
+    // Needs Met: the player has eaten / done their maintenance today (affirmed by hand).
+    // Rested: a Long Rest was taken today. Both chips clear when a day ends.
+    // A character created fresh starts with Needs Met and no Rested chip.
+    public bool NeedsMet { get; set; } = true;
+    public bool Rested { get; set; }
+    public bool IsDeprived { get; set; }
+    public int DeprivedDays { get; set; }
+
+    public void AffirmNeedsMet()
+    {
+        if (NeedsMet) return;
+        NeedsMet = true;
+
+        LogFamiliarEvent(PlayerActionType.DailyNeedsAffirmed, "Affirmed daily needs are met");
+        ClearDeprivationIfEligible();
+        _ = TriggerAutosaveAsync();
+    }
+
+    // Holding BOTH chips on the same day clears deprivation, in either order. The chips stay,
+    // so the player never has to rest or eat twice in one day.
+    private void ClearDeprivationIfEligible()
+    {
+        if (!IsDeprived || !NeedsMet || !Rested) return;
+
+        IsDeprived = false;
+        DeprivedDays = 0;
+        LogFamiliarEvent(PlayerActionType.DeprivationCleared, "No longer deprived (rested and needs met)");
+    }
+
+    // A day ends. Missing either chip makes the character Deprived. Deprived for more than a day
+    // (already deprived when this day ends, and still is) adds 1 Fatigue per day; the first
+    // deprived day adds none. Both chips are then cleared for the new day.
+    public DayEndResult EndDay()
+    {
+        var result = new DayEndResult { MissedNeeds = !NeedsMet, MissedRest = !Rested };
+
+        if (result.MissedNeeds || result.MissedRest)
+        {
+            bool alreadyDeprived = IsDeprived;
+            IsDeprived = true;
+            DeprivedDays++;
+            result.BecameDeprived = !alreadyDeprived;
+
+            string missing = result.MissedNeeds && result.MissedRest ? "needs not met and no rest"
+                           : result.MissedNeeds ? "needs not met" : "no long rest";
+
+            if (alreadyDeprived)
+            {
+                AddFatigue(1);   // logs its own event
+                result.FatigueGained = 1;
+                LogFamiliarEvent(PlayerActionType.DeprivationStarted,
+                    $"Still deprived at day's end ({missing}) — deprived {DeprivedDays} days, +1 fatigue");
+            }
+            else
+            {
+                LogFamiliarEvent(PlayerActionType.DeprivationStarted,
+                    $"Became deprived at day's end ({missing})");
+            }
+        }
+        else
+        {
+            IsDeprived = false;   // safety: both chips held means no deprivation
+            DeprivedDays = 0;
+        }
+
+        result.StillDeprived = IsDeprived;
+        result.DeprivedDays = DeprivedDays;
+
+        NeedsMet = false;
+        Rested = false;
+
+        _ = TriggerAutosaveAsync();
+        return result;
     }
 
     public string CharacterStory { get; set; } = string.Empty;
@@ -3879,6 +3989,10 @@ public class CharAttribDataService : ICharAttribDataService
                     CurrentMindAdjustment = CurrentMindAdjustment,
                     CurrentSpiritAdjustment = CurrentSpiritAdjustment,
                     FatigueCount = FatigueCount,
+                    NeedsMet = NeedsMet,
+                    Rested = Rested,
+                    IsDeprived = IsDeprived,
+                    DeprivedDays = DeprivedDays,
                     IsPackDropped = IsPackDropped,
                     ActiveEffects = ActiveEffects,
 
@@ -4018,6 +4132,10 @@ public class CharAttribDataService : ICharAttribDataService
         CurrentMindAdjustment = saveData.Data.CurrentMindAdjustment;
         CurrentSpiritAdjustment = saveData.Data.CurrentSpiritAdjustment;
         FatigueCount = saveData.Data.FatigueCount;
+        NeedsMet = saveData.Data.NeedsMet;
+        Rested = saveData.Data.Rested;
+        IsDeprived = saveData.Data.IsDeprived;
+        DeprivedDays = saveData.Data.DeprivedDays;
         IsPackDropped = saveData.Data.IsPackDropped;
         ActiveEffects = saveData.Data.ActiveEffects ?? new List<CharacterEffect>();
 
@@ -4213,6 +4331,10 @@ public class CharAttribDataService : ICharAttribDataService
         CurrentMindAdjustment = 0;
         CurrentSpiritAdjustment = 0;
         FatigueCount = 0;
+        NeedsMet = true;
+        Rested = false;
+        IsDeprived = false;
+        DeprivedDays = 0;
         ActiveEffects = new List<CharacterEffect>();
         IsPackDropped = false;
 

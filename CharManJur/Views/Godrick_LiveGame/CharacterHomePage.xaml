@@ -29,7 +29,7 @@
             <VerticalStackLayout Spacing="10">
 
                 <!-- Name header + Race info + Bio/Rest buttons -->
-                <Grid ColumnDefinitions="Auto, *, 140, 110, 110" ColumnSpacing="8">
+                <Grid ColumnDefinitions="Auto, *, 140, 110, 110, 120, 120" ColumnSpacing="8">
                     <VerticalStackLayout Grid.Column="0" Spacing="0" VerticalOptions="Start">
                         <Label Text="{Binding CharacterName}"
                                FontSize="20"
@@ -118,7 +118,33 @@
                                 FontSize="12"
                                 Command="{Binding OpenRestCommand}" />
                     </skin:SkinHost>
-                </Grid>
+
+                        <skin:SkinHost Grid.Column="5"
+                                   SkinKey="confirm"
+                                   FallbackColor="{DynamicResource ThemeConfirmButtonColor}"
+                                   VerticalOptions="Start">
+                            <Button Text="🍖 Daily Needs"
+                                TextColor="White"
+                                CornerRadius="6"
+                                HeightRequest="35"
+                                Padding="14,0"
+                                FontSize="12"
+                                Command="{Binding DailyNeedsCommand}" />
+                        </skin:SkinHost>
+
+                        <skin:SkinHost Grid.Column="6"
+                                   SkinKey="neutral"
+                                   FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
+                                   VerticalOptions="Start">
+                            <Button Text="☀️ Pass a Day"
+                                TextColor="White"
+                                CornerRadius="6"
+                                HeightRequest="35"
+                                Padding="14,0"
+                                FontSize="12"
+                                Command="{Binding PassDayCommand}" />
+                        </skin:SkinHost>
+                    </Grid>
 
                 <BoxView HeightRequest="1" Color="{DynamicResource ThemeDetailBorderColor1}" />
 
@@ -219,7 +245,7 @@
 
                 <!-- Active Effects — persistent reminder, tap to clear -->
                 <!-- Effects area: the Encumbered chip first (tap for why), then the active effects -->
-                <Grid ColumnDefinitions="Auto, *" Margin="0,2,0,0">
+                <Grid ColumnDefinitions="Auto, Auto, *" Margin="0,2,0,0">
                     <Border Grid.Column="0"
                             Stroke="{DynamicResource ThemeDangerButtonColor}"
                             StrokeThickness="1"
@@ -238,10 +264,54 @@
                         </Border.GestureRecognizers>
                     </Border>
 
-                    <FlexLayout Grid.Column="1"
-                                BindableLayout.ItemsSource="{Binding ActiveEffects}"
-                                Wrap="Wrap"
-                                Direction="Row">
+                    <HorizontalStackLayout Grid.Column="1" Spacing="5" VerticalOptions="Start">
+                        <Border Stroke="{DynamicResource ThemeConfirmButtonColor}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 12"
+                            BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}"
+                            Padding="8,3"
+                            Margin="0,0,0,5"
+                            IsVisible="{Binding NeedsMet}">
+                            <Label Text="NEEDS MET"
+                                FontSize="10"
+                                FontAttributes="Bold"
+                                TextColor="{DynamicResource ThemeConfirmButtonColor}" />
+                        </Border>
+
+                        <Border Stroke="{DynamicResource ThemeDetailBorderColor1}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 12"
+                            BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}"
+                            Padding="8,3"
+                            Margin="0,0,0,5"
+                            IsVisible="{Binding IsRested}">
+                            <Label Text="RESTED"
+                                FontSize="10"
+                                FontAttributes="Bold"
+                                TextColor="{DynamicResource ThemeDetailBorderColor1}" />
+                        </Border>
+
+                        <Border Stroke="{DynamicResource ThemeDangerButtonColor}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 12"
+                            BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}"
+                            Padding="8,3"
+                            Margin="0,0,5,5"
+                            IsVisible="{Binding IsDeprived}">
+                            <Label Text="DEPRIVED ⓘ"
+                                FontSize="10"
+                                FontAttributes="Bold"
+                                TextColor="{DynamicResource ThemeDangerButtonColor}" />
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding ExplainDeprivationCommand}" />
+                            </Border.GestureRecognizers>
+                        </Border>
+                    </HorizontalStackLayout>
+
+                    <FlexLayout Grid.Column="2"
+                            BindableLayout.ItemsSource="{Binding ActiveEffects}"
+                            Wrap="Wrap"
+                            Direction="Row">
                         <BindableLayout.ItemTemplate>
                             <DataTemplate>
                                 <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"

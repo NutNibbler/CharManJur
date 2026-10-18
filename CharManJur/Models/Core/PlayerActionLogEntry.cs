@@ -63,7 +63,10 @@ public enum PlayerActionType
     Transformed,
     StabilityDamaged,
     StabilitySaveRolled,
-    Reverted
+    Reverted,
+    DailyNeedsAffirmed,
+    DeprivationStarted,
+    DeprivationCleared
 }
 
 public enum ActionSource
@@ -159,6 +162,9 @@ public class PlayerActionLogEntry
         PlayerActionType.StabilityDamaged => "STABILITY DAMAGE",
         PlayerActionType.StabilitySaveRolled => "STABILITY SAVE",
         PlayerActionType.Reverted => "REVERTED",
+        PlayerActionType.DailyNeedsAffirmed => "DAILY NEEDS MET",
+        PlayerActionType.DeprivationStarted => "DEPRIVED",
+        PlayerActionType.DeprivationCleared => "DEPRIVATION CLEARED",
         _ => ActionType.ToString()
     };
 
@@ -207,6 +213,9 @@ public class PlayerActionLogEntry
         PlayerActionType.Transformed or PlayerActionType.Reverted => "🐺",
         PlayerActionType.StabilityDamaged => "💥",
         PlayerActionType.StabilitySaveRolled => "🎲",
+        PlayerActionType.DailyNeedsAffirmed => "🍖",
+        PlayerActionType.DeprivationStarted => "🥀",
+        PlayerActionType.DeprivationCleared => "💚",
         _ => "•"
     };
 

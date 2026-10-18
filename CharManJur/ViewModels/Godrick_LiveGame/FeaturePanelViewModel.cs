@@ -19,7 +19,6 @@ public class FeaturePanelViewModel : INotifyPropertyChanged
     public ObservableCollection<FeatureEntry> Rows { get; } = new();
 
     public ICommand UseCommand { get; }
-    public ICommand PassDayCommand { get; }
     public ICommand FavourUpCommand { get; }
     public ICommand FavourDownCommand { get; }
 
@@ -34,7 +33,6 @@ public class FeaturePanelViewModel : INotifyPropertyChanged
         _favour = favour;
 
         UseCommand = new Command(async () => await UseAsync());
-        PassDayCommand = new Command(async () => await PassDayAsync());
         FavourUpCommand = new Command(() => _favour.Adjust(+1));
         FavourDownCommand = new Command(() => _favour.Adjust(-1));
 

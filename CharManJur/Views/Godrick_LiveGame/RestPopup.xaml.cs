@@ -18,21 +18,18 @@ public partial class RestPopup : ContentPage
 
     private async void OnShortRestClicked(object sender, EventArgs e)
     {
+        bool deprived = _charDataService.IsDeprived;
         _charDataService.RestoreHitProtection();
-        await FinishRest("Short rest taken. Hit Protection restored.");
+        await FinishRest(deprived
+            ? "Short rest taken. You're deprived, so Hit Protection was not restored."
+            : "Short rest taken. Hit Protection restored.");
     }
 
     private async void OnLongPerilousClicked(object sender, EventArgs e)
-    {
-        _charDataService.TakeLongRest(LongRestType.Perilous);
-        await FinishRest("Perilous long rest taken. Hit Protection restored.");
-    }
+        => await TakeLongRestAsync(LongRestType.Perilous, null);
 
     private async void OnLongNormalClicked(object sender, EventArgs e)
-    {
-        _charDataService.TakeLongRest(LongRestType.Normal);
-        await FinishRest("Normal long rest taken. Hit Protection restored. Fatigue cleared.");
-    }
+        => await TakeLongRestAsync(LongRestType.Normal, null);
 
     private void OnComfortableRollModeChanged(object sender, CheckedChangedEventArgs e)
     {
@@ -59,8 +56,32 @@ public partial class RestPopup : ContentPage
             return;
         }
 
-        var result = _charDataService.TakeLongRest(LongRestType.Comfortable, roll.Value);
-        await FinishRest($"Comfortable long rest taken. Hit Protection restored. Fatigue cleared. Rolled a {result.AbilityScoreRestoreRoll} on a six-sided die — all ability scores restored by that amount.");
+        await TakeLongRestAsync(LongRestType.Comfortable, roll.Value);
+    }
+
+    // Every Long Rest grants the Rested chip. A deprived character whose needs aren't met
+    // recovers nothing; otherwise the rest recovers normally (and clears deprivation if needs are met).
+    private async Task TakeLongRestAsync(LongRestType type, int? roll)
+    {
+        bool wasDeprived = _charDataService.IsDeprived;
+        bool blocked = wasDeprived && !_charDataService.NeedsMet;
+
+        var result = _charDataService.TakeLongRest(type, roll);
+
+        if (blocked)
+        {
+            await FinishRest($"{type} long rest taken. You gained the Rested chip, but you're deprived and your needs aren't met, so you recover nothing from this rest. " +
+                             "Use Daily Needs to meet your needs and you'll no longer be deprived; take another long rest after that to recover.");
+            return;
+        }
+
+        string message = $"{type} long rest taken. Hit Protection restored.";
+        if (type == LongRestType.Normal || type == LongRestType.Comfortable) message += " Fatigue cleared.";
+        if (type == LongRestType.Comfortable)
+            message += $" Rolled a {result.AbilityScoreRestoreRoll} on a six-sided die — all ability scores restored by that amount.";
+        if (wasDeprived && !_charDataService.IsDeprived) message += " You're no longer deprived.";
+
+        await FinishRest(message);
     }
 
     private async Task FinishRest(string message)

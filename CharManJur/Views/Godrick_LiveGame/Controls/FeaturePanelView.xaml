@@ -31,13 +31,6 @@
 
             <Label Text="{Binding DaysText}" FontSize="12" TextColor="Gray" Margin="0,0,10,4" VerticalOptions="Center" />
 
-            <skin:SkinHost SkinKey="neutral"
-                           FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
-                           VerticalOptions="Center"
-                           Margin="0,0,0,4">
-                <Button Text="☀️ Pass a Day" TextColor="White" CornerRadius="6" WidthRequest="130" HeightRequest="30"
-                        Padding="10,0" FontSize="11" Command="{Binding PassDayCommand}" />
-            </skin:SkinHost>
         </FlexLayout>
 
         <!-- Row 1: list | details -->
