@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<IsPackable>false</IsPackable>
+		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+		<PackageReference Include="xunit" Version="2.9.2" />
+		<PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- Only the new no-MAUI network core. The item-transfer files and SessionMode in Services\Network are NOT linked. -->
+		<Compile Include="..\CharManJur\Services\Network\NetLog.cs" LinkBase="Network" />
+		<Compile Include="..\CharManJur\Services\Network\Protocol\*.cs" LinkBase="Network\Protocol" />
+		<Compile Include="..\CharManJur\Services\Network\Transport\*.cs" LinkBase="Network\Transport" />
+		<Compile Include="..\CharManJur\Services\Network\Session\*.cs" LinkBase="Network\Session" />
+		<Compile Include="..\CharManJur\Models\Network\NetMessages.cs" LinkBase="Network" />
+		<Compile Include="..\CharManJur\Services\Network\GmSessionHub.cs" LinkBase="Network" />
+		<Compile Include="..\CharManJur\Services\Network\Security\*.cs" LinkBase="Services\Network\Security" />
+		<Compile Include="..\CharManJur\Services\Network\Discovery\*.cs" LinkBase="Services\Network\Discovery" />
+		<Compile Include="Network\**\*.cs" />
+	</ItemGroup>
+
+</Project>

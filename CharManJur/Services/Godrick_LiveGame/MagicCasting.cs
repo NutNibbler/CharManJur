@@ -9,6 +9,8 @@ public sealed class CastRequest
     public string? CombinedName { get; init; }                   // only when the player typed a name
     public MagicRollResult Roll { get; init; } = null!;
     public bool IgnoreDamage { get; init; }                      // the GM waived the series damage
+    public IReadOnlyList<int> TechniqueDice { get; init; } = Array.Empty<int>();   // the die powering each technique, in the order of Techniques
+    public bool DiceAssignedAtRandom { get; init; }                                 // the app chose which dice power the techniques
 }
 
 // Applies a finished Magic Die roll to the character: fatigue, series backlash, and the log entries.
@@ -44,8 +46,15 @@ public class MagicCasting
         parts.Add(request.Spell != null
             ? $"[dice] {roll.DiceCount}, [sum] {roll.Sum}"
             : $"damage {roll.Sum} + {roll.DiceCount} = {roll.CantripDamage}");
-        if (roll.TechniqueDice.Count > 0) parts.Add($"technique dice: {string.Join(", ", roll.TechniqueDice)}");
-        if (request.Spell != null && request.Techniques.Count > 0) parts.Add($"techniques applied: {techniqueNames}");
+        if (request.Techniques.Count > 0)
+        {
+            string powered = string.Join(", ", request.Techniques.Select((t, i) =>
+                i < request.TechniqueDice.Count ? $"{t.Name} (die {request.TechniqueDice[i]})" : t.Name));
+            string how = request.DiceAssignedAtRandom ? "assigned at random" : "chosen by the player";
+            parts.Add(request.Spell != null
+                ? $"techniques applied: {powered} ({how})"
+                : $"technique dice: {powered} ({how})");
+        }
         parts.Add(roll.Fatigue > 0 ? $"fatigue +{roll.Fatigue}" : "no fatigue");
         if (roll.HasSeries)
             parts.Add(request.IgnoreDamage

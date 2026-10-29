@@ -11,7 +11,9 @@
             <converters:IsGreaterThanOneConverter x:Key="IsGreaterThanOneConverter" />
             <converters:IsZeroConverter x:Key="IsZeroConverter" />
             <converters:EnabledButtonColorConverter x:Key="EnabledButtonColorConverter" />
-
+            <converters:RewardButtonColorConverter x:Key="RewardButtonColorConverter" />
+            <converters:StatButtonColorConverter x:Key="StatButtonColorConverter" />
+            
             <!--==Drop Item Button Converters==-->
             <converters:DropModeBorderColorConverter x:Key="DropModeBorderColorConverter" />
             <converters:DropModeBorderThicknessConverter x:Key="DropModeBorderThicknessConverter" />

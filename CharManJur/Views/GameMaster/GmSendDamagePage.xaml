@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.GmSendDamagePage"
+             Title="Send Damage"
+             Shell.NavBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="12" MaximumWidthRequest="1000">
+
+            <Label Text="📨 Send Damage"
+                   FontSize="24"
+                   FontAttributes="Bold"
+                   TextColor="{DynamicResource ThemeDetailBorderColor1}"
+                   HorizontalOptions="Center" />
+            <Label x:Name="RecipientLabel" FontSize="14" TextColor="Gray" HorizontalOptions="Center" />
+            <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}" />
+
+            <Label Text="Damage Type" FontSize="13" TextColor="Gray" />
+            <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 8"
+                    BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
+                <Picker x:Name="TypePicker"
+                        BackgroundColor="Transparent"
+                        SelectedIndexChanged="OnTypeChanged">
+                    <Picker.Items>
+                        <x:String>Hitpoints</x:String>
+                        <x:String>Vigor</x:String>
+                        <x:String>Agility</x:String>
+                        <x:String>Mind</x:String>
+                        <x:String>Spirit</x:String>
+                    </Picker.Items>
+                </Picker>
+            </Border>
+
+            <VerticalStackLayout x:Name="SpeedSection" Spacing="6">
+                <Label Text="Attack Speed" FontSize="13" TextColor="Gray" />
+                <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 8"
+                        BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
+                    <Picker x:Name="SpeedPicker" BackgroundColor="Transparent">
+                        <Picker.Items>
+                            <x:String>Slow</x:String>
+                            <x:String>Balanced</x:String>
+                            <x:String>Fast</x:String>
+                        </Picker.Items>
+                    </Picker>
+                </Border>
+                <Label Text="Block Impairs Fast and Balanced attacks. Dodge Impairs Slow and Balanced ones."
+                       FontSize="11"
+                       TextColor="Gray" />
+            </VerticalStackLayout>
+
+            <Label Text="Amount" FontSize="13" TextColor="Gray" />
+            <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 8"
+                    BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
+                <Entry x:Name="AmountEntry"
+                       Text="1"
+                       Keyboard="Numeric"
+                       BackgroundColor="Transparent"
+                       HorizontalTextAlignment="Center" />
+            </Border>
+
+            <Label Text="Note (optional, shown to the player: what hit them)" FontSize="13" TextColor="Gray" />
+            <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 8"
+                    BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
+                <Entry x:Name="NoteEntry"
+                       MaxLength="120"
+                       Placeholder="e.g. A goblin's rusty spear"
+                       PlaceholderColor="Gray"
+                       BackgroundColor="Transparent" />
+            </Border>
+
+            <Label Text="The player sees these details locked in and chooses how to respond (Block, Dodge and so on). Any roll that follows is theirs to make."
+                   FontSize="11"
+                   TextColor="Gray"
+                   LineBreakMode="WordWrap" />
+
+            <Grid ColumnDefinitions="*, *" ColumnSpacing="10" Margin="0,10,0,0" MaximumWidthRequest="800">
+                <skin:SkinHost Grid.Column="0" SkinKey="confirm" FallbackColor="{DynamicResource ThemeConfirmButtonColor}">
+                    <Button Text="Send to Player"
+                            TextColor="White"
+                            CornerRadius="8"
+                            HeightRequest="45"
+                            Padding="14,0"
+                            Clicked="OnSendClicked" />
+                </skin:SkinHost>
+                <skin:SkinHost Grid.Column="1" SkinKey="neutral" FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                    <Button Text="Cancel"
+                            TextColor="White"
+                            CornerRadius="8"
+                            HeightRequest="45"
+                            Padding="14,0"
+                            Clicked="OnCancelClicked" />
+                </skin:SkinHost>
+            </Grid>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

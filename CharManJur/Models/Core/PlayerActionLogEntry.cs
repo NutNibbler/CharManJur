@@ -66,7 +66,32 @@ public enum PlayerActionType
     Reverted,
     DailyNeedsAffirmed,
     DeprivationStarted,
-    DeprivationCleared
+    DeprivationCleared,
+    KillRecorded,
+    KillsEdited,
+    ProficiencyGained,
+    TrainingCompleted,
+    LevelGained,
+    UsageDieRolled,
+    ItemExpended,
+    ItemEditRequested,
+    SessionOpened,
+    SessionClosed,
+    CombatBegan,
+    CombatEnded,
+    TimeChanged,
+    TamperDetected,
+    GmToastSent,
+    PlayerKicked,
+    ShopOpened,
+    ShopClosed,
+    IncomingDamageSent,
+    IncomingEffectSent,
+    ScratchPageBestowed,
+    PlayerJoined,
+    PlayerLeft,
+    PlayerDisconnected,
+    PlayerReconnected
 }
 
 public enum ActionSource
@@ -165,6 +190,31 @@ public class PlayerActionLogEntry
         PlayerActionType.DailyNeedsAffirmed => "DAILY NEEDS MET",
         PlayerActionType.DeprivationStarted => "DEPRIVED",
         PlayerActionType.DeprivationCleared => "DEPRIVATION CLEARED",
+        PlayerActionType.KillRecorded => "KILL RECORDED",
+        PlayerActionType.KillsEdited => "KILLS EDITED",
+        PlayerActionType.ProficiencyGained => "PROFICIENCY GAINED",
+        PlayerActionType.TrainingCompleted => "TRAINING COMPLETED",
+        PlayerActionType.LevelGained => "LEVEL UP",
+        PlayerActionType.UsageDieRolled => "USAGE DIE ROLLED",
+        PlayerActionType.ItemExpended => "ITEM EXPENDED",
+        PlayerActionType.ItemEditRequested => "ITEM EDIT REQUESTED",
+        PlayerActionType.SessionOpened => "SESSION OPENED",
+        PlayerActionType.SessionClosed => "SESSION CLOSED",
+        PlayerActionType.CombatBegan => "COMBAT BEGAN",
+        PlayerActionType.CombatEnded => "COMBAT ENDED",
+        PlayerActionType.TimeChanged => "TIME CHANGED",
+        PlayerActionType.TamperDetected => "TAMPER DETECTED",
+        PlayerActionType.GmToastSent => "GM TOAST SENT",
+        PlayerActionType.PlayerKicked => "PLAYER KICKED",
+        PlayerActionType.ShopOpened => "SHOP OPENED",
+        PlayerActionType.ShopClosed => "SHOP CLOSED",
+        PlayerActionType.IncomingDamageSent => "GM SENT DAMAGE",
+        PlayerActionType.IncomingEffectSent => "GM SENT EFFECT",
+        PlayerActionType.ScratchPageBestowed => "SCRATCH PAGE BESTOWED",
+        PlayerActionType.PlayerJoined => "PLAYER JOINED",
+        PlayerActionType.PlayerLeft => "PLAYER LEFT",
+        PlayerActionType.PlayerReconnected => "PLAYER RECONNECTED",
+        PlayerActionType.PlayerDisconnected => "PLAYER DISCONNECTED",
         _ => ActionType.ToString()
     };
 
@@ -182,7 +232,8 @@ public class PlayerActionLogEntry
         PlayerActionType.ItemDropped or PlayerActionType.ItemBestowed or PlayerActionType.ItemRecovered
             or PlayerActionType.ItemHandedToFamiliar or PlayerActionType.ItemTakenFromFamiliar
             or PlayerActionType.ItemSentToPlayer or PlayerActionType.ItemReceivedFromPlayer
-            or PlayerActionType.ItemEdited => "📦",
+            or PlayerActionType.ItemEdited
+            or PlayerActionType.ItemEditRequested => "📦",
         PlayerActionType.ItemEquipped or PlayerActionType.ItemUnequipped or PlayerActionType.ItemMoved
             or PlayerActionType.PackDropped or PlayerActionType.PackRecovered => "🎒",
         PlayerActionType.ItemPurchased => "🛒",
@@ -216,6 +267,27 @@ public class PlayerActionLogEntry
         PlayerActionType.DailyNeedsAffirmed => "🍖",
         PlayerActionType.DeprivationStarted => "🥀",
         PlayerActionType.DeprivationCleared => "💚",
+        PlayerActionType.KillRecorded or PlayerActionType.KillsEdited => "☠️",
+        PlayerActionType.ProficiencyGained => "🎓",
+        PlayerActionType.TrainingCompleted => "🎯",
+        PlayerActionType.LevelGained => "⬆️",
+        PlayerActionType.UsageDieRolled => "🎲",
+        PlayerActionType.ItemExpended => "🔥",
+        PlayerActionType.SessionOpened => "🔓",
+        PlayerActionType.SessionClosed => "🔒",
+        PlayerActionType.CombatBegan => "⚔️",
+        PlayerActionType.CombatEnded => "🏳️",
+        PlayerActionType.TimeChanged => "🕐",
+        PlayerActionType.TamperDetected => "🚨",
+        PlayerActionType.GmToastSent => "📢",
+        PlayerActionType.PlayerKicked => "🥾",
+        PlayerActionType.ShopOpened or PlayerActionType.ShopClosed => "🏪",
+        PlayerActionType.IncomingDamageSent or PlayerActionType.IncomingEffectSent => "📨",
+        PlayerActionType.ScratchPageBestowed => "📝",
+        PlayerActionType.PlayerJoined => "🟢",
+        PlayerActionType.PlayerLeft => "⚫",
+        PlayerActionType.PlayerReconnected => "♻️",
+        PlayerActionType.PlayerDisconnected => "⚠️",
         _ => "•"
     };
 

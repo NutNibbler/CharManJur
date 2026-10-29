@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.Godrick_LiveGame.LevelUpPage"
+             Title="Level Up"
+             Shell.NavBarIsVisible="False">
+
+    <ContentPage.Resources>
+        <!-- One tappable choice (class, feature, weapon, quip, spell...) -->
+        <DataTemplate x:Key="OptionTemplate">
+            <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 8"
+                    Padding="10"
+                    Margin="0,3">
+                <Border.Triggers>
+                    <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
+                        <Setter Property="Stroke" Value="{DynamicResource ThemeConfirmButtonColor}" />
+                        <Setter Property="StrokeThickness" Value="2" />
+                        <Setter Property="BackgroundColor" Value="{DynamicResource ThemePanelHeaderBackgroundColor}" />
+                    </DataTrigger>
+                </Border.Triggers>
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding SelectCommand}" />
+                </Border.GestureRecognizers>
+
+                <Grid ColumnDefinitions="Auto, *" ColumnSpacing="10">
+                    <Label Grid.Column="0" Text="{Binding Mark}" FontSize="18" VerticalOptions="Start"
+                           TextColor="{DynamicResource ThemeDetailBorderColor1}" />
+                    <VerticalStackLayout Grid.Column="1" Spacing="1">
+                        <Label Text="{Binding Title}" FontSize="14" FontAttributes="Bold" />
+                        <Label Text="{Binding Subtitle}" FontSize="11"
+                               TextColor="{DynamicResource ThemeDetailBorderColor1}"
+                               LineBreakMode="WordWrap" IsVisible="{Binding HasSubtitle}" />
+                        <Label Text="{Binding Detail}" FontSize="11" TextColor="Gray"
+                               LineBreakMode="WordWrap" IsVisible="{Binding HasDetail}" />
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+        </DataTemplate>
+    </ContentPage.Resources>
+
+    <Grid Padding="20" RowDefinitions="Auto, *, Auto" RowSpacing="10">
+
+        <!-- Header -->
+        <VerticalStackLayout Grid.Row="0" Spacing="4">
+            <Label Text="📈 Level Up"
+                   FontSize="26"
+                   FontAttributes="Bold"
+                   TextColor="{DynamicResource ThemeDetailBorderColor1}"
+                   HorizontalOptions="Center" />
+            <Label Text="{Binding HeaderText}" FontSize="16" FontAttributes="Bold" HorizontalOptions="Center" />
+            <Label Text="{Binding PendingText}" FontSize="12" TextColor="{DynamicResource ThemeWarningButtonColor}"
+                   HorizontalOptions="Center" IsVisible="{Binding HasPendingText}" />
+            <Label Text="{Binding RuleSkatingNote}" FontSize="11" TextColor="{DynamicResource ThemeWarningButtonColor}"
+                   HorizontalOptions="Center" HorizontalTextAlignment="Center" LineBreakMode="WordWrap"
+                   IsVisible="{Binding HasRuleSkatingNote}" />
+            <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}" />
+        </VerticalStackLayout>
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Spacing="12" MaximumWidthRequest="900">
+
+                <!-- ===== 1. ABILITY POINTS ===== -->
+                <skin:SkinPanel StrokeColor="{DynamicResource ThemeSectionBorderColor}" StrokeThickness="1" CornerRadius="8" ContentPadding="12">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="1. Ability points" FontSize="15" FontAttributes="Bold"
+                               TextColor="{DynamicResource ThemeWarningButtonColor}" />
+                        <Label Text="Place 2 points on any scores. A class asks for certain points (shown on it), and the classes your points allow appear below."
+                               FontSize="11" TextColor="Gray" LineBreakMode="WordWrap" />
+                        <Label Text="{Binding PointsText}" FontSize="13" FontAttributes="Bold" />
+
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding AbilityRows}" Spacing="6">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="*, Auto, 44, Auto" ColumnSpacing="8">
+                                        <HorizontalStackLayout Grid.Column="0" Spacing="10" VerticalOptions="Center">
+                                            <Label Text="{Binding Name}" FontSize="15" FontAttributes="Bold" />
+                                            <Label Text="{Binding ScoreText}" FontSize="14"
+                                                   TextColor="{DynamicResource ThemeDetailBorderColor1}" />
+                                        </HorizontalStackLayout>
+
+                                        <skin:SkinHost Grid.Column="1" SkinKey="generic_small"
+                                                       FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
+                                                       VerticalOptions="Center">
+                                            <Button Text="−" TextColor="White" CornerRadius="4" WidthRequest="36" HeightRequest="30"
+                                                    Padding="0" FontSize="16"
+                                                    IsEnabled="{Binding CanDown}"
+                                                    Command="{Binding DownCommand}" />
+                                        </skin:SkinHost>
+
+                                        <Label Grid.Column="2" Text="{Binding AddedText}" FontSize="15" FontAttributes="Bold"
+                                               HorizontalTextAlignment="Center" VerticalOptions="Center"
+                                               TextColor="{DynamicResource ThemeConfirmButtonColor}" />
+
+                                        <skin:SkinHost Grid.Column="3" SkinKey="generic_small"
+                                                       FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
+                                                       VerticalOptions="Center">
+                                            <Button Text="+" TextColor="White" CornerRadius="4" WidthRequest="36" HeightRequest="30"
+                                                    Padding="0" FontSize="16"
+                                                    IsEnabled="{Binding CanUp}"
+                                                    Command="{Binding UpCommand}" />
+                                        </skin:SkinHost>
+                                    </Grid>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </skin:SkinPanel>
+
+                <!-- ===== 2. CLASS ===== -->
+                <skin:SkinPanel StrokeColor="{DynamicResource ThemeSectionBorderColor}" StrokeThickness="1" CornerRadius="8" ContentPadding="12"
+                                IsVisible="{Binding ShowClassSection}">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="2. Class" FontSize="15" FontAttributes="Bold"
+                               TextColor="{DynamicResource ThemeWarningButtonColor}" />
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding ClassOptions}"
+                                             BindableLayout.ItemTemplate="{StaticResource OptionTemplate}" />
+                    </VerticalStackLayout>
+                </skin:SkinPanel>
+
+                <!-- ===== 3. FEATURE ===== -->
+                <skin:SkinPanel StrokeColor="{DynamicResource ThemeSectionBorderColor}" StrokeThickness="1" CornerRadius="8" ContentPadding="12"
+                                IsVisible="{Binding ShowFeatureSection}">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="3. Feature" FontSize="15" FontAttributes="Bold"
+                               TextColor="{DynamicResource ThemeWarningButtonColor}" />
+                        <Label Text="You already have every feature this class offers."
+                               FontSize="12" TextColor="{DynamicResource ThemeDangerButtonColor}"
+                               IsVisible="{Binding NoFeaturesLeft}" />
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding FeatureOptions}"
+                                             BindableLayout.ItemTemplate="{StaticResource OptionTemplate}" />
+                    </VerticalStackLayout>
+                </skin:SkinPanel>
+
+                <!-- ===== 3b. SPELL / TECHNIQUE / BLUEPRINT ===== -->
+                <skin:SkinPanel StrokeColor="{DynamicResource ThemeSectionBorderColor}" StrokeThickness="1" CornerRadius="8" ContentPadding="12"
+                                IsVisible="{Binding ShowSubFeatureSection}">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="{Binding SubFeatureHeader}" FontSize="15" FontAttributes="Bold"
+                               TextColor="{DynamicResource ThemeWarningButtonColor}" />
+                        <ScrollView HeightRequest="240">
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding SubFeatureOptions}"
+                                                 BindableLayout.ItemTemplate="{StaticResource OptionTemplate}" />
+                        </ScrollView>
+                        <skin:SkinHost SkinKey="create" FallbackColor="{DynamicResource ThemeCreateButtonColor}" HorizontalOptions="Start">
+                            <Button Text="{Binding CreateSubFeatureText}"
+                                    TextColor="White" CornerRadius="6" HeightRequest="36" Padding="14,0" FontSize="12"
+                                    Command="{Binding CreateSubFeatureCommand}" />
+                        </skin:SkinHost>
+                    </VerticalStackLayout>
+                </skin:SkinPanel>
+
+                <!-- ===== 4a. WARRIOR WEAPON ===== -->
+                <skin:SkinPanel StrokeColor="{DynamicResource ThemeWarningButtonColor}" StrokeThickness="1" CornerRadius="8" ContentPadding="12"
+                                IsVisible="{Binding ShowWeaponSection}">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="⚔️ Warrior: choose an additional weapon" FontSize="15" FontAttributes="Bold"
+                               TextColor="{DynamicResource ThemeWarningButtonColor}" />
+                        <Label Text="You gain that weapon's skill proficiency. The weapon is not added to your pack, and damage type proficiency is unchanged. A weapon you already picked isn't listed."
+                               FontSize="11" TextColor="Gray" LineBreakMode="WordWrap" />
+                        <Border Stroke="{DynamicResource ThemeDetailBorderColor2}" StrokeThickness="1" StrokeShape="RoundRectangle 6"
+                                BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
+                            <Entry Text="{Binding WeaponSearch, Mode=TwoWay}"
+                                   Placeholder="Search by name, damage type or effect"
+                                   PlaceholderColor="Gray" FontSize="12" BackgroundColor="Transparent" />
+                        </Border>
+                        <ScrollView HeightRequest="240">
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding WeaponOptions}"
+                                                 BindableLayout.ItemTemplate="{StaticResource OptionTemplate}" />
+                        </ScrollView>
+                        <Label Text="{Binding WeaponSelectionText}" FontSize="12" FontAttributes="Bold"
+                               TextColor="{DynamicResource ThemeDetailBorderColor1}" />
+                    </VerticalStackLayout>
+                </skin:SkinPanel>
+
+                <!-- ===== 4b. ARCANIST QUIP ===== -->
+                <skin:SkinPanel StrokeColor="{DynamicResource ThemeWarningButtonColor}" StrokeThickness="1" CornerRadius="8" ContentPadding="12"
+                                IsVisible="{Binding ShowQuipSection}">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="⚡ Arcanist: choose a quip" FontSize="15" FontAttributes="Bold"
+                               TextColor="{DynamicResource ThemeWarningButtonColor}" />
+                        <ScrollView HeightRequest="240">
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding QuipOptions}"
+                                                 BindableLayout.ItemTemplate="{StaticResource OptionTemplate}" />
+                        </ScrollView>
+                        <skin:SkinHost SkinKey="create" FallbackColor="{DynamicResource ThemeCreateButtonColor}" HorizontalOptions="Start">
+                            <Button Text="✨ Create Custom Quip"
+                                    TextColor="White" CornerRadius="6" HeightRequest="36" Padding="14,0" FontSize="12"
+                                    Command="{Binding CreateQuipCommand}" />
+                        </skin:SkinHost>
+                        <Label Text="{Binding QuipSelectionText}" FontSize="12" FontAttributes="Bold"
+                               TextColor="{DynamicResource ThemeDetailBorderColor1}" />
+                    </VerticalStackLayout>
+                </skin:SkinPanel>
+
+                <!-- ===== 4c. ARTIFICER CONSTRUCT ===== -->
+                <skin:SkinPanel StrokeColor="{DynamicResource ThemeWarningButtonColor}" StrokeThickness="1" CornerRadius="8" ContentPadding="12"
+                                IsVisible="{Binding ShowConstructSection}">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="⚙️ Artificer: your new construct" FontSize="15" FontAttributes="Bold"
+                               TextColor="{DynamicResource ThemeWarningButtonColor}" />
+                        <Label Text="Type: Construct · Intelligence: Inanimate · Size: Small (fixed for a level-up construct)."
+                               FontSize="11" TextColor="Gray" LineBreakMode="WordWrap" />
+
+                        <Label Text="Name *" FontAttributes="Bold" FontSize="13" />
+                        <Entry Text="{Binding ConstructName, Mode=TwoWay}"
+                               Placeholder="Name your construct"
+                               BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+
+                        <Label Text="Description (5 words at most)" FontAttributes="Bold" FontSize="13" />
+                        <Entry Text="{Binding ConstructDescription, Mode=TwoWay}"
+                               Placeholder="A few words"
+                               BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+                        <Label Text="{Binding ConstructWordsText}" FontSize="11" TextColor="Gray">
+                            <Label.Triggers>
+                                <DataTrigger TargetType="Label" Binding="{Binding ConstructWordsOver}" Value="True">
+                                    <Setter Property="TextColor" Value="{DynamicResource ThemeDangerButtonColor}" />
+                                </DataTrigger>
+                            </Label.Triggers>
+                        </Label>
+
+                        <Label Text="Base inventory capacity (pack slots)" FontAttributes="Bold" FontSize="13" />
+                        <Entry Text="{Binding ConstructCapacityText, Mode=TwoWay}"
+                               Keyboard="Numeric"
+                               Placeholder="0"
+                               BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+                    </VerticalStackLayout>
+                </skin:SkinPanel>
+
+                <!-- ===== SUMMARY ===== -->
+                <skin:SkinPanel StrokeColor="{DynamicResource ThemeConfirmButtonColor}" StrokeThickness="2" CornerRadius="8" ContentPadding="12"
+                                IsVisible="{Binding ShowSummary}">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="This level gives you" FontSize="15" FontAttributes="Bold"
+                               TextColor="{DynamicResource ThemeConfirmButtonColor}" />
+                        <Label Text="{Binding SummaryText}" FontSize="13" LineBreakMode="WordWrap" />
+                        <Label Text="{Binding WarningText}" FontSize="12" LineBreakMode="WordWrap"
+                               TextColor="{DynamicResource ThemeWarningButtonColor}"
+                               IsVisible="{Binding HasWarnings}" />
+                    </VerticalStackLayout>
+                </skin:SkinPanel>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Footer -->
+        <VerticalStackLayout Grid.Row="2" Spacing="6" MaximumWidthRequest="900">
+            <Label Text="{Binding ProblemText}" FontSize="12" HorizontalTextAlignment="Center" LineBreakMode="WordWrap"
+                   TextColor="{DynamicResource ThemeWarningButtonColor}"
+                   IsVisible="{Binding HasProblem}" />
+
+            <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
+                <skin:SkinHost Grid.Column="0" SkinKey="neutral" FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                    <Button Text="Cancel"
+                            TextColor="White" CornerRadius="8" HeightRequest="45" Padding="14,0"
+                            Clicked="OnCancelClicked" />
+                </skin:SkinHost>
+
+                <skin:SkinHost Grid.Column="1" SkinKey="confirm" FallbackColor="{DynamicResource ThemeConfirmButtonColor}">
+                    <Button Text="⬆️ Level Up"
+                            TextColor="White" CornerRadius="8" HeightRequest="45" Padding="14,0"
+                            FontAttributes="Bold"
+                            IsEnabled="{Binding CanConfirm}"
+                            Command="{Binding ConfirmCommand}" />
+                </skin:SkinHost>
+            </Grid>
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>

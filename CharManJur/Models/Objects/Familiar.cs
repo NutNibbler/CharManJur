@@ -189,7 +189,7 @@ public class Familiar : INotifyPropertyChanged
 
     // Bestowed straight from an item template (GM bestow).
     // Bestowed straight from an item template (GM bestow).
-    public bool AddItemToInventory(Item template, int quantity = 1, int? writtenValueInChips = null, int? startingUses = null)
+    public bool AddItemToInventory(Item template, int quantity = 1, int? writtenValueInChips = null, int? startingUses = null, int? startingUsageDie = null)
     {
         if (template == null || quantity <= 0) return false;
 
@@ -206,6 +206,9 @@ public class Familiar : INotifyPropertyChanged
             Template = template,
             Quantity = quantity,
             RemainingUses = remainingUses,
+            UsageDieSides = template.HasUsageDie
+                ? (startingUsageDie is { } d && UsageDie.IsValid(d) ? d : template.DefaultUsageDieSides)
+                : 0,
             IsEmpty = template.HasUses && remainingUses <= 0,
             WrittenValueInChips = template.IsValueEditable ? writtenValueInChips : null
         };

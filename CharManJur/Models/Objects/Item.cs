@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
 using System.Runtime.CompilerServices;
+using System.Text;
+using System.Text.Json.Serialization;
 
 namespace CharManJur.Models;
 
@@ -45,7 +46,33 @@ public class Item : INotifyPropertyChanged
     public ItemSize Size { get; set; } = ItemSize.Regular;
     public string? BaseDescription { get; set; } = string.Empty;
     public string? PlayerNote { get; set; } = string.Empty;
-    public WeaponCategoryType? WeaponCategory { get; set; }
+    public WeaponType? WeaponKind { get; set; }        // Melee, Thrown or Ranged
+    public WeaponDamageType? DamageType { get; set; }  // Piercing, Bludgeoning or Slashing (ranged is always Piercing, thrown defaults to it)
+
+    // Reads the old single "WeaponCategory" value from older saved items and packs and splits it into the
+    // two properties above. Set-only, so it is never written back out.
+    [JsonPropertyName("WeaponCategory")]
+    public WeaponCategoryType? LegacyWeaponCategory
+    {
+        set
+        {
+            if (!value.HasValue) return;
+
+            WeaponKind ??= value.Value switch
+            {
+                WeaponCategoryType.Ranged => WeaponType.Ranged,
+                WeaponCategoryType.Thrown => WeaponType.Thrown,
+                _ => WeaponType.Melee
+            };
+
+            DamageType ??= value.Value switch
+            {
+                WeaponCategoryType.Bludgeoning => WeaponDamageType.Bludgeoning,
+                WeaponCategoryType.Slashing => WeaponDamageType.Slashing,
+                _ => WeaponDamageType.Piercing
+            };
+        }
+    }
     public WeaponDamageDie? WeaponDamage { get; set; }
     public List<WeaponEffectType>? WeaponEffects { get; set; }
     public WeaponSpeedType? WeaponSpeed { get; set; }
@@ -61,16 +88,28 @@ public class Item : INotifyPropertyChanged
     // True for items whose value is written on each individual item (Notes). The value lives on the
     // CharacterItem (WrittenValueInChips); ValueInChips is the default when none has been written.
     public bool IsValueEditable { get; set; } = false;
+    // Usage die (ammo-style). Off on every item unless enabled. The current die lives on each CharacterItem;
+    // this is the die a new copy starts with.
+    public bool HasUsageDie { get; set; } = false;
+    // Uses and a usage die working together: a failed die roll spends a Use instead of shrinking the die
+    public bool HybridUsage { get; set; } = false;
+    public bool IsHybridUsage => HybridUsage && HasUsageDie && HasUses;
+    public int DefaultUsageDieSides { get; set; } = 8;
 
     // ===== HELPER PROPERTIES =====
+    // Worn items are equipped without a slot and without a limit (rings, amulets, trinkets).
+    public bool IsWorn => Category == ItemCategory.Jewelry || Category == ItemCategory.Trinket;
     public bool IsJewelry => Category == ItemCategory.Jewelry;
+
     public bool IsArmor => Category == ItemCategory.Armor;
     public bool IsShield => Category == ItemCategory.Armor && ArmorType == CharManJur.Models.ArmorType.Shield;
     public bool IsWeapon => Category == ItemCategory.Weapon;
+    public bool IsRangedWeapon => IsWeapon && WeaponKind == WeaponType.Ranged;
+    public bool IsThrownWeapon => IsWeapon && WeaponKind == WeaponType.Thrown;
     public bool IsContainer => Category == ItemCategory.Container;
     public int ContainerCapacity => IsContainer ? Math.Max(0, ContainerSlots ?? 0) : 0;
     public bool IsShieldOrWeapon => IsShield || IsWeapon;
-    public bool IsStackableItem => IsStackable.HasValue && IsStackable.Value;
+    public bool IsStackableItem => IsStackable.HasValue && IsStackable.Value && !HasUsageDie;
     public bool HasUses => Uses.HasValue && Uses.Value > 0;
     public bool IsUnlimited => !Uses.HasValue || Uses.Value == -1;
 
@@ -109,7 +148,9 @@ public enum ItemCategory
     Jewelry,
     Unknown,
     Story,
-    Container
+    Container,
+    Ammo,
+    Trinket
 }
 
 public enum ItemSize
@@ -131,6 +172,26 @@ public enum WeaponCategoryType
     Slashing,
     [Display(Name = "Thrown", Description = "Weapons that can be thrown to deal damage or set an effect.")]
     Thrown,
+}
+
+public enum WeaponDamageType
+{
+    [Display(Name = "Piercing", Description = "Rolling the maximum damage on your damage roll will ignore armor. The attack must be the original weapon die for the weapon.")]
+    Piercing,
+    [Display(Name = "Bludgeoning", Description = "Always ignores 1 armor.")]
+    Bludgeoning,
+    [Display(Name = "Slashing", Description = "Deals +1 damage against opponents with 0 armor.")]
+    Slashing
+}
+
+public enum WeaponType
+{
+    [Display(Name = "Melee", Description = "Weapons wielded in close combat.")]
+    Melee,
+    [Display(Name = "Thrown", Description = "Weapons that can be thrown to deal damage or set an effect.")]
+    Thrown,
+    [Display(Name = "Ranged", Description = "Weapons that are designed to harm from afar, they launch projectiles.")]
+    Ranged
 }
 
 public enum WeaponDamageDie

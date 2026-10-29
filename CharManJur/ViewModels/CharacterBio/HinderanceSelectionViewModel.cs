@@ -79,7 +79,7 @@ public class HinderanceSelectionViewModel : INotifyPropertyChanged
         }
 
         // Reset AvailableTrainingPoints to 4 (base)
-        _charDataService.AvailableTrainingPoints = 4;
+        _charDataService.AvailableTrainingPoints = _charDataService.CreationTrainingPointsBase;
 
         System.Diagnostics.Debug.WriteLine("=== Training points reset due to hinderance change ===");
     }
@@ -212,14 +212,14 @@ public class HinderanceSelectionViewModel : INotifyPropertyChanged
         SelectStatBonusCommand = new Command(() => SelectedRewardType = HinderanceRewardType.StatBonus);
         SelectTrainingPointCommand = new Command(() => SelectedRewardType = HinderanceRewardType.TrainingPoint);
         SelectStatToIncreaseCommand = new Command<string>(stat => SelectedStat = stat);
-        ConfirmHinderanceCommand = new Command(async () => await ConfirmHinderanceAsync());
-        SkipHinderanceCommand = new Command(async () => await SkipHinderanceAsync());
+        ConfirmHinderanceCommand = new Command(async () => await CrashLog.GuardAsync(ConfirmHinderanceAsync, "Confirm hinderance"));
+        SkipHinderanceCommand = new Command(async () => await CrashLog.GuardAsync(SkipHinderanceAsync, "Skip hinderance"));
         CreateCustomHinderanceCommand = new Command(async () => await CreateCustomHinderanceAsync());
         EditCustomHinderanceCommand = new Command<Hinderance>(async (h) => await EditCustomHinderanceAsync(h));
         DeleteCustomHinderanceCommand = new Command<Hinderance>(async (h) => await DeleteCustomHinderanceAsync(h));
 
         LoadStats();
-        Task.Run(LoadHinderancesAsync);
+        _ = LoadHinderancesAsync();
     }
 
     private async Task CreateCustomHinderanceAsync()
@@ -313,17 +313,21 @@ public class HinderanceSelectionViewModel : INotifyPropertyChanged
         try
         {
             var hinderances = await _hinderanceDataService.GetHinderancesAsync();
-            Hinderances = new ObservableCollection<Hinderance>(hinderances);
 
-            RestoreSelectedHinderance();
+            // Build the bound collection and restore the selection on the UI thread
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                Hinderances = new ObservableCollection<Hinderance>(hinderances);
+                RestoreSelectedHinderance();
+            });
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error loading hinderances: {ex.Message}");
+            CrashLog.Write("Load hinderances", ex);
         }
         finally
         {
-            IsLoading = false;
+            MainThread.BeginInvokeOnMainThread(() => IsLoading = false);
         }
     }
 
@@ -448,7 +452,7 @@ public class HinderanceSelectionViewModel : INotifyPropertyChanged
         _charDataService.RewardStatName = null;
 
         // Reset training points to base (4)
-        _charDataService.AvailableTrainingPoints = 4;
+        _charDataService.AvailableTrainingPoints = _charDataService.CreationTrainingPointsBase;
 
         // Reset the ViewModel properties too
         SelectedRewardType = HinderanceRewardType.None;

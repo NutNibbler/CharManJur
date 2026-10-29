@@ -15,7 +15,9 @@ public enum EffectTargetType
     SpiritMax,
     HitpointsCurrent,
     HitpointsMax,
-    Skill
+    Skill,
+    FatigueCurrent,
+    FatigueMax
 }
 
 public enum EffectDurationType

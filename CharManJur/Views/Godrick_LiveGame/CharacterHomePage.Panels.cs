@@ -6,7 +6,7 @@ namespace CharManJur.Views.Godrick_LiveGame;
 
 public partial class CharacterHomePage
 {
-    private enum OverlayPanel { None, Familiars, Shop, Spells, Quips, Blueprints, Techniques, Features }
+    private enum OverlayPanel { None, Familiars, Shop, Spells, Quips, Blueprints, Techniques, Features, Scratch }
 
     private OverlayPanel _openPanel = OverlayPanel.None;
     private bool _panelBusy;
@@ -26,7 +26,7 @@ public partial class CharacterHomePage
         _familiarPanelVm.BestowFamiliarRequested += OnBestowFamiliarRequested;
         FamiliarPanel.BindingContext = _familiarPanelVm;
 
-        var services = IPlatformApplication.Current!.Services;
+        IServiceProvider services = new PageServices(IPlatformApplication.Current!.Services, _viewModel.ActionLog);
 
         _shopPanelVm = new ShopPanelViewModel(
             _viewModel.CharDataService,
@@ -94,11 +94,15 @@ public partial class CharacterHomePage
         _viewModel.ModalOpening += () => SetReturningFromFlyout(true);
         InitializeEventTray();
         InitializeTileToggle();
+        InitializeBioFlash();
+        InitializeIncomingFlash();
+        InitializeScratchPad();
     }
 
     // Called when a different character is loaded into this page.
     private void ResetPanels()
     {
+        _ = SaveScratchPadAsync();
         ResetEventTray();
         PanelOverlay.IsVisible = false;
         PanelOverlay.TranslationY = 0;
@@ -174,6 +178,7 @@ public partial class CharacterHomePage
 
     private async Task ShowPanelAsync(OverlayPanel panel)
     {
+        if (_openPanel == OverlayPanel.Scratch && panel != OverlayPanel.Scratch) await SaveScratchPadAsync();
         // Already open on another panel: swap the content in place instead of sliding again.
         bool slideIn = _openPanel == OverlayPanel.None;
         var subType = SubFeatureTypeFor(panel);
@@ -182,6 +187,7 @@ public partial class CharacterHomePage
         ShopPanel.IsVisible = panel == OverlayPanel.Shop;
         SubFeaturePanel.IsVisible = subType.HasValue;
         FeaturePanel.IsVisible = panel == OverlayPanel.Features;
+        ScratchPanel.IsVisible = panel == OverlayPanel.Scratch;
 
         if (panel == OverlayPanel.Familiars)
         {
@@ -197,6 +203,11 @@ public partial class CharacterHomePage
         {
             if (_featurePanelVm != null) await _featurePanelVm.RefreshAsync();
             PanelTitleLabel.Text = "⚙️ Features";
+        }
+        else if (panel == OverlayPanel.Scratch)
+        {
+            await OpenScratchPadAsync();
+            PanelTitleLabel.Text = "📝 Scratch Pad";
         }
         else if (subType.HasValue && _subFeaturePanelVm != null)
         {
@@ -221,6 +232,7 @@ public partial class CharacterHomePage
 
     private async Task HidePanelAsync()
     {
+        await SaveScratchPadAsync();   // any panel closing saves the pad, so nothing typed is lost
         _viewModel.RefreshFamiliarStrip();   // changes made inside a panel (Familiars, Crafting) show on the dashboard
         SetBackgroundPanelsCovered(false);   // bring the equipment and inventory back before the slide-out starts
         await PanelOverlay.TranslateToAsync(0, Height, 300, Easing.CubicIn);

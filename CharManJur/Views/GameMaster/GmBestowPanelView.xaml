@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.GmBestowPanelView">
+
+    <Grid ColumnDefinitions="0.9*, 1.6*, 1.1*" ColumnSpacing="12">
+
+        <!-- ===== 1. WHO RECEIVES IT ===== -->
+        <Grid Grid.Column="0" RowDefinitions="Auto, Auto, *" RowSpacing="8">
+            <Label Grid.Row="0"
+                   Text="1 · Who receives it"
+                   FontSize="14"
+                   FontAttributes="Bold"
+                   TextColor="{DynamicResource ThemeWarningButtonColor}" />
+
+            <Grid Grid.Row="1" ColumnDefinitions="*, *" ColumnSpacing="6">
+                <skin:SkinHost Grid.Column="0" SkinKey="neutral"
+                               FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                    <Button Text="Select all" TextColor="White" CornerRadius="6" HeightRequest="30"
+                            Padding="8,0" FontSize="11" Command="{Binding SelectAllCommand}" />
+                </skin:SkinHost>
+                <skin:SkinHost Grid.Column="1" SkinKey="neutral"
+                               FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                    <Button Text="None" TextColor="White" CornerRadius="6" HeightRequest="30"
+                            Padding="8,0" FontSize="11" Command="{Binding SelectNoneCommand}" />
+                </skin:SkinHost>
+            </Grid>
+
+            <ScrollView Grid.Row="2">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="No players are connected. Add test players on the dashboard first."
+                           FontSize="12"
+                           TextColor="Gray"
+                           LineBreakMode="WordWrap"
+                           IsVisible="{Binding HasNoRecipients}" />
+
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Recipients}" Spacing="6">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate>
+                                <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                        StrokeThickness="0.5"
+                                        StrokeShape="RoundRectangle 6"
+                                        Padding="8,4">
+                                    <Grid ColumnDefinitions="Auto, *" ColumnSpacing="8">
+                                        <CheckBox Grid.Column="0"
+                                                  IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                  Color="{DynamicResource ThemeConfirmButtonColor}"
+                                                  VerticalOptions="Center" />
+                                        <VerticalStackLayout Grid.Column="1" Spacing="0" VerticalOptions="Center">
+                                            <Label Text="{Binding Title}" FontSize="13" FontAttributes="Bold" />
+                                            <Label Text="{Binding Stats}" FontSize="11" TextColor="Gray" />
+                                        </VerticalStackLayout>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </ScrollView>
+        </Grid>
+
+        <!-- ===== 2. WHAT TO GIVE ===== -->
+        <Grid Grid.Column="1" RowDefinitions="Auto, Auto, Auto, *, Auto" RowSpacing="8">
+            <Label Grid.Row="0"
+                   Text="2 · What to give"
+                   FontSize="14"
+                   FontAttributes="Bold"
+                   TextColor="{DynamicResource ThemeWarningButtonColor}" />
+
+            <Picker Grid.Row="1"
+                    ItemsSource="{Binding CategoryLabels}"
+                    SelectedIndex="{Binding CategoryIndex, Mode=TwoWay}"
+                    BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+
+            <Border Grid.Row="2"
+                    Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 8"
+                    BackgroundColor="{DynamicResource ThemePanelBackgroundColor}">
+                <Entry Text="{Binding SearchText, Mode=TwoWay}"
+                       Placeholder="Search..."
+                       PlaceholderColor="Gray"
+                       BackgroundColor="Transparent" />
+            </Border>
+
+            <CollectionView Grid.Row="3"
+                            ItemsSource="{Binding Catalog}"
+                            SelectionMode="Single"
+                            SelectedItem="{Binding SelectedEntry, Mode=TwoWay}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                StrokeThickness="0.5"
+                                StrokeShape="RoundRectangle 4"
+                                Padding="10"
+                                Margin="3">
+                            <VerticalStackLayout Spacing="2">
+                                <Label Text="{Binding Name}" FontSize="14" FontAttributes="Bold" />
+                                <Label Text="{Binding Subtitle}"
+                                       FontSize="11"
+                                       TextColor="{DynamicResource ThemeWarningButtonColor}"
+                                       IsVisible="{Binding HasSubtitle}" />
+                                <Label Text="{Binding Description}"
+                                       FontSize="12"
+                                       TextColor="Gray"
+                                       MaxLines="2"
+                                       LineBreakMode="TailTruncation"
+                                       IsVisible="{Binding HasDescription}" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <Label Grid.Row="3"
+                   Text="Nothing here."
+                   FontSize="13"
+                   TextColor="Gray"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center"
+                   IsVisible="{Binding HasNoCatalog}" />
+
+            <!-- Options for the selected item, then Add to Basket -->
+            <VerticalStackLayout Grid.Row="4" Spacing="8">
+
+                <HorizontalStackLayout Spacing="8" HorizontalOptions="Center" IsVisible="{Binding ShowQuantity}">
+                    <Label Text="Qty:" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+
+                    <skin:SkinHost SkinKey="generic_small"
+                                   FallbackColor="{DynamicResource ThemeDangerButtonColor}"
+                                   VerticalOptions="Center">
+                        <Button Text="−" TextColor="White" CornerRadius="6" WidthRequest="40" HeightRequest="35"
+                                Padding="0" FontSize="18" Command="{Binding QuantityDownCommand}" />
+                    </skin:SkinHost>
+
+                    <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 6"
+                            BackgroundColor="{DynamicResource ThemePanelBackgroundColor}"
+                            WidthRequest="80"
+                            HeightRequest="35">
+                        <Entry Text="{Binding QuantityText, Mode=TwoWay}"
+                               Keyboard="Numeric"
+                               BackgroundColor="Transparent"
+                               HorizontalTextAlignment="Center"
+                               VerticalOptions="Center" />
+                    </Border>
+
+                    <skin:SkinHost SkinKey="generic_small"
+                                   FallbackColor="{DynamicResource ThemePrimaryButtonColor}"
+                                   VerticalOptions="Center">
+                        <Button Text="+" TextColor="White" CornerRadius="6" WidthRequest="40" HeightRequest="35"
+                                Padding="0" FontSize="18" Command="{Binding QuantityUpCommand}" />
+                    </skin:SkinHost>
+                </HorizontalStackLayout>
+
+                <HorizontalStackLayout Spacing="8" HorizontalOptions="Center" IsVisible="{Binding ShowNoteValue}">
+                    <Label Text="Written value (Marks, min 10):" FontSize="13" VerticalOptions="Center" />
+                    <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 6"
+                            BackgroundColor="{DynamicResource ThemePanelBackgroundColor}"
+                            WidthRequest="90"
+                            HeightRequest="35">
+                        <Entry Text="{Binding NoteValueText, Mode=TwoWay}"
+                               Keyboard="Numeric"
+                               BackgroundColor="Transparent"
+                               HorizontalTextAlignment="Center"
+                               VerticalOptions="Center" />
+                    </Border>
+                </HorizontalStackLayout>
+
+                <HorizontalStackLayout Spacing="8" HorizontalOptions="Center" IsVisible="{Binding ShowUsageDie}">
+                    <Label Text="Usage die:" FontSize="13" VerticalOptions="Center" />
+                    <Picker ItemsSource="{Binding DieLabels}"
+                            SelectedIndex="{Binding DieIndex, Mode=TwoWay}"
+                            WidthRequest="120"
+                            BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+                </HorizontalStackLayout>
+
+                <Label Text="{Binding ErrorText}"
+                       FontSize="12"
+                       TextColor="{DynamicResource ThemeDangerButtonColor}"
+                       LineBreakMode="WordWrap"
+                       IsVisible="{Binding HasError}" />
+
+                <skin:SkinHost SkinKey="primary"
+                               FallbackColor="{DynamicResource ThemePrimaryButtonColor}"
+                               HorizontalOptions="Center">
+                    <Button Text="➕ Add to Basket"
+                            TextColor="White"
+                            CornerRadius="6"
+                            HeightRequest="35"
+                            Padding="14,0"
+                            FontSize="13"
+                            IsEnabled="{Binding HasSelectedEntry}"
+                            Command="{Binding AddToBasketCommand}" />
+                </skin:SkinHost>
+            </VerticalStackLayout>
+        </Grid>
+
+        <!-- ===== 3. BASKET ===== -->
+        <skin:SkinPanel Grid.Column="2"
+                        StrokeColor="{DynamicResource ThemeSectionBorderColor}"
+                        StrokeThickness="1"
+                        CornerRadius="8"
+                        ContentPadding="10">
+            <Grid RowDefinitions="Auto, *, Auto, Auto, Auto" RowSpacing="8">
+
+                <VerticalStackLayout Grid.Row="0" Spacing="2">
+                    <Label Text="3 · Basket" FontSize="14" FontAttributes="Bold"
+                           TextColor="{DynamicResource ThemeWarningButtonColor}" />
+                    <Label Text="{Binding BasketSummary}" FontSize="12" TextColor="Gray" />
+                    <Label Text="{Binding RecipientSummary}" FontSize="12"
+                           TextColor="{DynamicResource ThemeDetailBorderColor1}" />
+                </VerticalStackLayout>
+
+                <ScrollView Grid.Row="1">
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Basket}" Spacing="4">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate>
+                                <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                        StrokeThickness="0.5"
+                                        StrokeShape="RoundRectangle 4"
+                                        Padding="8">
+                                    <Grid ColumnDefinitions="*, Auto" ColumnSpacing="6">
+                                        <VerticalStackLayout Grid.Column="0" Spacing="1">
+                                            <Label Text="{Binding Title}" FontSize="13" FontAttributes="Bold" />
+                                            <Label Text="{Binding Subtitle}" FontSize="10" TextColor="Gray" />
+                                        </VerticalStackLayout>
+
+                                        <skin:SkinHost Grid.Column="1"
+                                                       SkinKey="generic_small"
+                                                       FallbackColor="{DynamicResource ThemeDangerButtonColor}"
+                                                       VerticalOptions="Center">
+                                            <Button Text="✕"
+                                                    TextColor="White"
+                                                    CornerRadius="4"
+                                                    WidthRequest="30"
+                                                    HeightRequest="28"
+                                                    Padding="0"
+                                                    FontSize="12"
+                                                    Clicked="OnRemoveLine" />
+                                        </skin:SkinHost>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </ScrollView>
+
+                <skin:SkinHost Grid.Row="2"
+                               SkinKey="neutral"
+                               FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
+                               IsVisible="{Binding HasBasket}">
+                    <Button Text="Clear Basket"
+                            TextColor="White"
+                            CornerRadius="6"
+                            HeightRequest="32"
+                            Padding="12,0"
+                            FontSize="12"
+                            IsVisible="{Binding HasBasket}"
+                            Command="{Binding ClearBasketCommand}" />
+                </skin:SkinHost>
+
+                <skin:SkinHost Grid.Row="3"
+                               SkinKey="confirm"
+                               FallbackColor="{DynamicResource ThemeConfirmButtonColor}">
+                    <Button Text="{Binding BestowButtonText}"
+                            TextColor="White"
+                            CornerRadius="8"
+                            HeightRequest="42"
+                            Padding="14,0"
+                            FontSize="13"
+                            FontAttributes="Bold"
+                            IsEnabled="{Binding CanBestow}"
+                            Command="{Binding BestowCommand}" />
+                </skin:SkinHost>
+
+                <VerticalStackLayout Grid.Row="4" Spacing="4">
+                    <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                       IsVisible="{Binding IsBusy}"
+                                       Color="{DynamicResource ThemeDetailBorderColor1}"
+                                       HeightRequest="24" />
+                    <ScrollView MaximumHeightRequest="150" IsVisible="{Binding HasResult}">
+                        <VerticalStackLayout Spacing="2">
+                            <Label Text="Last bestow" FontSize="11" FontAttributes="Bold"
+                                   TextColor="{DynamicResource ThemeDetailBorderColor1}" />
+                            <Label Text="{Binding ResultText}" FontSize="11" LineBreakMode="WordWrap" />
+                        </VerticalStackLayout>
+                    </ScrollView>
+                </VerticalStackLayout>
+            </Grid>
+        </skin:SkinPanel>
+    </Grid>
+</ContentView>

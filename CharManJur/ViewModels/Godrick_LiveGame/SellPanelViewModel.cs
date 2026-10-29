@@ -115,7 +115,7 @@ public class SellPanelViewModel : INotifyPropertyChanged
         return new SellRow
         {
             CharacterItemId = item.Id,
-            Name = item.DisplayName,
+            Name = item.HasUsageDie ? $"{item.DisplayName} ({item.UsageDieLabel})" : item.DisplayName,
             CategoryText = CategoryName(t),
             Quantity = item.Quantity,
             IsNote = note,

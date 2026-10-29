@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:CharManJur.Views.Godrick_LiveGame.Controls"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             xmlns:gm="clr-namespace:CharManJur.Views"
+             x:Class="CharManJur.Views.GmDashboardPage"
+             Shell.NavBarIsVisible="False"
+             Title="GM Dashboard">
+
+    <Grid x:Name="PageHost">
+        <Grid ColumnDefinitions="*, 380" ColumnSpacing="10" Padding="5">
+
+            <!-- ===== LEFT: headline, content, buttons ===== -->
+            <Grid Grid.Column="0" RowDefinitions="Auto, *, Auto" RowSpacing="10">
+
+                <!-- ===== HEADLINE PANEL ===== -->
+                <skin:SkinPanel Grid.Row="0"
+                                StrokeColor="{DynamicResource ThemeSectionBorderColor}"
+                                StrokeThickness="1"
+                                CornerRadius="8"
+                                ContentPadding="12">
+                    <VerticalStackLayout Spacing="10">
+
+                        <!-- The campaign's name, and whether players can join (opened and closed in the Players panel) -->
+                        <Grid ColumnDefinitions="*, Auto" ColumnSpacing="10">
+                            <Label Grid.Column="0"
+                                   Text="{Binding CampaignName}"
+                                   FontSize="20"
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center" />
+
+                            <Label Grid.Column="1"
+                                   Text="{Binding SessionStateText}"
+                                   FontAttributes="Bold"
+                                   FontSize="12"
+                                   VerticalOptions="Center"
+                                   TextColor="{DynamicResource ThemeDangerButtonColor}">
+                                <Label.Triggers>
+                                    <DataTrigger TargetType="Label" Binding="{Binding IsSessionOpen}" Value="True">
+                                        <Setter Property="TextColor" Value="{DynamicResource ThemeConfirmButtonColor}" />
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+                        </Grid>
+
+                        <BoxView HeightRequest="1" Color="{DynamicResource ThemeDetailBorderColor1}" />
+
+                        <!-- Day and time -->
+                        <Label Text="{Binding DayHeader}"
+                               FontSize="22"
+                               FontAttributes="Bold"
+                               TextColor="{DynamicResource ThemeDetailBorderColor1}" />
+
+                        <Grid ColumnDefinitions="Auto, *" ColumnSpacing="12">
+                            <Label Grid.Column="0"
+                                   Text="{Binding HourText}"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   WidthRequest="110"
+                                   VerticalOptions="Center" />
+                            <Slider x:Name="HourSlider"
+                                    Grid.Column="1"
+                                    Minimum="0"
+                                    Maximum="23"
+                                    ValueChanged="OnHourChanged"
+                                    DragCompleted="OnHourDragCompleted"
+                                    VerticalOptions="Center" />
+                        </Grid>
+
+                        <!-- Combat and day buttons -->
+                        <Grid ColumnDefinitions="*, *, *" ColumnSpacing="8">
+                            <skin:SkinHost Grid.Column="0"
+                                           SkinKey="danger"
+                                           FallbackColor="{DynamicResource ThemeDangerButtonColor}">
+                                <Button Text="⚔️ Begin Combat"
+                                        TextColor="White"
+                                        CornerRadius="6"
+                                        HeightRequest="35"
+                                        Padding="14,0"
+                                        FontSize="12"
+                                        IsEnabled="{Binding CanBeginCombat}"
+                                        Command="{Binding BeginCombatCommand}" />
+                            </skin:SkinHost>
+
+                            <skin:SkinHost Grid.Column="1"
+                                           SkinKey="warning"
+                                           FallbackColor="{DynamicResource ThemeWarningButtonColor}">
+                                <Button Text="🏳️ End Combat"
+                                        TextColor="White"
+                                        CornerRadius="6"
+                                        HeightRequest="35"
+                                        Padding="14,0"
+                                        FontSize="12"
+                                        IsEnabled="{Binding CanEndCombat}"
+                                        Command="{Binding EndCombatCommand}" />
+                            </skin:SkinHost>
+
+                            <skin:SkinHost Grid.Column="2"
+                                           SkinKey="confirm"
+                                           FallbackColor="{DynamicResource ThemeConfirmButtonColor}">
+                                <Button Text="☀️ Pass Day"
+                                        TextColor="White"
+                                        CornerRadius="6"
+                                        HeightRequest="35"
+                                        Padding="14,0"
+                                        FontSize="12"
+                                        Command="{Binding PassDayCommand}" />
+                            </skin:SkinHost>
+                        </Grid>
+
+                        <BoxView HeightRequest="1" Color="{DynamicResource ThemeDetailBorderColor1}" />
+
+                        <!-- Connected players -->
+                        <Grid ColumnDefinitions="*, Auto" ColumnSpacing="8">
+                            <Label Grid.Column="0"
+                                   Text="Players"
+                                   FontAttributes="Bold"
+                                   FontSize="14"
+                                   VerticalOptions="Center"
+                                   TextColor="{DynamicResource ThemeWarningButtonColor}" />
+                            <skin:SkinHost Grid.Column="1"
+                                           SkinKey="create"
+                                           FallbackColor="{DynamicResource ThemeCreateButtonColor}">
+                                <Button Text="+ Test Player"
+                                        TextColor="White"
+                                        CornerRadius="6"
+                                        HeightRequest="30"
+                                        Padding="12,0"
+                                        FontSize="11"
+                                        Command="{Binding AddTestPlayerCommand}" />
+                            </skin:SkinHost>
+                        </Grid>
+
+                        <Label Text="No players connected."
+                               FontSize="12"
+                               TextColor="Gray"
+                               IsVisible="{Binding HasNoPlayers}" />
+
+                        <FlexLayout BindableLayout.ItemsSource="{Binding Players}" Wrap="Wrap" Direction="Row">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                            StrokeThickness="0.5"
+                                            StrokeShape="RoundRectangle 6"
+                                            BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}"
+                                            Padding="8,4"
+                                            Margin="0,0,8,8">
+                                        <Grid ColumnDefinitions="Auto, Auto" ColumnSpacing="8">
+                                            <VerticalStackLayout Grid.Column="0" Spacing="0">
+                                                <Label Text="{Binding Title}" FontSize="13" FontAttributes="Bold" />
+                                                <Label Text="{Binding Stats}" FontSize="11" TextColor="Gray" />
+                                            </VerticalStackLayout>
+
+                                            <skin:SkinHost Grid.Column="1"
+                                                           SkinKey="generic_small"
+                                                           FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
+                                                           VerticalOptions="Center">
+                                                <Button Text="✕"
+                                                        TextColor="White"
+                                                        CornerRadius="4"
+                                                        WidthRequest="26"
+                                                        HeightRequest="26"
+                                                        Padding="0"
+                                                        FontSize="11"
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.RemovePlayerCommand}"
+                                                        CommandParameter="{Binding .}" />
+                                            </skin:SkinHost>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </FlexLayout>
+
+                    </VerticalStackLayout>
+                </skin:SkinPanel>
+
+                <!-- ===== CONTENT AREA: Home underneath, the other panels slide up over it ===== -->
+                <Grid x:Name="ContentArea" Grid.Row="1">
+
+                    <!-- Home (the panel the GM starts on) -->
+                    <Grid x:Name="HomeGrid" ColumnDefinitions="0.7*, 1.5*" ColumnSpacing="10">
+                        <skin:SkinPanel Grid.Column="0"
+                                        StrokeColor="{DynamicResource ThemeSectionBorderColor}"
+                                        StrokeThickness="1"
+                                        CornerRadius="8"
+                                        ContentPadding="12">
+                            <VerticalStackLayout Spacing="6">
+                                <Label Text="📖 Narrative" FontSize="16" FontAttributes="Bold"
+                                       TextColor="{DynamicResource ThemeWarningButtonColor}" />
+                                <Label Text="The narrative tracker goes here: a body of text first, with a web of connected text bubbles, characters and images planned for later."
+                                       FontSize="12" TextColor="Gray" LineBreakMode="WordWrap" />
+                            </VerticalStackLayout>
+                        </skin:SkinPanel>
+
+                        <skin:SkinPanel Grid.Column="1"
+                                        StrokeColor="{DynamicResource ThemeSectionBorderColor}"
+                                        StrokeThickness="1"
+                                        CornerRadius="8"
+                                        ContentPadding="8">
+                            <gm:GmMapPanelView x:Name="MapPanel" />
+                        </skin:SkinPanel>
+                    </Grid>
+
+                    <!-- Slide-up overlay -->
+                    <skin:SkinPanel x:Name="PanelOverlay"
+                                    IsVisible="False"
+                                    StrokeColor="{DynamicResource ThemeSectionBorderColor}"
+                                    StrokeThickness="2"
+                                    CornerRadius="8"
+                                    ContentPadding="10">
+                        <Grid RowDefinitions="Auto, *" RowSpacing="8">
+                            <Grid Grid.Row="0" ColumnDefinitions="*, Auto">
+                                <Label x:Name="PanelTitleLabel"
+                                       Grid.Column="0"
+                                       FontSize="16"
+                                       FontAttributes="Bold"
+                                       VerticalOptions="Center" />
+                                <skin:SkinHost Grid.Column="1"
+                                               SkinKey="generic_small"
+                                               FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                                    <Button Text="✕"
+                                            WidthRequest="34"
+                                            HeightRequest="34"
+                                            Padding="0"
+                                            CornerRadius="6"
+                                            TextColor="White"
+                                            Clicked="OnClosePanelClicked" />
+                                </skin:SkinHost>
+                            </Grid>
+
+                            <!-- Placeholders: each is replaced by its real panel in a later batch -->
+                            <gm:GmBestowPanelView x:Name="BestowPanel" Grid.Row="1" IsVisible="False" />
+
+                            <gm:GmPlayersPanelView x:Name="PlayersPanel" Grid.Row="1" IsVisible="False" />
+
+                            <gm:GmViewerPanelView x:Name="ViewerPanel" Grid.Row="1" IsVisible="False" />
+
+                            <VerticalStackLayout x:Name="ProfilesPanel" Grid.Row="1" Spacing="6" IsVisible="False">
+                                <Label Text="Profiles: the NPC list and creator, plus editing this campaign's factions."
+                                       FontSize="12" TextColor="Gray" LineBreakMode="WordWrap" />
+                            </VerticalStackLayout>
+
+                            <controls:ScratchPadPanelView x:Name="PadPanel" Grid.Row="1" IsVisible="False" />
+
+                            <VerticalStackLayout x:Name="ShopPanel" Grid.Row="1" Spacing="6" IsVisible="False">
+                                <Label Text="Shop: open a shop with the wizard (players, item categories, buy and sell inflation, enforce base prices)."
+                                       FontSize="12" TextColor="Gray" LineBreakMode="WordWrap" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </skin:SkinPanel>
+                </Grid>
+
+                <!-- ===== BOTTOM BUTTON ROW ===== -->
+                <Grid Grid.Row="2" ColumnDefinitions="*, *, *, *, *, *, *, *" ColumnSpacing="5" Margin="0,5,0,0">
+                    <skin:SkinHost Grid.Column="0" SkinKey="generic" FallbackColor="#2980b9">
+                        <Button Text="🏠 Home" TextColor="White" CornerRadius="6" HeightRequest="35"
+                                Padding="14,0" FontSize="12" Clicked="OnHomeClicked" />
+                    </skin:SkinHost>
+
+                    <skin:SkinHost Grid.Column="1" SkinKey="generic" FallbackColor="#2ecc71">
+                        <Button Text="📦 Bestow" TextColor="White" CornerRadius="6" HeightRequest="35"
+                                Padding="14,0" FontSize="12" Clicked="OnBestowClicked" />
+                    </skin:SkinHost>
+
+                    <skin:SkinHost Grid.Column="2" SkinKey="generic" FallbackColor="#8e44ad">
+                        <Button Text="👥 Players" TextColor="White" CornerRadius="6" HeightRequest="35"
+                                Padding="14,0" FontSize="12" Clicked="OnPlayersClicked" />
+                    </skin:SkinHost>
+
+                    <skin:SkinHost Grid.Column="3" SkinKey="generic" FallbackColor="#3498db">
+                        <Button Text="👁️ Viewer" TextColor="White" CornerRadius="6" HeightRequest="35"
+                                Padding="14,0" FontSize="12" Clicked="OnViewerClicked" />
+                    </skin:SkinHost>
+
+                    <skin:SkinHost Grid.Column="4" SkinKey="generic" FallbackColor="#d35400">
+                        <Button Text="🎭 Profiles" TextColor="White" CornerRadius="6" HeightRequest="35"
+                                Padding="14,0" FontSize="12" Clicked="OnProfilesClicked" />
+                    </skin:SkinHost>
+
+                    <skin:SkinHost Grid.Column="5" SkinKey="generic" FallbackColor="#f39c12">
+                        <Button Text="🏪 Shop" TextColor="White" CornerRadius="6" HeightRequest="35"
+                                Padding="14,0" FontSize="12" Clicked="OnShopClicked" />
+                    </skin:SkinHost>
+
+                    <skin:SkinHost Grid.Column="6" SkinKey="generic" FallbackColor="#16a085">
+                        <Button Text="📝 Pad" TextColor="White" CornerRadius="6" HeightRequest="35"
+                                Padding="14,0" FontSize="12" Clicked="OnPadClicked" />
+                    </skin:SkinHost>
+
+                    <skin:SkinHost Grid.Column="7" SkinKey="neutral"
+                                   FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                        <Button Text="💾 Save &amp; Exit" TextColor="White" CornerRadius="6" HeightRequest="35"
+                                Padding="8,0" FontSize="11" Command="{Binding ExitCommand}" />
+                    </skin:SkinHost>
+                </Grid>
+            </Grid>
+
+            <!-- ===== RIGHT: event log ===== -->
+            <skin:SkinPanel Grid.Column="1"
+                            StrokeColor="{DynamicResource ThemeSectionBorderColor}"
+                            StrokeThickness="1"
+                            CornerRadius="8"
+                            ContentPadding="10">
+                <Grid RowDefinitions="Auto, *" RowSpacing="8">
+                    <Label Grid.Row="0" Text="📜 Event Log" FontSize="16" FontAttributes="Bold" />
+                    <gm:GmEventLogView x:Name="EventLog" Grid.Row="1" />
+                </Grid>
+            </skin:SkinPanel>
+        </Grid>
+
+        <!-- Toasts (combat, day changes...) -->
+        <controls:ToastView />
+    </Grid>
+</ContentPage>

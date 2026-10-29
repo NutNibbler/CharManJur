@@ -62,7 +62,7 @@ public interface ICharAttribDataService
     bool HasFamiliar(int familiarId);
     void ClearFamiliars();
     Familiar? GetFamiliar(Guid instanceId);
-    bool AddItemToFamiliarInventory(Guid familiarInstanceId, Item template, int quantity = 1, int? writtenValueInChips = null, int? startingUses = null);
+    bool AddItemToFamiliarInventory(Guid familiarInstanceId, Item template, int quantity = 1, int? writtenValueInChips = null, int? startingUses = null, int? startingUsageDie = null);
     bool RemoveItemFromFamiliarInventory(Guid familiarInstanceId, int characterItemId);
     void AdjustFamiliarFatigue(Guid familiarInstanceId, int delta);
     bool SetFamiliarItemEquipped(Guid familiarInstanceId, int characterItemId, bool equipped);
@@ -80,9 +80,18 @@ public interface ICharAttribDataService
     string CurrentPage { get; set; }
     void SetCurrentPage(string pageRoute);
 
-    // === TRAINING POINTS ===
+    // === TRAINING POINTS & LEVELING ===
     int AvailableTrainingPoints { get; set; }
     Dictionary<string, int> SkillTrainingLevels { get; set; }
+    int UnspentTrainingPoints { get; set; }   // live-game pool, spent on skills by Finish Training
+    void MigrateCreationTrainingPoints();   // moves points left unspent at creation into the live-game pool (once)
+    int ClassTrainingPointsGranted { get; }   // training points the character's classes grant (Rogue: 2 per pick)
+    int CreationTrainingPointsBase { get; }   // what character creation starts the training pool at
+    int PendingLevels { get; set; }          // level-ups the GM granted that the player hasn't taken yet
+    List<int> StatRolls { get; set; }
+    List<int> StatRollPool { get; set; }
+    int CharacterLevel { get; }              // total class picks (creation is level 1)
+    string ClassPicksSummary { get; }        // "Rogue ×2 · Warrior ×1"
 
     // === STAT-SKILL MAPPING ===
     int GetAbilityModifier(int score);
@@ -144,6 +153,7 @@ public interface ICharAttribDataService
     string FileName { get; set; }
     string PlayerName { get; set; }
     string CharacterName { get; set; }
+    WeaponProficiencyState Proficiency { get; set; }
 
     // === RACE DATA ===
     string CharacterRace { get; set; }
@@ -257,6 +267,7 @@ public interface ICharAttribDataService
     int FatigueBarMax { get; }
     int FatigueInBar { get; }
     int FatigueInInventory { get; }
+    int FatigueTotal { get; }   // FatigueCount adjusted by persistent Fatigue (Current) effects
     void AddFatigue(int amount);
     void ClearFatigue();
 
@@ -319,7 +330,9 @@ public interface ICharAttribDataService
     void MarkCharacterUnsaved();
 
     // === CHARACTER SAVE/LOAD ===
-    Task PopulateFromSaveDataAsync(CharacterSaveData saveData);
+    // startSession: false loads the character without starting a play session or purging its recoverable items
+    // (the GM's tools use that to change a saved character without playing it).
+    Task PopulateFromSaveDataAsync(CharacterSaveData saveData, bool startSession = true);
     CharacterSaveData CreateSaveData();
 
     // ====================================== LIVE GAME SERVICES ====================================== //
@@ -332,9 +345,15 @@ public interface ICharAttribDataService
     CharacterItem? GetEquippedHandSlot(int slot);
     CharacterItem? GetEquippedBeltSlot(int slot);
     CharacterItem? GetEquippedArmor();
-    CharacterItem AddItemToInventory(Item template, int quantity = 1, int? writtenValueInChips = null, int? startingUses = null);
+    CharacterItem AddItemToInventory(Item template, int quantity = 1, int? writtenValueInChips = null, int? startingUses = null, int? startingUsageDie = null);
     void RemoveItemFromInventory(int characterItemId);
     void UpdateItemUses(int characterItemId, int usesRemaining);
+    List<CharacterItem> GetUsageDieItems();
+    Task<bool> IsTemplateOwnedAsync(int templateId);
+    void RecordItemDefinitionEdit(Item template, IReadOnlyList<string> changes, bool ruleSkated);
+    void RecordItemEditRequested(Item template, IReadOnlyList<string> changes);
+    UsageDieOutcome? ResolveUsageDieRoll(int characterItemId, int roll);
+    bool ExpendInventoryItem(int characterItemId, int quantity);
     bool EditItem(int characterItemId, string? newPlayerNote, int? newWrittenValueInChips);
     void EquipItem(int characterItemId, int slot);
     void EquipItemAsArmor(int characterItemId);
@@ -361,6 +380,15 @@ public interface ICharAttribDataService
     int SkillDirection(string skillName);
     string CharacterStory { get; set; }
     Task SaveNowAsync();
+
+    // === SENT BY THE GM (waiting for the player to take them on) ===
+    List<IncomingDamage> PendingDamage { get; set; }
+    List<IncomingEffect> PendingEffects { get; set; }
+    void QueueIncomingDamage(IncomingDamage damage);
+    void QueueIncomingEffect(IncomingEffect effect);
+    void RemoveIncomingDamage(Guid id, bool ignored);   // ignored = the player dismissed it; logged as rule skating
+    void RemoveIncomingEffect(Guid id, bool ignored);
+
     // === CURRENCY ===
     long CurrencyTotalChips { get; }
     // === SESSION ===
@@ -537,10 +565,10 @@ public class CharAttribDataService : ICharAttribDataService
     public Familiar? GetFamiliar(Guid instanceId)
         => _acquiredFamiliars.FirstOrDefault(f => f.InstanceId == instanceId);
 
-    public bool AddItemToFamiliarInventory(Guid familiarInstanceId, Item template, int quantity = 1, int? writtenValueInChips = null, int? startingUses = null)
+    public virtual bool AddItemToFamiliarInventory(Guid familiarInstanceId, Item template, int quantity = 1, int? writtenValueInChips = null, int? startingUses = null, int? startingUsageDie = null)
     {
         var familiar = GetFamiliar(familiarInstanceId);
-        if (familiar == null || familiar.IsDead || !familiar.AddItemToInventory(template, quantity, writtenValueInChips, startingUses)) return false;
+        if (familiar == null || familiar.IsDead || !familiar.AddItemToInventory(template, quantity, writtenValueInChips, startingUses, startingUsageDie)) return false;
 
         LogFamiliarEvent(PlayerActionType.ItemBestowed,
             $"Bestowed {quantity}x {template.Name} to familiar {familiar.DisplayName}",
@@ -669,6 +697,7 @@ public class CharAttribDataService : ICharAttribDataService
                 Template = item.Template,
                 Quantity = item.Quantity,
                 RemainingUses = item.RemainingUses,
+                UsageDieSides = item.UsageDieSides,
                 IsEmpty = item.IsEmpty,
                 IsIdentified = item.IsIdentified,
                 CustomName = item.CustomName,
@@ -682,7 +711,7 @@ public class CharAttribDataService : ICharAttribDataService
 
             _droppedItems.Add(dropped);
             _ = _actionLogService.LogItemDroppedAsync(dropped, PlayerName, PlayerId, CharacterName, CharacterGuid);
-            _ = _recoveryService.AddRecoverableAsync(dropped, PlayerId, SessionId);
+            if (!IsReadOnly) _ = _recoveryService.AddRecoverableAsync(dropped, PlayerId, SessionId);
             count++;
         }
 
@@ -709,7 +738,7 @@ public class CharAttribDataService : ICharAttribDataService
     }
 
     // GM bestowal: always gives the character its own fresh copy, so duplicates are allowed.
-    public Familiar BestowFamiliar(Familiar template)
+    public virtual Familiar BestowFamiliar(Familiar template)
     {
         var instance = template.CreateInstanceCopy();
         _acquiredFamiliars.Add(instance);
@@ -810,6 +839,59 @@ public class CharAttribDataService : ICharAttribDataService
 
     // === TRAINING POINTS ===
     public int AvailableTrainingPoints { get; set; } = 4;
+    public int UnspentTrainingPoints { get; set; }
+    // Training points the character's classes grant (the Rogue's recurring benefit), times picked.
+    public int ClassTrainingPointsGranted => ClassSelections.Sum(pick =>
+        (_classDataService.GetClassByIdAsync(pick.Key).Result?.TrainingPointsPerSelection ?? 0) * pick.Value);
+
+    // The 4 every character starts with, plus class benefits. The Hinderance step builds on this
+    // (a hinderance's training point reward is added to it), so a class benefit survives its resets.
+    public int CreationTrainingPointsBase => 4 + ClassTrainingPointsGranted;
+    private bool _creationTrainingMigrated;
+
+    // ===== LEVEL =====
+    public int PendingLevels { get; set; }
+    // "Roll for me" at character creation: one roll per character.
+    public List<int> StatRolls { get; set; } = new();
+    public List<int> StatRollPool { get; set; } = new();
+
+    // Every pick of a class counts once; creating the character was the first one.
+    public int CharacterLevel => ClassSelections.Values.Sum();
+
+    public string ClassPicksSummary => string.Join(" · ", ClassSelections
+        .Where(p => p.Value > 0)
+        .Select(p => $"{_classDataService.GetClassByIdAsync(p.Key).Result?.ClassName ?? "Unknown"} ×{p.Value}"));
+
+    // Adds up one class benefit over every pick of every class. A character with no recorded picks
+    // (an old save, before it is loaded) falls back to the original class counted once.
+    private int ClassPickSum(Func<CharacterClass, int> benefit)
+    {
+        if (ClassSelections.Count == 0)
+            return GetSelectedClass() is { } original ? benefit(original) : 0;
+
+        int total = 0;
+        foreach (var (classId, picks) in ClassSelections)
+            if (_classDataService.GetClassByIdAsync(classId).Result is { } cls) total += benefit(cls) * picks;
+        return total;
+    }
+
+    // Points a player didn't spend during character creation carry over into the live-game pool.
+    // AvailableTrainingPoints is the creation total, so the leftover is that total minus what the skills already hold.
+    // The creation total is then set to the amount spent, which keeps the carried-over points from being counted twice.
+    public void MigrateCreationTrainingPoints()
+    {
+        if (_creationTrainingMigrated) return;
+
+        int spent = SkillTrainingLevels.Values.Where(v => v > 0).Sum();
+        int leftover = Math.Max(0, AvailableTrainingPoints - spent);
+
+        UnspentTrainingPoints += leftover;
+        AvailableTrainingPoints = spent;
+        _creationTrainingMigrated = true;
+
+        System.Diagnostics.Debug.WriteLine(
+            $"[TRAINING] Carried {leftover} unspent creation point(s) into the live pool (skills hold {spent}).");
+    }
     public Dictionary<string, int> SkillTrainingLevels { get; set; } = new()
     {
         // Initialize all skills with 0 training points (base -2 is applied separately)
@@ -883,7 +965,6 @@ public class CharAttribDataService : ICharAttribDataService
             int raceModifier = GetRaceModifier("Mind");
             int effectModifier = GetEffectModifierSum(EffectTargetType.MindMax);
 
-            int total = baseStat + bgModifier + hindModifier + hindReward + classModifier + raceModifier + effectModifier;
             return baseStat + bgModifier + hindModifier + hindReward + classModifier + raceModifier + effectModifier;
         }
     }
@@ -901,7 +982,6 @@ public class CharAttribDataService : ICharAttribDataService
             int raceModifier = GetRaceModifier("Spirit");
             int effectModifier = GetEffectModifierSum(EffectTargetType.SpiritMax);
 
-            int total = baseStat + bgModifier + hindModifier + hindReward + classModifier + raceModifier + effectModifier;
             return baseStat + bgModifier + hindModifier + hindReward + classModifier + raceModifier + effectModifier;
         }
     }
@@ -1055,15 +1135,18 @@ public class CharAttribDataService : ICharAttribDataService
         _actionLogService = actionLogService;
         _persistenceService = persistenceService;
         _classDataService = classDataService;
-        _actionLogService = actionLogService;
         _recoveryService = recoveryService;
         _itemDataService = itemDataService;
     }
+
+    // True for the GM's Player Viewer: the character is looked at, never saved.
+    public bool IsReadOnly { get; set; }
 
     // Fires after every logged event. If this becomes a performance problem with
     // frequent events, switch to an interval-based save instead — flagged by the developer.
     private async Task TriggerAutosaveAsync()
     {
+        if (IsReadOnly) return;
         var sw = System.Diagnostics.Stopwatch.StartNew();
         try
         {
@@ -1252,6 +1335,7 @@ public class CharAttribDataService : ICharAttribDataService
     public Guid CharacterGuid { get; set; } = Guid.NewGuid();
     public string FileName { get; set; } = string.Empty;
     public string CharacterName { get; set; } = string.Empty;
+    public WeaponProficiencyState Proficiency { get; set; } = new();
     public string CharacterClassName { get; set; } = string.Empty;
     public string? CharacterClassDescription { get; set; } = string.Empty;
     public string CharacterClassFeatureName { get; set; } = string.Empty;
@@ -1745,9 +1829,13 @@ public class CharAttribDataService : ICharAttribDataService
     // Fatigue beyond the bar occupies pack slots. Class bonuses to the bar (e.g. Arcanist +1)
     // aren't included yet.
     public int FatigueCount { get; set; } = 0;
-    public int FatigueBarMax => Math.Max(1, TotalASMStatAgility);
-    public int FatigueInBar => Math.Min(FatigueCount, FatigueBarMax);
-    public int FatigueInInventory => Math.Max(0, FatigueCount - FatigueBarMax);
+    // Rulebook: bar = AGI modifier, minimum 1. Effects apply on top of that floored base.
+    public int FatigueBarMax => Math.Max(1, Math.Max(1, TotalASMStatAgility) + GetEffectModifierSum(EffectTargetType.FatigueMax));
+
+    // Effects on Fatigue (Current): Buff (+) removes fatigue, Debuff (-) adds it
+    public int FatigueTotal => Math.Max(0, FatigueCount - GetEffectModifierSum(EffectTargetType.FatigueCurrent));
+    public int FatigueInBar => Math.Min(FatigueTotal, FatigueBarMax);
+    public int FatigueInInventory => Math.Max(0, FatigueTotal - FatigueBarMax);
 
     public void AddFatigue(int amount)
     {
@@ -1872,6 +1960,52 @@ public class CharAttribDataService : ICharAttribDataService
 
     public List<CharacterEffect> ActiveEffects { get; set; } = new();
 
+    // ===== SENT BY THE GM =====
+    // Damage and effects the GM sent that the player hasn't taken on yet. They wait on the character, and in its
+    // save, until the player responds from the Apply Damage / Apply Effect screens.
+    public List<IncomingDamage> PendingDamage { get; set; } = new();
+    public List<IncomingEffect> PendingEffects { get; set; } = new();
+
+    public void QueueIncomingDamage(IncomingDamage damage)
+    {
+        PendingDamage.Add(damage);
+
+        string speed = damage.Target == DamageTargetType.Hitpoints ? $" ({damage.Speed} attack)" : string.Empty;
+        string note = string.IsNullOrWhiteSpace(damage.Note) ? string.Empty : $": {damage.Note}";
+        LogFamiliarEvent(PlayerActionType.IncomingDamageSent, $"The GM sent {damage.Amount} {damage.Target} damage{speed}{note}");
+        _ = TriggerAutosaveAsync();
+    }
+
+    public void QueueIncomingEffect(IncomingEffect effect)
+    {
+        PendingEffects.Add(effect);
+
+        string note = string.IsNullOrWhiteSpace(effect.Effect.Note) ? string.Empty : $": {effect.Effect.Note}";
+        LogFamiliarEvent(PlayerActionType.IncomingEffectSent, $"The GM sent the effect {effect.Effect.Name}{note}");
+        _ = TriggerAutosaveAsync();
+    }
+
+    // Taken on (ignored = false) or dismissed by the player (ignored = true, which is rule skating).
+    public void RemoveIncomingDamage(Guid id, bool ignored)
+    {
+        var damage = PendingDamage.FirstOrDefault(d => d.Id == id);
+        if (damage == null) return;
+
+        PendingDamage.Remove(damage);
+        if (ignored) LogFamiliarEvent(PlayerActionType.RuleBypassed, $"Ignored {damage.Summary} the GM sent");
+        _ = TriggerAutosaveAsync();
+    }
+
+    public void RemoveIncomingEffect(Guid id, bool ignored)
+    {
+        var effect = PendingEffects.FirstOrDefault(e => e.Id == id);
+        if (effect == null) return;
+
+        PendingEffects.Remove(effect);
+        if (ignored) LogFamiliarEvent(PlayerActionType.RuleBypassed, $"Ignored the effect {effect.Effect.Name} the GM sent");
+        _ = TriggerAutosaveAsync();
+    }
+
     public void AddEffect(CharacterEffect effect)
     {
         if (effect.Duration == EffectDurationType.OneShot)
@@ -1910,6 +2044,7 @@ public class CharAttribDataService : ICharAttribDataService
                 case EffectTargetType.MindCurrent: AdjustCurrentStat("mind", modifier.Amount); break;
                 case EffectTargetType.SpiritCurrent: AdjustCurrentStat("spirit", modifier.Amount); break;
                 case EffectTargetType.HitpointsCurrent: AdjustHitpointsDirect(modifier.Amount); break;
+                case EffectTargetType.FatigueCurrent: AddFatigue(-modifier.Amount); break;
                 default:
                     System.Diagnostics.Debug.WriteLine($"One-Shot effect '{effect.Name}' targeted {modifier.Target}, which is not a valid One-Shot target — skipped.");
                     break;
@@ -2026,7 +2161,7 @@ public class CharAttribDataService : ICharAttribDataService
     {
         get
         {
-            int classBonus = GetSelectedClass()?.HitProtectionBonus ?? 0;
+            int classBonus = ClassPickSum(c => c.HitProtectionBonus);   // every pick counts, not just the original class
             int vigorContribution = Math.Max(TotalASMStatVigor, 0);
             int effectBonus = GetEffectModifierSum(EffectTargetType.HitpointsMax);
             return 1 + classBonus + vigorContribution + HitpointsAdjustment + effectBonus;
@@ -2037,7 +2172,10 @@ public class CharAttribDataService : ICharAttribDataService
     public int Hitpoints => _encumbranceApplied ? 0 : BaseHitpoints;
 
     // ===== PACK CAPACITY & ENCUMBRANCE =====
-    public int InventorySlotsTotal => 6 + PackVigorModifier;
+    // Pack Mule (a Warrior feature) adds 2 slots. Taking it at level-up counts the same as at creation.
+    private const int PackMuleFeatureId = 9;
+    private const int PackMuleSlots = 2;
+    public int InventorySlotsTotal => 6 + PackVigorModifier + (HasFeature(PackMuleFeatureId) ? PackMuleSlots : 0);
     public int InventorySlotsAvailable => InventorySlotCalculator.AvailableSlots(InventorySlotsTotal, FatigueInInventory);
 
     public int InventorySlotsUsed => _inventory
@@ -2390,7 +2528,7 @@ public class CharAttribDataService : ICharAttribDataService
         return _inventory.FirstOrDefault(i => i.IsEquipped && i.EquipmentSlot == EquipmentSlotType.Armor);
     }
 
-    public CharacterItem AddItemToInventory(Item template, int quantity = 1, int? writtenValueInChips = null, int? startingUses = null)
+    public virtual CharacterItem AddItemToInventory(Item template, int quantity = 1, int? writtenValueInChips = null, int? startingUses = null, int? startingUsageDie = null)
     {
         if (template == null) return null;
         if (quantity < 1) quantity = 1;
@@ -2436,6 +2574,9 @@ public class CharAttribDataService : ICharAttribDataService
                 Template = template,
                 Quantity = chunk,
                 RemainingUses = remainingUses,
+                UsageDieSides = template.HasUsageDie
+                    ? (startingUsageDie is { } d && UsageDie.IsValid(d) ? d : template.DefaultUsageDieSides)
+                    : 0,
                 IsEmpty = template.HasUses && remainingUses <= 0,
                 AcquiredAt = DateTime.Now,
                 WrittenValueInChips = template.IsValueEditable ? writtenValueInChips : null
@@ -2472,6 +2613,7 @@ public class CharAttribDataService : ICharAttribDataService
                     Template = record.Template,
                     Quantity = chunk,
                     RemainingUses = record.RemainingUses,
+                    UsageDieSides = record.UsageDieSides,
                     PlayerNote = record.PlayerNote,
                     CustomName = record.CustomName,
                     AcquiredAt = record.AcquiredAt
@@ -2532,6 +2674,89 @@ public class CharAttribDataService : ICharAttribDataService
         }
     }
 
+    // Items in the pack that carry a usage die. Copies made before the item gained a die get the template's starting die.
+    public List<CharacterItem> GetUsageDieItems()
+    {
+        foreach (var r in _inventory.Where(r => r.Template?.HasUsageDie == true && r.UsageDieSides == 0))
+            r.UsageDieSides = r.Template!.DefaultUsageDieSides;
+
+        return _inventory.Where(i => !i.IsDropped && i.HasUsageDie && !(i.Template!.IsHybridUsage && i.IsEmpty)).ToList();
+    }
+
+    // Applies one usage die roll to an item. A 1 or 2 steps the die down; a D4 that does so is removed for good.
+    // A hybrid item (uses + die) spends a Use instead and keeps its die; at 0 uses it is empty, not removed.
+    public UsageDieOutcome? ResolveUsageDieRoll(int characterItemId, int roll)
+    {
+        var item = _inventory.FirstOrDefault(i => i.Id == characterItemId);
+        if (item?.Template == null || !item.HasUsageDie) return null;
+
+        bool hybrid = item.Template.IsHybridUsage;
+        if (hybrid && (item.IsEmpty || item.RemainingUses <= 0)) return null;   // nothing left to spend
+
+        int sides = item.UsageDieSides;
+        roll = Math.Clamp(roll, 1, sides);
+        string name = item.DisplayName;
+        int templateId = item.TemplateId;
+
+        UsageDieOutcome outcome;
+        if (!UsageDie.IsConsumingRoll(roll))
+        {
+            outcome = new UsageDieOutcome(name, sides, roll, false, null, false);
+        }
+        else if (hybrid)
+        {
+            UpdateItemUses(item.Id, item.RemainingUses - 1);
+            outcome = new UsageDieOutcome(name, sides, roll, true, null, false, item.RemainingUses);
+        }
+        else
+        {
+            int? next = UsageDie.StepDown(sides);
+            if (next == null)
+            {
+                RemoveItemFromInventory(item.Id);
+                outcome = new UsageDieOutcome(name, sides, roll, true, null, true);
+            }
+            else
+            {
+                item.UsageDieSides = next.Value;
+                item.LastModified = DateTime.Now;
+                outcome = new UsageDieOutcome(name, sides, roll, true, next, false);
+            }
+        }
+
+        LogFamiliarEvent(PlayerActionType.UsageDieRolled, outcome.Summary, name, templateId);
+        _ = TriggerAutosaveAsync();
+        return outcome;
+    }
+
+    // Destroys an item for good: removed from the pack, never recoverable, logged. A partial stack leaves the rest.
+    // Separate from Uses (which tick up and down) and from the usage die (which wears an item down).
+    public bool ExpendInventoryItem(int characterItemId, int quantity)
+    {
+        var item = _inventory.FirstOrDefault(i => i.Id == characterItemId);
+        if (item == null || quantity < 1) return false;
+
+        quantity = Math.Min(quantity, item.Quantity);
+        string name = item.DisplayName;
+        int templateId = item.TemplateId;
+
+        if (quantity >= item.Quantity)
+        {
+            RemoveItemFromInventory(item.Id);   // unequips first if needed
+        }
+        else
+        {
+            item.Quantity -= quantity;
+            item.LastModified = DateTime.Now;
+        }
+
+        LogFamiliarEvent(PlayerActionType.ItemExpended,
+            quantity == 1 ? $"Expended {name}" : $"Expended {quantity}x {name}",
+            name, templateId);
+        _ = TriggerAutosaveAsync();
+        return true;
+    }
+
     // Player edits to one item. Each variable that actually changed is logged on its own as "Item Edited"
     // (so the GM sees exactly what was touched); an unchanged field logs nothing.
     public bool EditItem(int characterItemId, string? newPlayerNote, int? newWrittenValueInChips)
@@ -2576,6 +2801,38 @@ public class CharAttribDataService : ICharAttribDataService
         return changed;
     }
 
+    // True if this character, a familiar, the dropped pile or the recovery store holds any copy of the item.
+    // Other players' items are the GM's to know about once multiplayer exists.
+    public async Task<bool> IsTemplateOwnedAsync(int templateId)
+    {
+        if (_inventory.Any(i => i.TemplateId == templateId)) return true;
+        if (_droppedItems.Any(i => i.TemplateId == templateId)) return true;
+        if (_acquiredFamiliars.Any(f => f.Inventory.Any(i => i.TemplateId == templateId))) return true;
+
+        var recoverable = await GetRecoverableItemsAsync();
+        return recoverable.Any(i => i.TemplateId == templateId);
+    }
+
+    public void RecordItemDefinitionEdit(Item template, IReadOnlyList<string> changes, bool ruleSkated)
+    {
+        string what = string.Join(", ", changes);
+        LogFamiliarEvent(PlayerActionType.ItemEdited,
+            $"Edited item definition {template.Name}: {what}", template.Name, template.Id);
+
+        if (ruleSkated)
+            LogFamiliarEvent(PlayerActionType.RuleBypassed,
+                $"Edited {template.Name} while it is owned (no GM to approve)", template.Name, template.Id);
+
+        _ = TriggerAutosaveAsync();
+    }
+
+    public void RecordItemEditRequested(Item template, IReadOnlyList<string> changes)
+    {
+        LogFamiliarEvent(PlayerActionType.ItemEditRequested,
+            $"Requested GM approval to edit {template.Name}: {string.Join(", ", changes)}",
+            template.Name, template.Id);
+    }
+
     // While the pack is dropped, only items already equipped/belted can be touched.
     private bool PackBlocks(CharacterItem item) => IsPackDropped && !item.IsEquipped;
 
@@ -2586,8 +2843,8 @@ public class CharAttribDataService : ICharAttribDataService
         if (item == null || item.IsEmpty) return;
         if (PackBlocks(item)) return;
 
-        // ===== JEWELRY =====
-        if (item.IsJewelry)
+        // ===== WORN ITEMS (Jewelry, Trinkets): equipped without a slot, no limit =====
+        if (item.IsWorn)
         {
             if (item.IsEquipped) UnequipItem(item.Id);
             item.IsEquipped = true;
@@ -2771,7 +3028,7 @@ public class CharAttribDataService : ICharAttribDataService
             _droppedItems.Add(item);
             System.Diagnostics.Debug.WriteLine($"Dropped item: {item.DisplayName} (ID: {item.Id})");
             _ = _actionLogService.LogItemDroppedAsync(item, PlayerName, PlayerId, CharacterName, CharacterGuid);
-            _ = _recoveryService.AddRecoverableAsync(item, PlayerId, SessionId);
+            if (!IsReadOnly) _ = _recoveryService.AddRecoverableAsync(item, PlayerId, SessionId);
             _ = TriggerAutosaveAsync();
         }
     }
@@ -2801,6 +3058,7 @@ public class CharAttribDataService : ICharAttribDataService
             Template = item.Template,
             Quantity = quantity,
             RemainingUses = ItemRecordTransfer.FullUses(item),   // the opened item stays with the carried stack
+            UsageDieSides = item.UsageDieSides,
             IsEmpty = false,
             IsIdentified = item.IsIdentified,
             CustomName = item.CustomName,
@@ -2818,7 +3076,7 @@ public class CharAttribDataService : ICharAttribDataService
         LogFamiliarEvent(PlayerActionType.ItemDropped,
             $"Dropped {quantity} of {stackBefore} {dropped.DisplayName}",
             dropped.DisplayName, dropped.TemplateId);
-        _ = _recoveryService.AddRecoverableAsync(dropped, PlayerId, SessionId);   // the DROPPED portion, not the carried stack
+        if (!IsReadOnly) _ = _recoveryService.AddRecoverableAsync(dropped, PlayerId, SessionId);   // the DROPPED portion, not the carried stack
         _ = TriggerAutosaveAsync();
     }
 
@@ -3044,6 +3302,7 @@ public class CharAttribDataService : ICharAttribDataService
             Quantity = qty,
             ItemInstanceId = qty == item.Quantity ? item.InstanceId : Guid.NewGuid(),
             RemainingUses = qty == item.Quantity ? item.RemainingUses : ItemRecordTransfer.FullUses(item),
+            UsageDieSides = item.UsageDieSides,
             CustomName = item.CustomName,
             PlayerNote = item.PlayerNote,
             WrittenValueInChips = item.WrittenValueInChips,
@@ -3083,6 +3342,7 @@ public class CharAttribDataService : ICharAttribDataService
             Quantity = packet.Quantity,
             InstanceId = packet.ItemInstanceId == Guid.Empty ? Guid.NewGuid() : packet.ItemInstanceId,
             RemainingUses = packet.RemainingUses,
+            UsageDieSides = packet.UsageDieSides,
             CustomName = packet.CustomName,
             PlayerNote = packet.PlayerNote,
             WrittenValueInChips = packet.WrittenValueInChips,
@@ -3401,7 +3661,7 @@ public class CharAttribDataService : ICharAttribDataService
         var item = _inventory.FirstOrDefault(i => i.Id == characterItemId);
         if (item == null) return BeltEquipResult.NotEligible;
         if (PackBlocks(item)) return BeltEquipResult.NotEligible;
-        if (item.IsJewelry || (item.IsArmor && !item.IsShield)) return BeltEquipResult.NotEligible;
+        if (item.IsWorn || (item.IsArmor && !item.IsShield)) return BeltEquipResult.NotEligible;
         if (item.IsEmpty && !item.IsEquipped) return BeltEquipResult.NotEligible;
 
         var availableSlot = FindAvailableBeltSlot(item.SlotsRequired);
@@ -3464,7 +3724,7 @@ public class CharAttribDataService : ICharAttribDataService
         var item = _inventory.FirstOrDefault(i => i.Id == characterItemId);
         if (item == null) return false;
         if (PackBlocks(item)) return false;
-        if (item.IsJewelry || (item.IsArmor && !item.IsShield)) return false;
+        if (item.IsWorn || (item.IsArmor && !item.IsShield)) return false;
         if (item.IsEmpty && !item.IsEquipped) return false;
 
         int lastSlot = startSlot + item.SlotsRequired - 1;
@@ -3491,7 +3751,7 @@ public class CharAttribDataService : ICharAttribDataService
         var item = _inventory.FirstOrDefault(i => i.Id == characterItemId);
         if (item == null) return false;
         if (PackBlocks(item)) return false;
-        if (item.IsJewelry || (item.IsArmor && !item.IsShield)) return false;
+        if (item.IsWorn || (item.IsArmor && !item.IsShield)) return false;
         if (item.IsEmpty && !item.IsEquipped) return false;
 
         int totalSlots = GetTotalLimbSlots();
@@ -3527,7 +3787,7 @@ public class CharAttribDataService : ICharAttribDataService
             return EquipToHandSlot(characterItemId, handSlot);
 
         if (PackBlocks(item)) return false;
-        if (item.IsJewelry || (item.IsArmor && !item.IsShield)) return false;
+        if (item.IsWorn || (item.IsArmor && !item.IsShield)) return false;
         if (handSlot < 1 || handSlot > GetTotalLimbSlots()) return false;
 
         var targetSlots = new List<int> { handSlot };
@@ -3643,7 +3903,7 @@ public class CharAttribDataService : ICharAttribDataService
         var item = _inventory.FirstOrDefault(i => i.Id == characterItemId);
         if (item == null) return false;
         if (PackBlocks(item)) return false;
-        if (item.IsJewelry || (item.IsArmor && !item.IsShield)) return false;
+        if (item.IsWorn || (item.IsArmor && !item.IsShield)) return false;
         if (item.IsEmpty && !item.IsEquipped) return false;
 
         int size = item.SlotsRequired;
@@ -3856,6 +4116,7 @@ public class CharAttribDataService : ICharAttribDataService
                     Quantity = chunk,
                     PlayerNote = startingItem.PlayerNote,
                     RemainingUses = remainingUses,
+                    UsageDieSides = template.HasUsageDie ? template.DefaultUsageDieSides : 0,
                     IsEmpty = false,
                     AcquiredAt = DateTime.Now
                 };
@@ -3883,7 +4144,7 @@ public class CharAttribDataService : ICharAttribDataService
     public CharacterSaveData CreateSaveData()
     {
         _isSaving = true;
-
+        
         try
         {
             if ((_inventory == null || _inventory.Count == 0) && SelectedStartingItems != null && SelectedStartingItems.Count > 0)
@@ -3905,23 +4166,8 @@ public class CharAttribDataService : ICharAttribDataService
                 Data = new CharacterData
                 {
                     // ===== HINDERANCE DATA =====
-                    SelectedHinderance = SelectedHinderance != null ? new Hinderance
-                    {
-                        Id = SelectedHinderance.Id,
-                        Name = SelectedHinderance.Name,
-                        Description = SelectedHinderance.Description,
-                        VigorModifier = SelectedHinderance.VigorModifier,
-                        AgilityModifier = SelectedHinderance.AgilityModifier,
-                        MindModifier = SelectedHinderance.MindModifier,
-                        SpiritModifier = SelectedHinderance.SpiritModifier,
-                        SkillModifiers = SelectedHinderance.SkillModifiers?.Select(sm => new HinderanceSkillModifier
-                        {
-                            SkillName = sm.SkillName,
-                            Modifier = sm.Modifier
-                        }).ToList() ?? new List<HinderanceSkillModifier>(),
-                        AllowsStatBonus = SelectedHinderance.AllowsStatBonus,
-                        AllowsTrainingPoint = SelectedHinderance.AllowsTrainingPoint
-                    } : null,
+                    // Saved as it is: a copy would reset LastModified, the hinderance's own fingerprint, on every save.
+                    SelectedHinderance = SelectedHinderance,
 
                     SelectedRewardType = SelectedRewardType,
                     RewardStatBonusAmount = RewardStatBonusAmount,
@@ -3971,6 +4217,7 @@ public class CharAttribDataService : ICharAttribDataService
                     FeatureUses = new List<FeatureUseRecord>(FeatureUses),
                     Transform = Transform,
                     SavedForms = new List<SavedForm>(SavedForms),
+                    Proficiency = Proficiency,
 
                     // ===== ABILITY SCORES =====
                     StatVigor = StatVigor,
@@ -3995,6 +4242,8 @@ public class CharAttribDataService : ICharAttribDataService
                     DeprivedDays = DeprivedDays,
                     IsPackDropped = IsPackDropped,
                     ActiveEffects = ActiveEffects,
+                    PendingDamage = new List<IncomingDamage>(PendingDamage),
+                    PendingEffects = new List<IncomingEffect>(PendingEffects),
 
                     // ===== SUB-FEATURES =====
                     AcquiredBlueprintIds = new List<int>(AcquiredBlueprintIds),
@@ -4034,6 +4283,11 @@ public class CharAttribDataService : ICharAttribDataService
                     TotalMindBonus = BGMindBonus,
                     TotalSpiritBonus = BGSpiritBonus,
                     TotalTrainingPointsBonus = AvailableTrainingPoints,
+                    UnspentTrainingPoints = UnspentTrainingPoints,
+                    CreationTrainingMigrated = _creationTrainingMigrated,
+                    PendingLevels = PendingLevels,
+                    StatRolls = new List<int>(StatRolls),
+                    StatRollPool = new List<int>(StatRollPool),
 
                     // ===== INVENTORY =====
                     Inventory = new List<CharacterItem>(_inventory)
@@ -4047,7 +4301,7 @@ public class CharAttribDataService : ICharAttribDataService
     }
 
     // === POPULATE FROM SAVE DATA ===
-    public async Task PopulateFromSaveDataAsync(CharacterSaveData saveData)
+    public async Task PopulateFromSaveDataAsync(CharacterSaveData saveData, bool startSession = true)
     {
         if (saveData?.Data == null) return;
 
@@ -4138,6 +4392,9 @@ public class CharAttribDataService : ICharAttribDataService
         DeprivedDays = saveData.Data.DeprivedDays;
         IsPackDropped = saveData.Data.IsPackDropped;
         ActiveEffects = saveData.Data.ActiveEffects ?? new List<CharacterEffect>();
+        Proficiency = saveData.Data.Proficiency ?? new WeaponProficiencyState();
+        PendingDamage = saveData.Data.PendingDamage ?? new List<IncomingDamage>();
+        PendingEffects = saveData.Data.PendingEffects ?? new List<IncomingEffect>();
 
         // Sub-features
         AcquiredBlueprintIds = saveData.Data.AcquiredBlueprintIds ?? new List<int>();
@@ -4174,6 +4431,12 @@ public class CharAttribDataService : ICharAttribDataService
         AcquiredFamiliars = saveData.Data.AcquiredFamiliars ?? new List<Familiar>();
 
         // ===== TRAINING POINTS =====
+        UnspentTrainingPoints = saveData.Data.UnspentTrainingPoints;
+        PendingLevels = saveData.Data.PendingLevels;
+        StatRolls = saveData.Data.StatRolls ?? new List<int>();
+        StatRollPool = saveData.Data.StatRollPool ?? new List<int>();
+        _creationTrainingMigrated = saveData.Data.CreationTrainingMigrated;
+        if (!_creationTrainingMigrated && saveData.IsComplete) MigrateCreationTrainingPoints();
         SkillTrainingLevels = saveData.Data.SkillTrainingLevels != null
             ? new Dictionary<string, int>(saveData.Data.SkillTrainingLevels)
             : new Dictionary<string, int>
@@ -4260,8 +4523,11 @@ public class CharAttribDataService : ICharAttribDataService
         SaveFileName = saveData.FileName;
         LastSavedDate = saveData.LastSaved;
         // Every load starts a new session; recoverables from earlier sessions are gone for good.
-        StartSession();
-        await _recoveryService.PurgePlayerRecoverablesAsync(PlayerId, SessionId);
+        if (startSession)
+        {
+            StartSession();
+            await _recoveryService.PurgePlayerRecoverablesAsync(PlayerId, SessionId);
+        }
 
         System.Diagnostics.Debug.WriteLine("=== POPULATE COMPLETE ===");
     }
@@ -4336,6 +4602,8 @@ public class CharAttribDataService : ICharAttribDataService
         IsDeprived = false;
         DeprivedDays = 0;
         ActiveEffects = new List<CharacterEffect>();
+        PendingDamage = new List<IncomingDamage>();
+        PendingEffects = new List<IncomingEffect>();
         IsPackDropped = false;
 
         // === CLASS & FEATURE IDs ===
@@ -4348,7 +4616,8 @@ public class CharAttribDataService : ICharAttribDataService
         FeatureUses = new List<FeatureUseRecord>();
         Transform = null;
         SavedForms = new List<SavedForm>();
-
+        Proficiency = new WeaponProficiencyState();
+        
         // === SUB-FEATURE IDs ===
         AcquiredBlueprintIds.Clear();
         AcquiredQuipIds.Clear();
@@ -4385,6 +4654,11 @@ public class CharAttribDataService : ICharAttribDataService
         _acquiredFamiliars.Clear();
 
         // === TRAINING POINTS ===
+        UnspentTrainingPoints = 0;
+        PendingLevels = 0;
+        StatRolls = new List<int>();
+        StatRollPool = new List<int>();
+        _creationTrainingMigrated = false;
         AvailableTrainingPoints = 4;
         foreach (var key in SkillTrainingLevels.Keys.ToList())
         {

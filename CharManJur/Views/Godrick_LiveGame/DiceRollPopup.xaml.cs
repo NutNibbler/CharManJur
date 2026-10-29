@@ -9,7 +9,55 @@ public partial class DiceRollPopup : ContentPage
     private int? _checkRollResult;
     private int? _advantageDieResult;
     private int? _saveRollResult;
+    private static readonly Dictionary<string, string> SkillAbilities = new()
+    {
+        ["Athletics"] = "Vigor",
+        ["Constitution"] = "Vigor",
+        ["Grapple"] = "Vigor",
+        ["Presence"] = "Vigor",
+        ["Ride"] = "Vigor",
+        ["Acrobatics"] = "Agility",
+        ["Aim"] = "Agility",
+        ["Drive"] = "Agility",
+        ["Stealth"] = "Agility",
+        ["Thief"] = "Agility",
+        ["Arcana"] = "Mind",
+        ["Artifice"] = "Mind",
+        ["Heal"] = "Mind",
+        ["Investigate"] = "Mind",
+        ["Lore"] = "Mind",
+        ["Commune"] = "Spirit",
+        ["Deception"] = "Spirit",
+        ["Diplomacy"] = "Spirit",
+        ["Sight"] = "Spirit",
+        ["Survival"] = "Spirit",
+    };
 
+    private static string Signed(int value) => value >= 0 ? $"+{value}" : value.ToString();
+
+    private static Color? AbilityColor(string ability)
+    {
+        string key = ability + "Color";   // VigorColor, AgilityColor, MindColor, SpiritColor
+        return Application.Current != null
+               && Application.Current.Resources.TryGetValue(key, out var value)
+               && value is Color color ? color : null;
+    }
+
+    private int GetCurrentAsm(string ability) => ability switch
+    {
+        "Vigor" => _charDataService.CurrentASMStatVigor,
+        "Agility" => _charDataService.CurrentASMStatAgility,
+        "Mind" => _charDataService.CurrentASMStatMind,
+        "Spirit" => _charDataService.CurrentASMStatSpirit,
+        _ => 0
+    };
+
+    private static void StyleAbilityLabel(Label label, string ability, int stat, int asm)
+    {
+        label.Text = $"{ability.ToUpper()}  {stat}   ·   ASM {Signed(asm)}";
+        var color = AbilityColor(ability);
+        if (color != null) label.TextColor = color;
+    }
     public DiceRollPopup(ICharAttribDataService charDataService)
     {
         InitializeComponent();
@@ -34,8 +82,17 @@ public partial class DiceRollPopup : ContentPage
     {
         if (SkillPicker.SelectedIndex < 0) return;
         string skill = _skillNames[SkillPicker.SelectedIndex];
+
+        var b = _charDataService.GetSkillBreakdown(skill);
+        string ability = SkillAbilities.TryGetValue(skill, out var a) ? a : "Vigor";
+
+        StyleAbilityLabel(SkillAbilityLabel, ability, GetCurrentStat(ability), GetCurrentAsm(ability));
+
+        SkillBreakdownLabel.Text =
+            $"Base {Signed(b.NaturalNegative)}  ·  ASM {Signed(b.ASM)}  ·  Training {Signed(b.TrainingPoints)}  ·  Other {Signed(b.OtherModifiers)}";
+
         int modifier = _charDataService.GetSkillTotal(skill);
-        SkillFormulaLabel.Text = $"2d6 {(modifier >= 0 ? "+" : "")}{modifier}";
+        SkillFormulaLabel.Text = $"{skill}: 2d6 {Signed(modifier)}";
     }
 
     private void OnAdvantageModeChanged(object sender, CheckedChangedEventArgs e)
@@ -49,8 +106,11 @@ public partial class DiceRollPopup : ContentPage
     private void UpdateSaveTarget()
     {
         if (AbilityPicker.SelectedIndex < 0) return;
-        int target = GetCurrentStat(SelectedAbility());
-        SaveTargetLabel.Text = $"Succeed on a roll ≤ {target} (natural 1 always succeeds, natural 20 always fails)";
+        string ability = SelectedAbility();
+        int target = GetCurrentStat(ability);
+
+        StyleAbilityLabel(SaveAbilityLabel, ability, target, GetCurrentAsm(ability));
+        SaveTargetLabel.Text = $"Roll d20 ≤ {target} to succeed (natural 1 always succeeds, natural 20 always fails)";
     }
 
     private string SelectedAbility() => AbilityPicker.SelectedItem as string ?? "Vigor";

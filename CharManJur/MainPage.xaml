@@ -18,53 +18,74 @@
                Margin="0,40,0,20"/>
 
         <!-- Menu Buttons -->
-        <VerticalStackLayout Grid.Row="1"
-                             Spacing="20"
-                             MaximumWidthRequest="800"
-                             VerticalOptions="Center">
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Spacing="20"
+                                 MaximumWidthRequest="800"
+                                 VerticalOptions="Center">
 
-            <skin:SkinHost SkinKey="create"
-                           FallbackColor="{DynamicResource ThemeCreateButtonColor}">
-                <Button Text="Create New Character"
-                        TextColor="White"
-                        FontSize="18"
-                        CornerRadius="10"
-                        HeightRequest="60"
-                        Clicked="OnCreateNewCharacterClicked"/>
-            </skin:SkinHost>
+                <skin:SkinHost SkinKey="create"
+                               FallbackColor="{DynamicResource ThemeCreateButtonColor}">
+                    <Button Text="Create New Character"
+                            TextColor="White"
+                            FontSize="18"
+                            CornerRadius="10"
+                            HeightRequest="60"
+                            Clicked="OnCreateNewCharacterClicked"/>
+                </skin:SkinHost>
 
-            <skin:SkinHost SkinKey="warning"
-                           FallbackColor="{DynamicResource ThemeWarningButtonColor}">
-                <Button Text="📂 Resume Character"
-                        TextColor="White"
-                        FontSize="18"
-                        CornerRadius="10"
-                        HeightRequest="60"
-                        Clicked="OnResumeCharacterClicked"/>
-            </skin:SkinHost>
+                <skin:SkinHost SkinKey="primary"
+                               FallbackColor="{DynamicResource ThemePrimaryButtonColor}">
+                    <Button Text="Solo Session"
+                            TextColor="White"
+                            FontSize="18"
+                            CornerRadius="10"
+                            HeightRequest="60"
+                            Clicked="OnSoloSessionClicked"/>
+                </skin:SkinHost>
 
-            <skin:SkinHost SkinKey="primary"
-                           FallbackColor="{DynamicResource ThemePrimaryButtonColor}">
-                <Button Text="Load Character"
-                        TextColor="White"
-                        FontSize="18"
-                        CornerRadius="10"
-                        HeightRequest="60"
-                        Clicked="OnLoadCharacterClicked"/>
-            </skin:SkinHost>
+                <skin:SkinHost SkinKey="confirm"
+                               FallbackColor="{DynamicResource ThemeConfirmButtonColor}">
+                    <Button Text="Join Session"
+                            TextColor="White"
+                            FontSize="18"
+                            CornerRadius="10"
+                            HeightRequest="60"
+                            Clicked="OnJoinSessionClicked"/>
+                </skin:SkinHost>
 
-            <skin:SkinHost SkinKey="neutral"
-                           FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
-                           Margin="0,40,0,0">
-                <Button Text="⚙️ Settings"
-                        TextColor="White"
-                        FontSize="16"
-                        CornerRadius="10"
-                        HeightRequest="50"
-                        Clicked="OnSettingsClicked"/>
-            </skin:SkinHost>
+                <skin:SkinHost SkinKey="create"
+                               FallbackColor="{DynamicResource ThemeCreateButtonColor}">
+                    <Button Text="Create Campaign"
+                            TextColor="White"
+                            FontSize="18"
+                            CornerRadius="10"
+                            HeightRequest="60"
+                            Clicked="OnCreateCampaignClicked"/>
+                </skin:SkinHost>
 
-        </VerticalStackLayout>
+                <skin:SkinHost SkinKey="warning"
+                               FallbackColor="{DynamicResource ThemeWarningButtonColor}">
+                    <Button Text="Resume Campaign"
+                            TextColor="White"
+                            FontSize="18"
+                            CornerRadius="10"
+                            HeightRequest="60"
+                            Clicked="OnResumeCampaignClicked"/>
+                </skin:SkinHost>
+
+                <skin:SkinHost SkinKey="neutral"
+                               FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
+                               Margin="0,40,0,0">
+                    <Button Text="⚙️ Settings"
+                            TextColor="White"
+                            FontSize="16"
+                            CornerRadius="10"
+                            HeightRequest="50"
+                            Clicked="OnSettingsClicked"/>
+                </skin:SkinHost>
+
+            </VerticalStackLayout>
+        </ScrollView>
 
         <!-- Version Footer -->
         <Label Grid.Row="2"

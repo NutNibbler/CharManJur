@@ -9,31 +9,55 @@
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="12" MaximumWidthRequest="1000">
 
-            <Label Text="⚔️ Apply Damage"
+            <Label x:Name="HeaderLabel"
+                   Text="⚔️ Apply Damage"
                    FontSize="24"
                    FontAttributes="Bold"
                    TextColor="{DynamicResource ThemeDetailBorderColor1}"
                    HorizontalOptions="Center" />
             <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}" />
 
-            <Label Text="Damage Type" FontSize="13" TextColor="Gray" />
-            <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
-                    StrokeThickness="1"
+            <!-- Sent by the GM: shown locked, the player only chooses how to respond -->
+            <Border x:Name="IncomingSection"
+                    IsVisible="False"
+                    Stroke="{DynamicResource ThemeWarningButtonColor}"
+                    StrokeThickness="2"
                     StrokeShape="RoundRectangle 8"
-                    BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
-                <Picker x:Name="TypePicker"
-                        TitleColor="Gray"
-                        BackgroundColor="Transparent"
-                        SelectedIndexChanged="OnTypeChanged">
-                    <Picker.Items>
-                        <x:String>Hitpoints</x:String>
-                        <x:String>Vigor</x:String>
-                        <x:String>Agility</x:String>
-                        <x:String>Mind</x:String>
-                        <x:String>Spirit</x:String>
-                    </Picker.Items>
-                </Picker>
+                    BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}"
+                    Padding="12">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="FROM YOUR GM"
+                           FontSize="10"
+                           FontAttributes="Bold"
+                           TextColor="{DynamicResource ThemeWarningButtonColor}" />
+                    <Label x:Name="IncomingSummaryLabel" FontSize="18" FontAttributes="Bold" />
+                    <Label x:Name="IncomingNoteLabel" FontSize="12" TextColor="Gray" IsVisible="False" />
+                    <Label Text="These details are locked. Choose how you respond below."
+                           FontSize="11"
+                           TextColor="Gray" />
+                </VerticalStackLayout>
             </Border>
+
+            <VerticalStackLayout x:Name="TypeSection" Spacing="12">
+                <Label Text="Damage Type" FontSize="13" TextColor="Gray" />
+                <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 8"
+                        BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
+                    <Picker x:Name="TypePicker"
+                            TitleColor="Gray"
+                            BackgroundColor="Transparent"
+                            SelectedIndexChanged="OnTypeChanged">
+                        <Picker.Items>
+                            <x:String>Hitpoints</x:String>
+                            <x:String>Vigor</x:String>
+                            <x:String>Agility</x:String>
+                            <x:String>Mind</x:String>
+                            <x:String>Spirit</x:String>
+                        </Picker.Items>
+                    </Picker>
+                </Border>
+            </VerticalStackLayout>
 
             <!-- Combat Reactions — only relevant to a physical Hitpoints attack -->
             <VerticalStackLayout x:Name="ReactionSection" Spacing="8">
@@ -57,6 +81,7 @@
 
                 <Label x:Name="ReactionDescriptionLabel" FontSize="11" TextColor="Gray" />
                 <Label x:Name="ReactionNoteLabel" FontSize="11" TextColor="{DynamicResource ThemeWarningButtonColor}" IsVisible="False" />
+                <Label x:Name="SpeedHintLabel" FontSize="12" FontAttributes="Bold" TextColor="{DynamicResource ThemeDetailBorderColor1}" IsVisible="False" />
             </VerticalStackLayout>
 
             <!-- Parry — its own resolution, bypasses the normal Amount flow -->
@@ -91,22 +116,41 @@
                 </VerticalStackLayout>
             </VerticalStackLayout>
 
-            <Label x:Name="AmountLabel" Text="Amount" FontSize="13" TextColor="Gray" />
-            <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
-                    StrokeThickness="1"
-                    StrokeShape="RoundRectangle 8"
-                    BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
-                <Entry x:Name="AmountEntry"
-                       Text="1"
-                       Keyboard="Numeric"
-                       BackgroundColor="Transparent"
-                       HorizontalTextAlignment="Center" />
-            </Border>
+            <!-- Sent damage with Block or Dodge: what actually lands after the reaction -->
+            <VerticalStackLayout x:Name="ResultSection" Spacing="6" IsVisible="False">
+                <Label Text="Damage that lands after your reaction" FontSize="13" TextColor="Gray" />
+                <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 8"
+                        BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
+                    <Entry x:Name="ResultEntry"
+                           Keyboard="Numeric"
+                           BackgroundColor="Transparent"
+                           HorizontalTextAlignment="Center" />
+                </Border>
+                <Label Text="Work out Negate or Impair with your GM. Enter 0 if the attack is Negated, or the Impaired damage."
+                       FontSize="11"
+                       TextColor="Gray" />
+            </VerticalStackLayout>
 
-            <Label x:Name="NoteLabel"
-                   Text="Hitpoints damage beyond remaining HP overflows to Vigor, per the rulebook."
-                   FontSize="11"
-                   TextColor="Gray" />
+            <VerticalStackLayout x:Name="AmountSection" Spacing="12">
+                <Label x:Name="AmountLabel" Text="Amount" FontSize="13" TextColor="Gray" />
+                <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 8"
+                        BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
+                    <Entry x:Name="AmountEntry"
+                           Text="1"
+                           Keyboard="Numeric"
+                           BackgroundColor="Transparent"
+                           HorizontalTextAlignment="Center" />
+                </Border>
+
+                <Label x:Name="NoteLabel"
+                       Text="Hitpoints damage beyond remaining HP overflows to Vigor, per the rulebook."
+                       FontSize="11"
+                       TextColor="Gray" />
+            </VerticalStackLayout>
 
             <Grid ColumnDefinitions="*, *" ColumnSpacing="10" Margin="0,10,0,0" MaximumWidthRequest="800">
                 <skin:SkinHost Grid.Column="0" SkinKey="confirm" FallbackColor="{DynamicResource ThemeConfirmButtonColor}">
@@ -126,6 +170,23 @@
                             Clicked="OnCancelClicked" />
                 </skin:SkinHost>
             </Grid>
+
+            <!-- Only for damage the GM sent: dismiss it (logged as rule skating) -->
+            <skin:SkinHost x:Name="IgnoreHost"
+                           SkinKey="danger"
+                           FallbackColor="{DynamicResource ThemeDangerButtonColor}"
+                           MaximumWidthRequest="800"
+                           IsVisible="False">
+                <Button x:Name="IgnoreButton"
+                        Text="Ignore this damage (rule skating)"
+                        TextColor="White"
+                        CornerRadius="8"
+                        HeightRequest="40"
+                        Padding="14,0"
+                        FontSize="12"
+                        IsVisible="False"
+                        Clicked="OnIgnoreClicked" />
+            </skin:SkinHost>
 
         </VerticalStackLayout>
     </ScrollView>

@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.Godrick_LiveGame.Controls.ScratchDrawingTools">
+    <ContentView.Resources>
+        <!-- Small buttons: no built-in minimum size or inner padding, so the text sits in the middle -->
+        <Style TargetType="Button">
+            <Setter Property="MinimumHeightRequest" Value="0" />
+            <Setter Property="MinimumWidthRequest" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="VerticalOptions" Value="Fill" />
+            <Setter Property="HorizontalOptions" Value="Fill" />
+            <Setter Property="LineBreakMode" Value="NoWrap" />
+        </Style>
+        <Style TargetType="skin:SkinHost">
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+    </ContentView.Resources>
+    
+    <ScrollView>
+        <VerticalStackLayout Spacing="10" Padding="3">
+
+            <!-- Tools -->
+            <FlexLayout Wrap="Wrap" Direction="Row" Margin="0,6,0,0">
+                <skin:SkinHost SkinKey="generic_small" FallbackColor="{DynamicResource ThemeNeutralButtonColor}" WidthRequest="38" HeightRequest="38" Margin="0,0,8,8">
+                    <Button x:Name="BtnHand" StyleId="Hand" Text="✋" TextColor="White" CornerRadius="4" Padding="0" FontSize="14" Clicked="OnToolClicked" />
+                </skin:SkinHost>
+                <skin:SkinHost SkinKey="generic_small" FallbackColor="{DynamicResource ThemeNeutralButtonColor}" WidthRequest="38" HeightRequest="38" Margin="0,0,8,8">
+                    <Button x:Name="BtnPen" StyleId="Pen" Text="✏️" TextColor="White" CornerRadius="4" Padding="0" FontSize="14" Clicked="OnToolClicked" />
+                </skin:SkinHost>
+                <skin:SkinHost SkinKey="generic_small" FallbackColor="{DynamicResource ThemeNeutralButtonColor}" WidthRequest="38" HeightRequest="38" Margin="0,0,8,8">
+                    <Button x:Name="BtnLine" StyleId="Line" Text="╱" TextColor="White" CornerRadius="4" Padding="0" FontSize="16" Clicked="OnToolClicked" />
+                </skin:SkinHost>
+                <skin:SkinHost SkinKey="generic_small" FallbackColor="{DynamicResource ThemeNeutralButtonColor}" WidthRequest="38" HeightRequest="38" Margin="0,0,8,8">
+                    <Button x:Name="BtnRect" StyleId="Rectangle" Text="▭" TextColor="White" CornerRadius="4" Padding="0" FontSize="16" Clicked="OnToolClicked" />
+                </skin:SkinHost>
+                <skin:SkinHost SkinKey="generic_small" FallbackColor="{DynamicResource ThemeNeutralButtonColor}" WidthRequest="38" HeightRequest="38" Margin="0,0,8,8">
+                    <Button x:Name="BtnCircle" StyleId="Circle" Text="◯" TextColor="White" CornerRadius="4" Padding="0" FontSize="16" Clicked="OnToolClicked" />
+                </skin:SkinHost>
+                <skin:SkinHost SkinKey="generic_small" FallbackColor="{DynamicResource ThemeNeutralButtonColor}" WidthRequest="38" HeightRequest="38" Margin="0,0,8,8">
+                    <Button x:Name="BtnText" StyleId="Text" Text="T" FontAttributes="Bold" TextColor="White" CornerRadius="4" Padding="0" FontSize="15" Clicked="OnToolClicked" />
+                </skin:SkinHost>
+                <skin:SkinHost SkinKey="generic_small" FallbackColor="{DynamicResource ThemeNeutralButtonColor}" WidthRequest="38" HeightRequest="38" Margin="0,0,8,8">
+                    <Button x:Name="BtnErase" StyleId="Eraser" Text="🧽" TextColor="White" CornerRadius="4" Padding="0" FontSize="14" Clicked="OnToolClicked" />
+                </skin:SkinHost>
+            </FlexLayout>
+
+            <!-- Colors -->
+            <HorizontalStackLayout Spacing="10">
+                <Border x:Name="BtnBlack" StyleId="Black" BackgroundColor="#1a1a1a" Stroke="#cfcfcf" StrokeThickness="1.5"
+                        StrokeShape="RoundRectangle 6" WidthRequest="28" HeightRequest="28">
+                    <Label x:Name="LblBlack" TextColor="White" FontSize="14" HorizontalOptions="Center" VerticalOptions="Center" />
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnColorTapped" />
+                    </Border.GestureRecognizers>
+                </Border>
+                <Border x:Name="BtnRed" StyleId="Red" BackgroundColor="#d62828" Stroke="#cfcfcf" StrokeThickness="1.5"
+                        StrokeShape="RoundRectangle 6" WidthRequest="28" HeightRequest="28">
+                    <Label x:Name="LblRed" TextColor="White" FontSize="14" HorizontalOptions="Center" VerticalOptions="Center" />
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnColorTapped" />
+                    </Border.GestureRecognizers>
+                </Border>
+                <Border x:Name="BtnBlue" StyleId="Blue" BackgroundColor="#1d4ed8" Stroke="#cfcfcf" StrokeThickness="1.5"
+                        StrokeShape="RoundRectangle 6" WidthRequest="28" HeightRequest="28">
+                    <Label x:Name="LblBlue" TextColor="White" FontSize="14" HorizontalOptions="Center" VerticalOptions="Center" />
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnColorTapped" />
+                    </Border.GestureRecognizers>
+                </Border>
+            </HorizontalStackLayout>
+
+            <!-- Snap, grid, undo, redo -->
+            <FlexLayout Wrap="Wrap" Direction="Row">
+                <skin:SkinHost SkinKey="generic_small" FallbackColor="{DynamicResource ThemeNeutralButtonColor}" WidthRequest="100" HeightRequest="30" Margin="0,0,8,8">
+                    <Button x:Name="BtnSnap" TextColor="White" CornerRadius="4" Padding="4,0" FontSize="11" Clicked="OnSnapClicked" />
+                </skin:SkinHost>
+                <skin:SkinHost SkinKey="generic_small" FallbackColor="{DynamicResource ThemeNeutralButtonColor}" WidthRequest="100" HeightRequest="30" Margin="0,0,8,8">
+                    <Button x:Name="BtnGrid" TextColor="White" CornerRadius="4" Padding="4,0" FontSize="11" Clicked="OnGridClicked" />
+                </skin:SkinHost>
+                <skin:SkinHost SkinKey="generic_small" FallbackColor="{DynamicResource ThemeNeutralButtonColor}" WidthRequest="38" HeightRequest="30" Margin="0,0,8,8">
+                    <Button x:Name="BtnUndo" Text="↶" TextColor="White" CornerRadius="4" Padding="0" FontSize="16" Clicked="OnUndoClicked" />
+                </skin:SkinHost>
+                <skin:SkinHost SkinKey="generic_small" FallbackColor="{DynamicResource ThemeNeutralButtonColor}" WidthRequest="38" HeightRequest="30" Margin="0,0,8,8">
+                    <Button x:Name="BtnRedo" Text="↷" TextColor="White" CornerRadius="4" Padding="0" FontSize="16" Clicked="OnRedoClicked" />
+                </skin:SkinHost>
+            </FlexLayout>
+
+            <!-- Zoom -->
+            <HorizontalStackLayout Spacing="8">
+                <skin:SkinHost SkinKey="generic_small" FallbackColor="{DynamicResource ThemeNeutralButtonColor}" WidthRequest="38" HeightRequest="30">
+                    <Button Text="−" TextColor="White" CornerRadius="4" Padding="0" FontSize="16" Clicked="OnZoomOutClicked" />
+                </skin:SkinHost>
+                <Label x:Name="ZoomLabel" FontSize="12" WidthRequest="48" HorizontalTextAlignment="Center" VerticalOptions="Center" />
+                <skin:SkinHost SkinKey="generic_small" FallbackColor="{DynamicResource ThemeNeutralButtonColor}" WidthRequest="38" HeightRequest="30">
+                    <Button Text="+" TextColor="White" CornerRadius="4" Padding="0" FontSize="16" Clicked="OnZoomInClicked" />
+                </skin:SkinHost>
+                <skin:SkinHost SkinKey="generic_small" FallbackColor="{DynamicResource ThemeNeutralButtonColor}" WidthRequest="46" HeightRequest="30">
+                    <Button Text="Fit" TextColor="White" CornerRadius="4" Padding="0" FontSize="12" Clicked="OnFitClicked" />
+                </skin:SkinHost>
+            </HorizontalStackLayout>
+
+            <!-- Background picture (a map, drawn under the grid and shapes) -->
+            <FlexLayout Wrap="Wrap" Direction="Row">
+                <skin:SkinHost SkinKey="generic_small" FallbackColor="{DynamicResource ThemeNeutralButtonColor}" WidthRequest="120" HeightRequest="30" Margin="0,0,8,8">
+                    <Button Text="🖼️ Background" TextColor="White" CornerRadius="4" Padding="4,0" FontSize="11"
+                            Command="{Binding SetBackgroundCommand}" />
+                </skin:SkinHost>
+                <skin:SkinHost SkinKey="danger" FallbackColor="{DynamicResource ThemeDangerButtonColor}" WidthRequest="84" HeightRequest="30" Margin="0,0,8,8"
+                               IsVisible="{Binding HasBackground}">
+                    <Button Text="✖ Remove" TextColor="White" CornerRadius="4" Padding="4,0" FontSize="11"
+                            IsVisible="{Binding HasBackground}"
+                            Command="{Binding RemoveBackgroundCommand}" />
+                </skin:SkinHost>
+            </FlexLayout>
+
+            <Label FontSize="10" TextColor="Gray" LineBreakMode="WordWrap"
+                   Text="Right-click cancels a shape. Middle mouse drags the canvas. The wheel zooms. (Windows)" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentView>

@@ -17,6 +17,8 @@ namespace CharManJur.WinUI
         public App()
         {
             this.InitializeComponent();
+            UnhandledException += (_, e) =>
+                CharManJur.Services.CrashLog.Write("WinUI unhandled", e.Exception);
         }
 
         protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();

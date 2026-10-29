@@ -138,9 +138,9 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
 
                 RestoreSavedLanguages();
 
-                LoadItemChoices();
-                LoadFamiliarChoices();
-                Task.Run(ResolveItemDetails);
+                _ = LoadItemChoices();
+                _ = LoadFamiliarChoices();
+                _ = ResolveItemDetails();
             }
         }
     }
@@ -206,17 +206,27 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
 
     private async Task ResolveItemDetails()
     {
-        if (SelectedBackground?.StartingItems == null) return;
+        // Snapshot so a fast background switch can't null this out mid-loop
+        var background = SelectedBackground;
+        var startingItems = background?.StartingItems?.ToList();
+        if (startingItems == null) return;
 
-        foreach (var startingItem in SelectedBackground.StartingItems)
+        foreach (var startingItem in startingItems)
         {
-            if (startingItem.ItemId > 0)
-            {
-                startingItem.ItemDetails = await _itemDataService.GetItemByIdAsync(startingItem.ItemId);
-            }
+            if (startingItem.ItemId <= 0) continue;
+
+            var details = await _itemDataService.GetItemByIdAsync(startingItem.ItemId);
+
+            // Raise change notifications on the UI thread only
+            MainThread.BeginInvokeOnMainThread(() => startingItem.ItemDetails = details);
         }
 
-        OnPropertyChanged(nameof(SelectedBackgroundStartingItems));
+        // Skip the refresh if the user already switched to a different background
+        if (ReferenceEquals(SelectedBackground, background))
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+                OnPropertyChanged(nameof(SelectedBackgroundStartingItems)));
+        }
     }
 
     public bool HasSelectedBackground => SelectedBackground != null;
@@ -288,7 +298,7 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
 
         LoadBackgroundsCommand = new Command(async () => await LoadBackgroundsAsync());
         SelectBackgroundCommand = new Command<CharacterBackground>(OnBackgroundSelected);
-        ConfirmBackgroundCommand = new Command(async () => await ConfirmBackgroundAsync());
+        ConfirmBackgroundCommand = new Command(async () => await CrashLog.GuardAsync(ConfirmBackgroundAsync, "Confirm background"));
         CreateCustomItemCommand = new Command<ItemChoice>(OnCreateCustomItem);
         CreateCustomFamiliarCommand = new Command<FamiliarChoice>(OnCreateCustomFamiliar);
         RemoveStartingItemCommand = new Command<StartingItem>(OnRemoveStartingItem);
@@ -354,60 +364,47 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
 
     private async Task LoadItemChoices()
     {
-        ItemChoiceDisplays.Clear();
+        var background = SelectedBackground;
+        var built = new List<ItemChoiceDisplay>();
 
-        if (SelectedBackground?.ItemChoices == null) return;
-
-        foreach (var choice in SelectedBackground.ItemChoices)
+        if (background?.ItemChoices != null)
         {
-            var display = new ItemChoiceDisplay { Choice = choice };
-
-            if (choice.QueryCriteria == null)
+            foreach (var choice in background.ItemChoices)
             {
-                choice.QueryCriteria = new ItemQueryCriteria();
-            }
+                choice.QueryCriteria ??= new ItemQueryCriteria();
+                var criteria = choice.QueryCriteria;
 
-            // Make sure the QueryCriteria is properly set up for filtering
-            var criteria = choice.QueryCriteria;
+                if (!(criteria.AllowedCategories?.Any() ?? false) && criteria.Category.HasValue)
+                    criteria.AllowedCategories = new List<ItemCategory> { criteria.Category.Value };
 
-            // Ensure categories are properly set for filtering
-            if (criteria.AllowedCategories != null && criteria.AllowedCategories.Any())
-            {
-                // Categories are already set
-                System.Diagnostics.Debug.WriteLine($"Item choice {choice.Id} has {criteria.AllowedCategories.Count} categories");
-                foreach (var cat in criteria.AllowedCategories)
+                var items = await _itemDataService.QueryItemsAsync(criteria);
+
+                var display = new ItemChoiceDisplay { Choice = choice };
+                foreach (var item in items)
                 {
-                    System.Diagnostics.Debug.WriteLine($"  Category: {cat}");
+                    display.Options.Add(new SelectableItem
+                    {
+                        ItemId = item.Id,
+                        DisplayName = item.Name,
+                        Quantity = 1,
+                        IsSelected = false,
+                        IsCustom = item.IsPlayerCreated,
+                        ItemDetails = item
+                    });
                 }
+                built.Add(display);
             }
-            else if (criteria.Category.HasValue)
-            {
-                // Single category - add to AllowedCategories for consistency
-                criteria.AllowedCategories = new List<ItemCategory> { criteria.Category.Value };
-                System.Diagnostics.Debug.WriteLine($"Item choice {choice.Id} has single category: {criteria.Category.Value}");
-            }
-
-            var items = await _itemDataService.QueryItemsAsync(criteria);
-
-            System.Diagnostics.Debug.WriteLine($"Found {items.Count} items for choice {choice.Id}");
-
-            foreach (var item in items)
-            {
-                display.Options.Add(new SelectableItem
-                {
-                    ItemId = item.Id,
-                    DisplayName = item.Name,
-                    Quantity = 1,
-                    IsSelected = false,
-                    IsCustom = item.IsPlayerCreated,
-                    ItemDetails = item
-                });
-            }
-            ItemChoiceDisplays.Add(display);
         }
 
-        OnPropertyChanged(nameof(ItemChoiceDisplays));
-        OnPropertyChanged(nameof(SelectedBackgroundItemChoices));
+        // Bound collections are only touched on the UI thread
+        await MainThread.InvokeOnMainThreadAsync(() =>
+        {
+            if (!ReferenceEquals(SelectedBackground, background)) return;   // user already picked another background
+            ItemChoiceDisplays.Clear();
+            foreach (var d in built) ItemChoiceDisplays.Add(d);
+            OnPropertyChanged(nameof(ItemChoiceDisplays));
+            OnPropertyChanged(nameof(SelectedBackgroundItemChoices));
+        });
     }
 
     private async Task CreateCustomBackgroundAsync()
@@ -502,49 +499,43 @@ public class BackgroundSelectionViewModel : INotifyPropertyChanged
 
     private async Task LoadFamiliarChoices()
     {
-        FamiliarChoiceDisplays.Clear();
+        var background = SelectedBackground;
+        var built = new List<FamiliarChoiceDisplay>();
 
-        if (SelectedBackground?.FamiliarChoices == null) return;
-
-        foreach (var choice in SelectedBackground.FamiliarChoices)
+        if (background?.FamiliarChoices != null)
         {
-            var display = new FamiliarChoiceDisplay { Choice = choice };
-
-            System.Diagnostics.Debug.WriteLine($"=== Loading familiars for choice: {choice.Id} ===");
-
-            if (choice.QueryCriteria != null)
+            foreach (var choice in background.FamiliarChoices)
             {
-                System.Diagnostics.Debug.WriteLine($"  Sizes: {string.Join(", ", choice.QueryCriteria.AllowedSizes ?? new List<string>())}");
-                System.Diagnostics.Debug.WriteLine($"  Intelligences: {string.Join(", ", choice.QueryCriteria.AllowedIntelligences ?? new List<string>())}");
-                System.Diagnostics.Debug.WriteLine($"  Species: {string.Join(", ", choice.QueryCriteria.AllowedSpecies ?? new List<string>())}");
-            }
+                var display = new FamiliarChoiceDisplay { Choice = choice };
+                var familiars = await _familiarDataService.QueryFamiliarsAsync(choice.QueryCriteria);
 
-            var familiars = await _familiarDataService.QueryFamiliarsAsync(choice.QueryCriteria);
-
-            System.Diagnostics.Debug.WriteLine($"  Found {familiars.Count} familiars");
-
-            foreach (var familiar in familiars)
-            {
-                var selectable = new SelectableFamiliar
+                foreach (var familiar in familiars)
                 {
-                    FamiliarId = familiar.Id,
-                    DisplayName = familiar.FmlrName ?? "Unnamed Familiar",
-                    IsSelected = false,
-                    IsCustom = false,
-                    Familiar = familiar,
-                    SelectCommand = new Command<SelectableFamiliar>(OnFamiliarSelected)
-                };
-
-                display.Options.Add(selectable);
+                    display.Options.Add(new SelectableFamiliar
+                    {
+                        FamiliarId = familiar.Id,
+                        DisplayName = familiar.FmlrName ?? "Unnamed Familiar",
+                        IsSelected = false,
+                        IsCustom = false,
+                        Familiar = familiar,
+                        SelectCommand = new Command<SelectableFamiliar>(OnFamiliarSelected)
+                    });
+                }
+                built.Add(display);
             }
-
-            FamiliarChoiceDisplays.Add(display);
         }
 
-        OnPropertyChanged(nameof(FamiliarChoiceDisplays));
-        OnPropertyChanged(nameof(HasFamiliarChoices));
-        OnPropertyChanged(nameof(AreFamiliarChoicesSatisfied));
-        OnPropertyChanged(nameof(CanConfirmBackground));
+        await MainThread.InvokeOnMainThreadAsync(() =>
+        {
+            if (!ReferenceEquals(SelectedBackground, background)) return;
+            FamiliarChoiceDisplays.Clear();
+            foreach (var d in built) FamiliarChoiceDisplays.Add(d);
+            OnPropertyChanged(nameof(FamiliarChoiceDisplays));
+            OnPropertyChanged(nameof(HasFamiliarChoices));
+            OnPropertyChanged(nameof(AreFamiliarChoicesSatisfied));
+            OnPropertyChanged(nameof(CanConfirmBackground));
+            ((Command)ConfirmBackgroundCommand)?.ChangeCanExecute();
+        });
     }
 
     private void OnFamiliarSelected(SelectableFamiliar? selected)

@@ -40,6 +40,9 @@ public class ShopSales
     {
         int baseChips = CurrencyHelper.ValueEach(item);
         if (baseChips <= 0) return 0;
+        // A usage die item is worth what its current die is worth (a worn-down die sells for less)
+        if (item.HasUsageDie && !IsNote(item))
+            baseChips = (int)UsageDie.ScaledPrice(baseChips, item.Template!.DefaultUsageDieSides, item.UsageDieSides);
         return IsNote(item) ? baseChips : CurrencyHelper.ApplyInflation(baseChips, ShopSettings.SaleInflation);
     }
 
@@ -105,6 +108,7 @@ public class ShopSales
 
         string name = item.DisplayName;
         int templateId = item.TemplateId;
+        int dieSides = item.HasUsageDie ? item.UsageDieSides : 0;
 
         // Hand over the goods. Selling part of a stack keeps the rest (and any opened item) on the record.
         if (quantity >= item.Quantity)
@@ -132,6 +136,7 @@ public class ShopSales
                 notes.Add($"sale prices {(ShopSettings.SaleInflation * 100m):+0.##;-0.##}%");
             if (includesOpened) notes.Add("partly used item priced by remaining uses");
         }
+        if (dieSides > 0) notes.Add($"{UsageDie.Label(dieSides)} usage die");
         string suffix = notes.Count > 0 ? $" [{string.Join("; ", notes)}]" : string.Empty;
 
         await _log.LogEventAsync(new PlayerActionLogEntry

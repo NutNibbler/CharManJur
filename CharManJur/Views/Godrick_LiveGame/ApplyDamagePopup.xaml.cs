@@ -7,18 +7,45 @@ public partial class ApplyDamagePopup : ContentPage
 {
     private readonly ICharAttribDataService _charDataService;
     private readonly Action _onApplied;
+    private readonly IncomingDamage? _incoming;   // set when the GM sent this damage: its details are locked
     private static readonly int[] DieSizes = { 4, 6, 8, 10, 12, 20 };
     private int? _lastParryRollResult;
 
-    public ApplyDamagePopup(ICharAttribDataService charDataService, Action onApplied)
+    public ApplyDamagePopup(ICharAttribDataService charDataService, Action onApplied, IncomingDamage? incoming = null)
     {
         InitializeComponent();
         _charDataService = charDataService;
         _onApplied = onApplied;
+        _incoming = incoming;
 
         TypePicker.SelectedIndex = 0;
         ReactionPicker.SelectedIndex = 0;
         ParryDiePicker.SelectedIndex = 0;
+
+        if (incoming != null) ShowIncoming(incoming);
+    }
+
+    // Damage the GM sent: the type, amount and speed are shown locked, and the player only picks a reaction.
+    private void ShowIncoming(IncomingDamage incoming)
+    {
+        HeaderLabel.Text = "📨 Incoming Damage";
+        IncomingSection.IsVisible = true;
+        IncomingSummaryLabel.Text = incoming.Summary;
+
+        if (!string.IsNullOrWhiteSpace(incoming.Note))
+        {
+            IncomingNoteLabel.Text = incoming.Note;
+            IncomingNoteLabel.IsVisible = true;
+        }
+
+        TypeSection.IsVisible = false;
+        AmountSection.IsVisible = false;
+        IgnoreHost.IsVisible = true;
+        IgnoreButton.IsVisible = true;
+
+        // The picker still holds the type, so the rest of the flow works as it always did.
+        TypePicker.SelectedIndex = (int)incoming.Target;
+        UpdateIncomingHints((CombatReactionType)ReactionPicker.SelectedIndex);
     }
 
     private void OnTypeChanged(object sender, EventArgs e)
@@ -53,14 +80,45 @@ public partial class ApplyDamagePopup : ContentPage
         ReactionNoteLabel.Text = reaction switch
         {
             CombatReactionType.Riposte => "+1 Fatigue. You may counter-attack after this resolves — not tracked by the app.",
-            CombatReactionType.Block => "+1 Fatigue. DM must determine Negate/Impair and roll 1d4 for Impaired damage — enter the resulting Amount below (0 if Negated).",
-            CombatReactionType.Dodge => "+1 Fatigue. DM must determine Negate/Impair and roll 1d4 for Impaired damage — enter the resulting Amount below (0 if Negated).",
+            CombatReactionType.Block or CombatReactionType.Dodge => _incoming != null
+                ? "+1 Fatigue. Work out Negate or Impair with your GM, then enter what actually lands below (0 if Negated)."
+                : "+1 Fatigue. DM must determine Negate/Impair and roll 1d4 for Impaired damage — enter the resulting Amount below (0 if Negated).",
             _ => string.Empty
         };
         ReactionNoteLabel.IsVisible = !string.IsNullOrEmpty(ReactionNoteLabel.Text);
 
         ParrySection.IsVisible = reaction == CombatReactionType.Parry;
         AmountLabel.Text = reaction == CombatReactionType.Parry ? "Attacker's Damage Roll" : "Amount";
+
+        UpdateIncomingHints(reaction);
+    }
+
+    // For sent damage: say how the attack's speed meets the chosen reaction, and offer the "what lands" field.
+    private void UpdateIncomingHints(CombatReactionType reaction)
+    {
+        if (_incoming == null || _incoming.Target != DamageTargetType.Hitpoints)
+        {
+            ResultSection.IsVisible = false;
+            SpeedHintLabel.IsVisible = false;
+            return;
+        }
+
+        var speed = _incoming.Speed;
+        SpeedHintLabel.Text = reaction switch
+        {
+            CombatReactionType.Block => speed == IncomingAttackSpeed.Slow
+                ? "This is a Slow attack, so Block doesn't Impair it."
+                : $"This is a {speed} attack, so Block makes it Impaired.",
+            CombatReactionType.Dodge => speed == IncomingAttackSpeed.Fast
+                ? "This is a Fast attack, so Dodge doesn't Impair it."
+                : $"This is a {speed} attack, so Dodge makes it Impaired.",
+            _ => string.Empty
+        };
+        SpeedHintLabel.IsVisible = !string.IsNullOrEmpty(SpeedHintLabel.Text);
+
+        bool needsResult = reaction is CombatReactionType.Block or CombatReactionType.Dodge;
+        ResultSection.IsVisible = needsResult;
+        if (needsResult) ResultEntry.Text = _incoming.Amount.ToString();   // starts at the GM's amount; the player adjusts it
     }
 
     private void OnParryRollModeChanged(object sender, CheckedChangedEventArgs e)
@@ -78,6 +136,12 @@ public partial class ApplyDamagePopup : ContentPage
         ParryRollResultLabel.Text = $"Rolled: {_lastParryRollResult}";
     }
 
+    // The damage has been dealt with: it no longer waits on the character.
+    private void FinishIncoming()
+    {
+        if (_incoming != null) _charDataService.RemoveIncomingDamage(_incoming.Id, ignored: false);
+    }
+
     private async void OnApplyClicked(object sender, EventArgs e)
     {
         if (TypePicker.SelectedIndex < 0)
@@ -91,7 +155,12 @@ public partial class ApplyDamagePopup : ContentPage
 
         if (reaction == CombatReactionType.Parry)
         {
-            if (!int.TryParse(AmountEntry.Text, out int attackerRoll) || attackerRoll < 0)
+            int attackerRoll;
+            if (_incoming != null)
+            {
+                attackerRoll = _incoming.Amount;   // the GM's amount is the attacker's roll
+            }
+            else if (!int.TryParse(AmountEntry.Text, out attackerRoll) || attackerRoll < 0)
             {
                 await DisplayAlertAsync("Invalid Amount", "Enter the attacker's damage roll (0 or greater).", "OK");
                 return;
@@ -124,25 +193,44 @@ public partial class ApplyDamagePopup : ContentPage
                 resultMessage = "Parry tied! Both weapons bounce off — no damage to either side.";
             }
 
+            FinishIncoming();
             await DisplayAlertAsync("Parry Result", resultMessage, "OK");
             _onApplied?.Invoke();
             await Navigation.PopModalAsync();
             return;
         }
 
-        if (!int.TryParse(AmountEntry.Text, out int amount) || amount < 0)
+        // The amount that lands: typed in, or (for damage the GM sent) the GM's number, or what the player enters after Block or Dodge.
+        int amount;
+        if (_incoming == null)
         {
-            await DisplayAlertAsync("Invalid Amount", "Enter a whole number (0 or greater).", "OK");
-            return;
+            if (!int.TryParse(AmountEntry.Text, out amount) || amount < 0)
+            {
+                await DisplayAlertAsync("Invalid Amount", "Enter a whole number (0 or greater).", "OK");
+                return;
+            }
+        }
+        else if (reaction is CombatReactionType.Block or CombatReactionType.Dodge)
+        {
+            if (!int.TryParse(ResultEntry.Text, out amount) || amount < 0)
+            {
+                await DisplayAlertAsync("Invalid Amount", "Enter the damage that lands after your reaction (0 or greater).", "OK");
+                return;
+            }
+        }
+        else
+        {
+            amount = _incoming.Amount;
         }
 
         if (reaction != CombatReactionType.None)
         {
+            string sent = _incoming != null ? $" (the GM sent {_incoming.Amount})" : string.Empty;
             string reactionNote = reaction switch
             {
                 CombatReactionType.Riposte => "Used Riposte — will counter-attack after this resolves.",
-                CombatReactionType.Block => amount == 0 ? "Used Block — attack fully Negated." : $"Used Block — attack Impaired, {amount} damage entered.",
-                CombatReactionType.Dodge => amount == 0 ? "Used Dodge — attack fully Negated." : $"Used Dodge — attack Impaired, {amount} damage entered.",
+                CombatReactionType.Block => amount == 0 ? "Used Block — attack fully Negated." : $"Used Block — attack Impaired, {amount} damage lands{sent}.",
+                CombatReactionType.Dodge => amount == 0 ? "Used Dodge — attack fully Negated." : $"Used Dodge — attack Impaired, {amount} damage lands{sent}.",
                 _ => $"Used {reaction}."
             };
             _charDataService.LogCombatReaction(reaction, reactionNote);
@@ -184,6 +272,7 @@ public partial class ApplyDamagePopup : ContentPage
             message = $"{type} reduced by {amount}.";
         }
 
+        FinishIncoming();
         await DisplayAlertAsync("Damage Applied", message, "OK");
 
         if (needsStabilitySave)
@@ -201,9 +290,24 @@ public partial class ApplyDamagePopup : ContentPage
         await Navigation.PopModalAsync();
     }
 
+    // The GM sent this by mistake (or the player is skipping it): it is dropped and logged as rule skating.
+    private async void OnIgnoreClicked(object sender, EventArgs e)
+    {
+        if (_incoming == null) return;
+
+        bool ok = await DisplayAlertAsync(
+            "Ignore Damage",
+            "Ignore this damage? Use this only if the GM sent it by mistake. It is logged as rule skating.",
+            "Ignore", "Cancel");
+        if (!ok) return;
+
+        _charDataService.RemoveIncomingDamage(_incoming.Id, ignored: true);
+        _onApplied?.Invoke();
+        await Navigation.PopModalAsync();
+    }
 
     private async void OnCancelClicked(object sender, EventArgs e)
     {
-        await Navigation.PopModalAsync();
+        await Navigation.PopModalAsync();   // sent damage stays waiting
     }
 }

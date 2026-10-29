@@ -249,6 +249,10 @@ public class SkinHost : Grid
     {
         if (_vsmSuppressed || _button == null) return;
 
+        // The style may already have put the button in its Disabled state (gray setters active).
+        // Leave that state first, so those setters are undone before the groups are replaced.
+        VisualStateManager.GoToState(_button, "Normal");
+
         var common = new VisualStateGroup { Name = "CommonStates" };
         common.States.Add(new VisualState { Name = "Normal" });
         common.States.Add(new VisualState { Name = "Disabled" });
@@ -265,5 +269,8 @@ public class SkinHost : Grid
 
         _button.ClearValue(VisualStateManager.VisualStateGroupsProperty);
         _vsmSuppressed = false;
+
+        // Back on the style's groups: put the button in the state it is really in
+        VisualStateManager.GoToState(_button, _button.IsEnabled ? "Normal" : "Disabled");
     }
 }

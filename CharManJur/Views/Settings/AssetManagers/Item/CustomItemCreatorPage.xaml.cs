@@ -1,6 +1,7 @@
 using CharManJur.Models;
 using CharManJur.Services;
 using CharManJur.ViewModels;
+using CharManJur.Helpers;
 
 namespace CharManJur.Views;
 
@@ -16,15 +17,33 @@ public partial class CustomItemCreatorPage : ContentPage
 
         // Populate pickers
         PopulatePickers();
+        UpdateUsageDieVisibility();
 
         // Set default category selection to trigger visibility
-        pickerCategory.SelectedIndexChanged += (s, e) => UpdateContainerVisibility();
+        pickerCategory.SelectedIndexChanged += (s, e) =>
+        {
+            UpdateContainerVisibility();
+            UpdateCategoryHelp();
+        };
         pickerCategory.SelectedIndex = 0;
 
-        if (_viewModel.IsEditMode)
+        if (_viewModel.IsEditMode || _viewModel.IsCopyMode)
         {
             PopulateFormForEdit();
         }
+        else
+        {
+            // New items start at rarity 0 and Regular size. Applied once the page is on screen;
+            // setting these pickers any earlier left them blank and unresponsive.
+            Loaded += OnFirstLoaded;
+        }
+    }
+
+    private void OnFirstLoaded(object? sender, EventArgs e)
+    {
+        Loaded -= OnFirstLoaded;
+        pickerRarity.SelectedIndex = 0;   // 0 - None
+        pickerSize.SelectedIndex = _viewModel.Sizes.IndexOf(nameof(ItemSize.Regular));
     }
 
     private void PopulatePickers()
@@ -39,7 +58,9 @@ public partial class CustomItemCreatorPage : ContentPage
         pickerRarity.ItemsSource = _viewModel.RarityLevels;
 
         // Weapon
-        pickerWeaponCategory.ItemsSource = _viewModel.WeaponCategories;
+        pickerWeaponKind.ItemsSource = _viewModel.WeaponKinds;
+        pickerDamageType.ItemsSource = _viewModel.DamageTypes;
+        pickerWeaponKind.SelectedIndexChanged += OnWeaponKindChanged;
         pickerWeaponDamage.ItemsSource = _viewModel.WeaponDamageDice;
         pickerWeaponSpeed.ItemsSource = _viewModel.WeaponSpeeds;
 
@@ -48,6 +69,12 @@ public partial class CustomItemCreatorPage : ContentPage
 
         // Weapon Effects
         cvWeaponEffects.ItemsSource = _viewModel.WeaponEffects;
+
+        // Usage die
+        pickerUsageDie.ItemsSource = _viewModel.UsageDieLabels;
+        pickerUsageDie.SelectedIndex = _viewModel.UsageDieLabels.IndexOf(UsageDie.Label(_viewModel.UsageDieSides));
+        chkUsageDie.CheckedChanged += (_, _) => UpdateUsageDieVisibility();
+        chkStackable.CheckedChanged += (_, _) => UpdateUsageDieVisibility();
     }
 
     private void PopulateFormForEdit()
@@ -68,10 +95,13 @@ public partial class CustomItemCreatorPage : ContentPage
         pickerSize.SelectedIndex = _viewModel.Sizes.IndexOf(_viewModel.Size.ToString());
 
         if (_viewModel.Rarity.HasValue)
-            pickerRarity.SelectedIndex = _viewModel.Rarity.Value - 1;
+            pickerRarity.SelectedIndex = Math.Clamp(_viewModel.Rarity ?? 0, 0, 3);
 
-        if (_viewModel.WeaponCategory.HasValue)
-            pickerWeaponCategory.SelectedIndex = _viewModel.WeaponCategories.IndexOf(_viewModel.WeaponCategory.Value.ToString());
+        if (_viewModel.WeaponKind.HasValue)
+            pickerWeaponKind.SelectedIndex = _viewModel.WeaponKinds.IndexOf(_viewModel.WeaponKind.Value.ToString());
+
+        if (_viewModel.DamageType.HasValue)
+            pickerDamageType.SelectedIndex = _viewModel.DamageTypes.IndexOf(_viewModel.DamageType.Value.ToString());
 
         if (_viewModel.WeaponDamage.HasValue)
             pickerWeaponDamage.SelectedIndex = _viewModel.WeaponDamageDice.IndexOf(_viewModel.WeaponDamage.Value.ToString());
@@ -83,6 +113,10 @@ public partial class CustomItemCreatorPage : ContentPage
             pickerArmorType.SelectedIndex = _viewModel.ArmorTypes.IndexOf(_viewModel.ArmorType.Value.ToString());
 
         if (_viewModel.ContainerSlots.HasValue) entryContainerSlots.Text = _viewModel.ContainerSlots.Value.ToString();
+        chkUsageDie.IsChecked = _viewModel.HasUsageDie;
+        chkHybrid.IsChecked = _viewModel.HybridUsage;
+        pickerUsageDie.SelectedIndex = _viewModel.UsageDieLabels.IndexOf(UsageDie.Label(_viewModel.UsageDieSides));
+        UpdateUsageDieVisibility();
         UpdateContainerVisibility();
     }
 
@@ -137,6 +171,25 @@ public partial class CustomItemCreatorPage : ContentPage
             // Stackable
             _viewModel.IsStackable = chkStackable.IsChecked;
 
+            // Usage die: never stackable (each one carries its own die)
+            _viewModel.HasUsageDie = chkUsageDie.IsChecked;
+            _viewModel.HybridUsage = chkUsageDie.IsChecked && chkHybrid.IsChecked;
+            if (_viewModel.HasUsageDie)
+            {
+                if (pickerUsageDie.SelectedIndex < 0)
+                {
+                    await DisplayAlertAsync("Usage Die", "Choose the starting die for this item.", "OK");
+                    return;
+                }
+                if (_viewModel.HybridUsage && (_viewModel.Uses ?? 0) < 1)
+                {
+                    await DisplayAlertAsync("Hybrid Usage", "Hybrid usage needs a Uses value of 1 or more, as well as the die.", "OK");
+                    return;
+                }
+                _viewModel.UsageDieSides = UsageDie.Sizes[pickerUsageDie.SelectedIndex];
+                _viewModel.IsStackable = false;
+            }
+
             // === READ PICKER SELECTIONS ===
             if (pickerCategory.SelectedIndex >= 0)
             {
@@ -148,16 +201,14 @@ public partial class CustomItemCreatorPage : ContentPage
                 _viewModel.Size = Enum.Parse<ItemSize>(_viewModel.Sizes[pickerSize.SelectedIndex]);
             }
 
-            if (pickerRarity.SelectedIndex >= 0)
-            {
-                _viewModel.Rarity = pickerRarity.SelectedIndex + 1;
-            }
+            _viewModel.Rarity = Math.Max(0, pickerRarity.SelectedIndex);
 
             // Weapon pickers
-            if (pickerWeaponCategory.SelectedIndex >= 0)
-            {
-                _viewModel.WeaponCategory = Enum.Parse<WeaponCategoryType>(_viewModel.WeaponCategories[pickerWeaponCategory.SelectedIndex]);
-            }
+            if (pickerWeaponKind.SelectedIndex >= 0)
+                _viewModel.WeaponKind = Enum.Parse<WeaponType>(_viewModel.WeaponKinds[pickerWeaponKind.SelectedIndex]);
+
+            if (pickerDamageType.SelectedIndex >= 0)
+                _viewModel.DamageType = Enum.Parse<WeaponDamageType>(_viewModel.DamageTypes[pickerDamageType.SelectedIndex]);
 
             if (pickerWeaponDamage.SelectedIndex >= 0)
             {
@@ -188,6 +239,17 @@ public partial class CustomItemCreatorPage : ContentPage
                 _viewModel.ContainerSlots = null;
             }
 
+            if (_viewModel.Category != ItemCategory.Weapon)
+            {
+                _viewModel.WeaponKind = null;
+                _viewModel.DamageType = null;
+            }
+            else if (_viewModel.WeaponKind == null || _viewModel.DamageType == null)
+            {
+                await DisplayAlertAsync("Weapon Type", "Choose a Weapon Type and a Damage Type for this weapon.", "OK");
+                return;
+            }
+
             // === DEBUG: Verify Name is Set ===
             System.Diagnostics.Debug.WriteLine($"=== Name: '{_viewModel.Name}' ===");
             System.Diagnostics.Debug.WriteLine($"=== Category: '{_viewModel.Category}' ===");
@@ -211,6 +273,42 @@ public partial class CustomItemCreatorPage : ContentPage
             _viewModel.Categories[pickerCategory.SelectedIndex] == nameof(ItemCategory.Container);
         lblContainerHeader.IsVisible = isContainer;
         borderContainer.IsVisible = isContainer;
+    }
+
+    // Usage-die items never stack, and Qty Limit only means something on a stackable item.
+    private void UpdateUsageDieVisibility()
+    {
+        bool dieOn = chkUsageDie.IsChecked;
+        if (!dieOn) chkHybrid.IsChecked = false;
+        usageDieSection.IsVisible = dieOn;
+        chkStackable.IsEnabled = !dieOn;
+
+        bool canStack = chkStackable.IsChecked && !dieOn;
+        entryQtyLimit.IsEnabled = canStack;
+        if (!canStack) entryQtyLimit.Text = string.Empty;
+    }
+
+    private void UpdateCategoryHelp()
+    {
+        string text = pickerCategory.SelectedIndex >= 0
+            ? ItemCategoryInfo.Describe(Enum.Parse<ItemCategory>(_viewModel.Categories[pickerCategory.SelectedIndex]))
+            : string.Empty;
+        lblCategoryHelp.Text = text;
+        lblCategoryHelp.IsVisible = text.Length > 0;
+    }
+
+    // Ranged weapons are always Piercing, so the picker is set and locked. Thrown weapons default to Piercing but can change.
+    private void OnWeaponKindChanged(object? sender, EventArgs e)
+    {
+        string? kind = pickerWeaponKind.SelectedIndex >= 0 ? _viewModel.WeaponKinds[pickerWeaponKind.SelectedIndex] : null;
+        bool ranged = kind == nameof(WeaponType.Ranged);
+        bool thrown = kind == nameof(WeaponType.Thrown);
+
+        if (ranged || thrown)
+            pickerDamageType.SelectedIndex = _viewModel.DamageTypes.IndexOf(nameof(WeaponDamageType.Piercing));
+
+        pickerDamageType.IsEnabled = !ranged;
+        lblRangedNote.IsVisible = ranged;
     }
 
     private async void OnCancelClicked(object sender, EventArgs e)

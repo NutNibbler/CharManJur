@@ -86,6 +86,11 @@ public class InventoryItemDisplay : INotifyPropertyChanged
     public string UsesText => HasUses ? $"{RemainingUses}/{MaxUses}" : string.Empty;
     public double UsesFillRatio => HasUses ? Math.Clamp((double)RemainingUses / MaxUses!.Value, 0, 1) : 0;
 
+    // ===== USAGE DIE (ammo-style) =====
+    public int UsageDieSides { get; set; }
+    public bool HasUsageDie => UsageDieSides > 0;
+    public string UsageDieText => HasUsageDie ? $"🎲 D{UsageDieSides}" : string.Empty;
+
     // ===== RARITY (tile border: 1 lime green, 2 purple, 3 gold) =====
     private static readonly Brush LimeBrush = new SolidColorBrush(Color.FromArgb("#32CD32"));
     private static readonly Brush PurpleBrush = new SolidColorBrush(Color.FromArgb("#A020F0"));
@@ -94,6 +99,24 @@ public class InventoryItemDisplay : INotifyPropertyChanged
     public int? Rarity { get; set; }
     public Brush RarityBrush => Rarity switch { 1 => LimeBrush, 2 => PurpleBrush, 3 => GoldBrush, _ => Brush.Transparent };
     public double RarityThickness => Rarity is >= 1 and <= 3 ? 2 : 0;
+
+    // Skin art key for the tile border (pack images item_rarity0..item_rarity3)
+    public string RaritySkinKey => Rarity switch
+    {
+        1 => SkinKeys.ItemRarity1,
+        2 => SkinKeys.ItemRarity2,
+        3 => SkinKeys.ItemRarity3,
+        _ => SkinKeys.ItemRarity0
+    };
+
+    // Plain (no skin art) look for SkinPanel, which takes a Color rather than a Brush
+    public Color RarityColor => Rarity switch
+    {
+        1 => Color.FromArgb("#32CD32"),
+        2 => Color.FromArgb("#A020F0"),
+        3 => Color.FromArgb("#FFD700"),
+        _ => Colors.Transparent
+    };
 
     public string UsesDisplay
     {

@@ -28,7 +28,14 @@
                 <Border Stroke="{DynamicResource ThemeDetailBorderColor2}" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
                     <Picker x:Name="SkillPicker" BackgroundColor="Transparent" SelectedIndexChanged="OnSkillChanged" />
                 </Border>
-                <Label x:Name="SkillFormulaLabel" FontSize="13" TextColor="Gray" HorizontalOptions="Center" />
+                <skin:SkinPanel StrokeColor="{DynamicResource ThemeDetailBorderColor2}"
+                                StrokeThickness="1" CornerRadius="8" ContentPadding="10">
+                    <VerticalStackLayout Spacing="4">
+                        <Label x:Name="SkillAbilityLabel" FontSize="22" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                        <Label x:Name="SkillBreakdownLabel" FontSize="13" HorizontalTextAlignment="Center" LineBreakMode="WordWrap" />
+                        <Label x:Name="SkillFormulaLabel" FontSize="18" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                    </VerticalStackLayout>
+                </skin:SkinPanel>
 
                 <Label Text="Advantage / Disadvantage" FontSize="13" TextColor="Gray" />
                 <HorizontalStackLayout Spacing="15" HorizontalOptions="Center">
@@ -86,7 +93,13 @@
                         </Picker.Items>
                     </Picker>
                 </Border>
-                <Label x:Name="SaveTargetLabel" FontSize="13" TextColor="Gray" HorizontalOptions="Center" />
+                <skin:SkinPanel StrokeColor="{DynamicResource ThemeDetailBorderColor2}"
+                                StrokeThickness="1" CornerRadius="8" ContentPadding="10">
+                    <VerticalStackLayout Spacing="4">
+                        <Label x:Name="SaveAbilityLabel" FontSize="22" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                        <Label x:Name="SaveTargetLabel" FontSize="14" HorizontalTextAlignment="Center" LineBreakMode="WordWrap" />
+                    </VerticalStackLayout>
+                </skin:SkinPanel>
 
                 <HorizontalStackLayout Spacing="20" HorizontalOptions="Center">
                     <RadioButton x:Name="SaveManualRadio" GroupName="SaveRollMode" Content="Manual Entry" IsChecked="True" CheckedChanged="OnSaveRollModeChanged" />

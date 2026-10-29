@@ -674,11 +674,14 @@ public class AssetPackService : IAssetPackService
                 Uses = original.Uses,
                 QtyLimit = original.QtyLimit,
                 IsStackable = original.IsStackable,
-                WeaponCategory = original.WeaponCategory,
+                WeaponKind = original.WeaponKind,
+                DamageType = original.DamageType,
                 WeaponDamage = original.WeaponDamage,
                 WeaponEffects = original.WeaponEffects != null ? new List<WeaponEffectType>(original.WeaponEffects) : null,
                 WeaponSpeed = original.WeaponSpeed,
                 ArmorType = original.ArmorType,
+                ContainerSlots = original.ContainerSlots,
+                IsValueEditable = original.IsValueEditable,
                 ArmorValue = original.ArmorValue
             };
             allCustomItems.Add(duplicate);

@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             xmlns:controls="clr-namespace:CharManJur.Views.Godrick_LiveGame.Controls"
+             x:Class="CharManJur.Views.Godrick_LiveGame.Controls.ScratchPadPanelView">
+
+    <Grid ColumnDefinitions="0.30*, 0.70*" ColumnSpacing="10">
+
+        <!-- ===== LEFT: new pages, then the page list (or the drawing tools) ===== -->
+        <Grid Grid.Column="0" RowDefinitions="Auto, *, Auto" RowSpacing="6">
+
+            <VerticalStackLayout Grid.Row="0" Spacing="4">
+                <Grid ColumnDefinitions="*, *" ColumnSpacing="4">
+                    <skin:SkinHost Grid.Column="0" SkinKey="create" FallbackColor="{DynamicResource ThemeCreateButtonColor}">
+                        <Button Text="➕ 📝 Text"
+                                TextColor="White"
+                                CornerRadius="6"
+                                HeightRequest="34"
+                                Padding="4,0"
+                                FontSize="12"
+                                Command="{Binding NewTextCommand}" />
+                    </skin:SkinHost>
+                    <skin:SkinHost Grid.Column="1" SkinKey="create" FallbackColor="{DynamicResource ThemeCreateButtonColor}">
+                        <Button Text="➕ 🖊️ Drawing"
+                                TextColor="White"
+                                CornerRadius="6"
+                                HeightRequest="34"
+                                Padding="4,0"
+                                FontSize="12"
+                                Command="{Binding NewDrawingCommand}" />
+                    </skin:SkinHost>
+                </Grid>
+
+                <skin:SkinHost SkinKey="summary" FallbackColor="{DynamicResource ThemeSummaryButtonColor}"
+                               IsVisible="{Binding IsDrawingPage}">
+                    <Button Text="{Binding ToolsToggleText}"
+                            TextColor="White"
+                            CornerRadius="6"
+                            HeightRequest="30"
+                            Padding="4,0"
+                            FontSize="12"
+                            IsVisible="{Binding IsDrawingPage}"
+                            Command="{Binding ToggleToolsCommand}" />
+                </skin:SkinHost>
+            </VerticalStackLayout>
+
+            <!-- The page list -->
+            <ScrollView Grid.Row="1" IsVisible="{Binding ShowPageList}">
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding PageRows}" Spacing="4">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate>
+                            <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 6"
+                                    Padding="8,6">
+                                <Border.Triggers>
+                                    <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
+                                        <Setter Property="Stroke" Value="{DynamicResource ThemeConfirmButtonColor}" />
+                                        <Setter Property="StrokeThickness" Value="2" />
+                                        <Setter Property="BackgroundColor" Value="{DynamicResource ThemePanelHeaderBackgroundColor}" />
+                                    </DataTrigger>
+                                </Border.Triggers>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding SelectCommand}" />
+                                </Border.GestureRecognizers>
+                                <Grid ColumnDefinitions="Auto, *" ColumnSpacing="6">
+                                    <Label Grid.Column="0" Text="{Binding Icon}" FontSize="14" VerticalOptions="Center" />
+                                    <Label Grid.Column="1" Text="{Binding Name}" FontSize="13" FontAttributes="Bold"
+                                           LineBreakMode="TailTruncation" VerticalOptions="Center" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+            </ScrollView>
+
+            <!-- The drawing tools -->
+            <controls:ScratchDrawingTools Grid.Row="1" Grid.RowSpan="2" IsVisible="{Binding ShowTools}" />
+
+            <Grid Grid.Row="2" ColumnDefinitions="*, *, *, *" ColumnSpacing="4" IsVisible="{Binding ShowPageList}">
+                <skin:SkinHost Grid.Column="0" SkinKey="generic_small" FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                    <Button Text="✏️" TextColor="White" CornerRadius="4" HeightRequest="32" Padding="0" FontSize="14"
+                            IsEnabled="{Binding HasSelection}" Command="{Binding RenameCommand}" />
+                </skin:SkinHost>
+                <skin:SkinHost Grid.Column="1" SkinKey="generic_small" FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                    <Button Text="▲" TextColor="White" CornerRadius="4" HeightRequest="32" Padding="0" FontSize="14"
+                            IsEnabled="{Binding CanMoveUp}" Command="{Binding MoveUpCommand}" />
+                </skin:SkinHost>
+                <skin:SkinHost Grid.Column="2" SkinKey="generic_small" FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                    <Button Text="▼" TextColor="White" CornerRadius="4" HeightRequest="32" Padding="0" FontSize="14"
+                            IsEnabled="{Binding CanMoveDown}" Command="{Binding MoveDownCommand}" />
+                </skin:SkinHost>
+                <skin:SkinHost Grid.Column="3" SkinKey="danger" FallbackColor="{DynamicResource ThemeDangerButtonColor}">
+                    <Button Text="🗑️" TextColor="White" CornerRadius="4" HeightRequest="32" Padding="0" FontSize="14"
+                            IsEnabled="{Binding HasSelection}" Command="{Binding DeleteCommand}" />
+                </skin:SkinHost>
+            </Grid>
+        </Grid>
+
+        <!-- ===== RIGHT: the open page ===== -->
+        <Grid Grid.Column="1" RowDefinitions="Auto, Auto, *" RowSpacing="6">
+
+            <Grid Grid.Row="0" ColumnDefinitions="*, Auto" IsVisible="{Binding HasSelection}">
+                <Label Grid.Column="0"
+                       Text="{Binding SelectedName}"
+                       FontSize="16"
+                       FontAttributes="Bold"
+                       TextColor="{DynamicResource ThemeDetailBorderColor1}"
+                       LineBreakMode="TailTruncation"
+                       VerticalOptions="Center" />
+                <skin:SkinHost Grid.Column="1" SkinKey="summary" FallbackColor="{DynamicResource ThemeSummaryButtonColor}" IsVisible="{Binding IsTextPage}">
+                    <Button Text="{Binding ModeButtonText}"
+                            IsVisible="{Binding IsTextPage}"
+                            TextColor="White"
+                            CornerRadius="6"
+                            HeightRequest="32"
+                            Padding="12,0"
+                            FontSize="12"
+                            Command="{Binding ToggleModeCommand}" />
+                </skin:SkinHost>
+            </Grid>
+
+            <!-- Formatting buttons (they insert the markers) -->
+            <HorizontalStackLayout Grid.Row="1" Spacing="6" IsVisible="{Binding IsEditing}">
+                <skin:SkinHost SkinKey="generic_small" FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                    <Button Text="B" FontAttributes="Bold" TextColor="White" CornerRadius="4" WidthRequest="40" HeightRequest="30"
+                            Padding="0" FontSize="14" Clicked="OnBoldClicked" />
+                </skin:SkinHost>
+                <skin:SkinHost SkinKey="generic_small" FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                    <Button Text="I" FontAttributes="Italic" TextColor="White" CornerRadius="4" WidthRequest="40" HeightRequest="30"
+                            Padding="0" FontSize="14" Clicked="OnItalicClicked" />
+                </skin:SkinHost>
+                <Label Text="**bold**  *italic*" FontSize="10" TextColor="Gray" VerticalOptions="Center" />
+            </HorizontalStackLayout>
+
+            <Grid Grid.Row="2">
+                <Border IsVisible="{Binding IsEditing}"
+                        Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 6"
+                        BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
+                    <Editor x:Name="TextEditor"
+                            Text="{Binding Text, Mode=TwoWay}"
+                            Placeholder="Write your notes here..."
+                            PlaceholderColor="Gray"
+                            BackgroundColor="Transparent" />
+                </Border>
+
+                <Border IsVisible="{Binding IsReading}"
+                        Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 6"
+                        BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
+                    <ScrollView>
+                        <VerticalStackLayout x:Name="ReadHost" Spacing="2" Padding="12" MinimumHeightRequest="300">
+                            <VerticalStackLayout.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnReadTapped" />
+                            </VerticalStackLayout.GestureRecognizers>
+                        </VerticalStackLayout>
+                    </ScrollView>
+                </Border>
+
+                <Label Text="Create a page to start taking notes."
+                       FontSize="13"
+                       TextColor="Gray"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"
+                       IsVisible="{Binding HasNoSelection}" />
+            </Grid>
+            <controls:ScratchDrawingView Grid.Row="1" Grid.RowSpan="2" IsVisible="{Binding IsDrawingPage}" />
+        </Grid>
+    </Grid>
+</ContentView>

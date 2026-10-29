@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CharManJur.Views.Godrick_LiveGame.Controls.ScratchDrawingView">
+
+    <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+            StrokeThickness="1"
+            StrokeShape="RoundRectangle 6"
+            BackgroundColor="#3a3a3a"
+            Padding="0">
+        <GraphicsView x:Name="Surface"
+                      StartInteraction="OnSurfaceStart"
+                      DragInteraction="OnSurfaceDrag"
+                      EndInteraction="OnSurfaceEnd"
+                      CancelInteraction="OnSurfaceCancel"
+                      StartHoverInteraction="OnSurfaceHover"
+                      MoveHoverInteraction="OnSurfaceHover"
+                      EndHoverInteraction="OnSurfaceHoverEnd" />
+    </Border>
+</ContentView>

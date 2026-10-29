@@ -7,10 +7,41 @@ using System.Runtime.CompilerServices;
 
 namespace CharManJur.Views.Godrick_LiveGame;
 
+// One line of the basket: an item with the options chosen for it.
+public class BasketLine
+{
+    public Item Item { get; init; } = null!;
+    public int Quantity { get; set; }
+    public int? StartingUses { get; init; }
+    public int? WrittenValue { get; init; }
+    public int? UsageDieSides { get; init; }
+    public Familiar? Recipient { get; init; }          // null = the character
+
+    public string Name => Item.Name;
+    public string RecipientName => Recipient?.DisplayName ?? string.Empty;
+    public bool HasRecipient => Recipient != null;
+
+    public string Details
+    {
+        get
+        {
+            var parts = new List<string>();
+            if (StartingUses.HasValue && Item.Uses.HasValue && StartingUses.Value < Item.Uses.Value)
+                parts.Add($"{StartingUses}/{Item.Uses} uses");
+            if (WrittenValue.HasValue) parts.Add($"{WrittenValue.Value / CurrencyHelper.ChipsPerMark} Marks written");
+            if (UsageDieSides.HasValue) parts.Add($"{UsageDie.Label(UsageDieSides.Value)} die");
+            return string.Join(" · ", parts);
+        }
+    }
+
+    public bool HasDetails => Details.Length > 0;
+}
+
 public partial class BestowItemPage : ContentPage, INotifyPropertyChanged
 {
     private readonly IItemDataService _itemDataService;
     private readonly ICharAttribDataService _charDataService;
+    private readonly IPlayerActionLogService _actionLogService;
     private readonly Action? _onItemsBestowed;
     private ObservableCollection<Item> _allItems = new();
     private ObservableCollection<Item> _filteredItems = new();
@@ -19,6 +50,8 @@ public partial class BestowItemPage : ContentPage, INotifyPropertyChanged
     private int _maxQuantity = 999999;
     private readonly List<Familiar?> _recipients = new();   // index 0 = the character itself
 
+    public ObservableCollection<BasketLine> Basket { get; } = new();
+
     public ObservableCollection<Item> FilteredItems
     {
         get => _filteredItems;
@@ -26,7 +59,6 @@ public partial class BestowItemPage : ContentPage, INotifyPropertyChanged
         {
             _filteredItems = value;
             OnPropertyChanged();
-            // Update debug label
             DebugItemCountLabel.Text = $"Items: {_filteredItems.Count}";
         }
     }
@@ -46,7 +78,12 @@ public partial class BestowItemPage : ContentPage, INotifyPropertyChanged
     public bool HasSelectedItem => SelectedItem != null;
     public string SelectedItemName => SelectedItem?.Name ?? string.Empty;
 
-    private readonly IPlayerActionLogService _actionLogService;
+    public bool HasBasket => Basket.Count > 0;
+    public string BasketSummary => Basket.Count == 0
+        ? "Nothing added yet."
+        : $"{Basket.Sum(b => b.Quantity)} item(s) in {Basket.Count} line(s)";
+    public string BestowButtonText => Basket.Count == 0 ? "✅ Bestow" : $"✅ Bestow All ({Basket.Sum(b => b.Quantity)})";
+
     public BestowItemPage(IItemDataService itemDataService, ICharAttribDataService charDataService,
         IPlayerActionLogService actionLogService, Action? onItemsBestowed = null)
     {
@@ -57,7 +94,18 @@ public partial class BestowItemPage : ContentPage, INotifyPropertyChanged
         _onItemsBestowed = onItemsBestowed;
         BindingContext = this;
 
+        Basket.CollectionChanged += (_, _) => RefreshBasketBindings();
+
+        BuildRecipients();
+        UsageDiePicker.ItemsSource = UsageDie.Sizes.Select(UsageDie.Label).ToList();
         LoadItems();
+    }
+
+    private void RefreshBasketBindings()
+    {
+        OnPropertyChanged(nameof(HasBasket));
+        OnPropertyChanged(nameof(BasketSummary));
+        OnPropertyChanged(nameof(BestowButtonText));
     }
 
     private void BuildRecipients()
@@ -80,32 +128,20 @@ public partial class BestowItemPage : ContentPage, INotifyPropertyChanged
     {
         try
         {
-            System.Diagnostics.Debug.WriteLine("=== Loading items for BestowItemPage ===");
             var items = await _itemDataService.GetAllItemsAsync();
-            System.Diagnostics.Debug.WriteLine($"Loaded {items.Count} items from ItemDataService");
-
             _allItems = new ObservableCollection<Item>(items);
             FilteredItems = new ObservableCollection<Item>(items);
-
-            System.Diagnostics.Debug.WriteLine($"FilteredItems count: {FilteredItems.Count}");
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Error loading items: {ex.Message}");
-            System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
             await DisplayAlertAsync("Error", $"Failed to load items: {ex.Message}", "OK");
         }
     }
 
-    private void OnSearchTextChanged(object sender, TextChangedEventArgs e)
-    {
-        FilterItems(e.NewTextValue);
-    }
+    private void OnSearchTextChanged(object sender, TextChangedEventArgs e) => FilterItems(e.NewTextValue);
 
-    private void OnSearchClicked(object sender, EventArgs e)
-    {
-        FilterItems(SearchEntry.Text);
-    }
+    private void OnSearchClicked(object sender, EventArgs e) => FilterItems(SearchEntry.Text);
 
     private void FilterItems(string? searchTerm)
     {
@@ -122,30 +158,22 @@ public partial class BestowItemPage : ContentPage, INotifyPropertyChanged
         ).ToList();
 
         FilteredItems = new ObservableCollection<Item>(filtered);
-        System.Diagnostics.Debug.WriteLine($"Filtered items: {FilteredItems.Count} (search: '{searchTerm}')");
     }
 
     private void OnItemSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine($"Selection changed. Current: {e.CurrentSelection?.Count ?? 0}");
         if (e.CurrentSelection.FirstOrDefault() is Item selectedItem)
         {
-            System.Diagnostics.Debug.WriteLine($"Selected item: {selectedItem.Name} (ID: {selectedItem.Id})");
             SelectedItem = selectedItem;
             _selectedQuantity = 1;
             QuantityEntry.Text = "1";
             NoteValueRow.IsVisible = selectedItem.IsValueEditable;
             if (selectedItem.IsValueEditable) NoteValueEntry.Text = CurrencyHelper.MinNoteMarks.ToString();
 
-            if (selectedItem.IsStackableItem)
-            {
-                _maxQuantity = 999999;
-            }
-            else
-            {
-                _maxQuantity = 1;
-            }
+            // Stackable items bestow as one stack. A non-stackable item can be bestowed several times: each one is its own record.
+            _maxQuantity = 999999;
             ConfigureStartingUses(selectedItem);
+            ConfigureUsageDie(selectedItem);
         }
     }
 
@@ -176,11 +204,11 @@ public partial class BestowItemPage : ContentPage, INotifyPropertyChanged
             if (value < 1) value = 1;
             if (value > _maxQuantity) value = _maxQuantity;
             _selectedQuantity = value;
+            UpdateStartingUsesVisibility();
         }
         else if (!string.IsNullOrEmpty(e.NewTextValue))
         {
-            // Revert invalid input
-            QuantityEntry.Text = _selectedQuantity.ToString();
+            QuantityEntry.Text = _selectedQuantity.ToString();   // revert invalid input
         }
     }
 
@@ -188,7 +216,6 @@ public partial class BestowItemPage : ContentPage, INotifyPropertyChanged
     {
         var creatorViewModel = new CustomItemCreatorViewModel(_itemDataService, (item) =>
         {
-            // Add the custom item to the list
             _allItems.Add(item);
             FilterItems(SearchEntry.Text);
         });
@@ -196,7 +223,30 @@ public partial class BestowItemPage : ContentPage, INotifyPropertyChanged
         await Navigation.PushModalAsync(creatorPage);
     }
 
-    private async void OnBestowClicked(object sender, EventArgs e)
+    // Opens the creator pre-filled from the selected item, to make a NEW custom item from it.
+    private async void OnCustomCopyClicked(object sender, EventArgs e)
+    {
+        if (SelectedItem == null)
+        {
+            await DisplayAlertAsync("Custom Copy", "Select the item you want to base your custom item on.", "OK");
+            return;
+        }
+
+        var creatorViewModel = new CustomItemCreatorViewModel(
+            _itemDataService,
+            onItemCreated: item =>
+            {
+                _allItems.Add(item);
+                FilterItems(SearchEntry.Text);
+                SelectedItem = item;        // ready to set a quantity and add to the basket
+            },
+            copyFrom: SelectedItem);
+
+        await Navigation.PushModalAsync(new CustomItemCreatorPage(creatorViewModel));
+    }
+
+    // ===== BASKET =====
+    private async void OnAddToBasketClicked(object sender, EventArgs e)
     {
         if (SelectedItem == null) return;
 
@@ -214,70 +264,140 @@ public partial class BestowItemPage : ContentPage, INotifyPropertyChanged
         }
 
         int index = RecipientPicker.SelectedIndex;
-        var familiar = index > 0 && index < _recipients.Count ? _recipients[index] : null;
-        string recipientName = familiar != null ? familiar.DisplayName : "character";
+        var recipient = index > 0 && index < _recipients.Count ? _recipients[index] : null;
 
-        // Starting uses (only offered for items with uses; null = full)
         int? startingUses = StartingUsesControl.IsVisible ? StartingUsesControl.Uses : null;
-        string usesNote = startingUses.HasValue && SelectedItem.Uses.HasValue && startingUses.Value < SelectedItem.Uses.Value
-            ? $" (starting with {startingUses}/{SelectedItem.Uses} uses)"
-            : string.Empty;
+        int? usageDie = UsageDieRow.IsVisible && UsageDiePicker.SelectedIndex >= 0
+            ? UsageDie.Sizes[UsageDiePicker.SelectedIndex]
+            : null;
+
+        Basket.Add(new BasketLine
+        {
+            Item = SelectedItem,
+            Quantity = _selectedQuantity,
+            StartingUses = startingUses,
+            WrittenValue = writtenValue,
+            UsageDieSides = usageDie,
+            Recipient = recipient
+        });
+
+        // Ready for the next item
+        ItemsCollectionView.SelectedItem = null;
+        SelectedItem = null;
+        _selectedQuantity = 1;
+        QuantityEntry.Text = "1";
+        NoteValueRow.IsVisible = false;
+        StartingUsesControl.IsVisible = false;
+        UsageDieRow.IsVisible = false;
+    }
+
+    private void OnRemoveBasketLine(object sender, EventArgs e)
+    {
+        if ((sender as BindableObject)?.BindingContext is BasketLine line) Basket.Remove(line);
+    }
+
+    // The standard bestow entry doesn't name the die, so die items get one extra line saying which die was chosen.
+    private void LogUsageDieBestowed(BasketLine line)
+    {
+        if (!line.UsageDieSides.HasValue) return;
+
+        string to = line.Recipient != null ? $" to {line.RecipientName}" : string.Empty;
+        _ = _actionLogService.LogEventAsync(new PlayerActionLogEntry
+        {
+            ActionType = PlayerActionType.ItemBestowed,
+            PlayerName = _charDataService.PlayerName,
+            PlayerId = _charDataService.PlayerId,
+            CharacterName = _charDataService.CharacterName,
+            CharacterGuid = _charDataService.CharacterGuid,
+            ItemName = line.Name,
+            ItemId = line.Item.Id,
+            Summary = $"Bestowed {line.Quantity}x {line.Name}{to} with a {UsageDie.Label(line.UsageDieSides.Value)} usage die"
+        });
+    }
+
+    private void OnClearBasketClicked(object sender, EventArgs e) => Basket.Clear();
+
+    // Bestows the basket. A selected item that hasn't been added yet is added first, so a single item still takes one press.
+    private async void OnBestowClicked(object sender, EventArgs e)
+    {
+        if (Basket.Count == 0 && SelectedItem != null)
+        {
+            OnAddToBasketClicked(sender, e);
+            if (Basket.Count == 0) return;   // a Note's written value was invalid
+        }
+        if (Basket.Count == 0) return;
+
+        var lines = Basket.Select(b =>
+        {
+            string who = b.Recipient != null ? $" → {b.Recipient.DisplayName}" : string.Empty;
+            string extra = b.HasDetails ? $" ({b.Details})" : string.Empty;
+            return $"{b.Quantity}× {b.Name}{extra}{who}";
+        }).ToList();
 
         bool confirm = await DisplayAlertAsync(
             "Confirm Bestow",
-            $"Bestow {_selectedQuantity}x '{SelectedItem.Name}'{usesNote} to {recipientName}?",
-            "Yes",
-            "Cancel");
-
+            $"Bestow to {_charDataService.CharacterName}:\n\n{string.Join("\n", lines)}",
+            "Bestow", "Cancel");
         if (!confirm) return;
 
-        if (familiar != null)
-        {
-            if (!_charDataService.AddItemToFamiliarInventory(familiar.InstanceId, SelectedItem, _selectedQuantity, writtenValue, startingUses))
-            {
-                await DisplayAlertAsync("Could Not Bestow", $"{recipientName} can't receive items right now.", "OK");
-                return;
-            }
-        }
-        else
-        {
-            CharacterItem? bestowedItem;
+        var failed = new List<string>();
 
-            if (SelectedItem.IsStackableItem)
+        foreach (var line in Basket.ToList())
+        {
+            if (line.Recipient != null)
             {
-                bestowedItem = _charDataService.AddItemToInventory(SelectedItem, _selectedQuantity, null, startingUses);
+                if (!_charDataService.AddItemToFamiliarInventory(
+                        line.Recipient.InstanceId, line.Item, line.Quantity, line.WrittenValue, line.StartingUses, line.UsageDieSides))
+                    failed.Add($"{line.Name} (to {line.RecipientName})");
+                else
+                    LogUsageDieBestowed(line);
+                continue;
+            }
+
+            CharacterItem? last = null;
+            if (line.Item.IsStackableItem)
+            {
+                last = _charDataService.AddItemToInventory(line.Item, line.Quantity, null, line.StartingUses, line.UsageDieSides);
             }
             else
             {
-                bestowedItem = null;
-                for (int i = 0; i < _selectedQuantity; i++)
-                {
-                    bestowedItem = _charDataService.AddItemToInventory(SelectedItem, 1, writtenValue, startingUses);
-                }
+                // Each non-stackable item is its own record.
+                for (int i = 0; i < line.Quantity; i++)
+                    last = _charDataService.AddItemToInventory(line.Item, 1, line.WrittenValue, line.StartingUses, line.UsageDieSides);
             }
 
-            if (bestowedItem != null)
+            if (last != null)
             {
                 _ = _actionLogService.LogItemBestowedAsync(
-                    bestowedItem,
+                    last,
                     _charDataService.PlayerName,
                     _charDataService.PlayerId,
                     _charDataService.CharacterName,
                     _charDataService.CharacterGuid);
+                LogUsageDieBestowed(line);
             }
         }
 
         _onItemsBestowed?.Invoke();
 
-        await DisplayAlertAsync("Success!",
-            $"Granted {_selectedQuantity}x {SelectedItem.Name} to {recipientName}.",
-            "OK");
+        if (failed.Count > 0)
+        {
+            await DisplayAlertAsync("Some items weren't bestowed",
+                "These couldn't be given right now:\n\n" + string.Join("\n", failed), "OK");
+        }
 
-        await Navigation.PopModalAsync();
+        Basket.Clear();
+        await Navigation.PopModalAsync();   // the dashboard announces what arrived
     }
 
     private async void OnCancelClicked(object sender, EventArgs e)
     {
+        if (Basket.Count > 0)
+        {
+            bool leave = await DisplayAlertAsync("Leave without bestowing?",
+                "Your basket will be emptied.", "Leave", "Stay");
+            if (!leave) return;
+        }
         await Navigation.PopModalAsync();
     }
 
@@ -295,6 +415,15 @@ public partial class BestowItemPage : ContentPage, INotifyPropertyChanged
         StartingUsesControl.Uses = StartingUsesControl.MaximumUses;
         UpdateStartingUsesVisibility();
     }
+
+    // Items with a usage die can be bestowed at any size; the picker starts at the item's own die.
+    private void ConfigureUsageDie(Item item)
+    {
+        UsageDieRow.IsVisible = item.HasUsageDie;
+        if (item.HasUsageDie)
+            UsageDiePicker.SelectedIndex = Math.Max(0, Array.IndexOf(UsageDie.Sizes, item.DefaultUsageDieSides));
+    }
+
 
     // Offered for items with uses. A stack of more than one always starts full.
     private void UpdateStartingUsesVisibility()

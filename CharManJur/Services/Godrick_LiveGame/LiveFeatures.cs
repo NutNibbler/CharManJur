@@ -382,18 +382,28 @@ public class LiveFeatures
     // Deprived (+1 Fatigue per further day), then both chips clear.
     public async Task<FeatureUseResult> PassDayAsync()
     {
+        // Day-limited features only matter if the character has any.
+        var all = await _classes.GetClassesAsync();
+        bool hasDayFeatures = all
+            .SelectMany(c => c.Features)
+            .Where(f => _svc.AcquiredFeatureIds.Contains(f.Id))
+            .Any(f => FoundationFeatureBehaviors.For(f).Cooldown is { Period: CooldownPeriod.Day });
+
         var end = _svc.EndDay();
         _svc.DaysPassed++;
         await LogAsync(PlayerActionType.DayPassed, $"A day passes (day {_svc.DaysPassed})");
         await _svc.SaveNowAsync();
 
-        string message = "A day has passed. Features limited to once per day are available again. Needs Met and Rested have cleared.";
+        string message = hasDayFeatures
+            ? "Needs Met and Rested reset. Daily features are ready again."
+            : "Needs Met and Rested reset.";
+
         if (end.BecameDeprived)
-            message += " You are now Deprived: you can't recover Hit Protection or ability scores until you take a Long Rest and meet your needs.";
+            message += " You are now Deprived.";
         else if (end.StillDeprived && end.FatigueGained > 0)
-            message += $" You're still Deprived (day {end.DeprivedDays}): +{end.FatigueGained} Fatigue.";
+            message += $" Still Deprived: +{end.FatigueGained} Fatigue.";
         else if (end.StillDeprived)
-            message += " You're still Deprived.";
+            message += " Still Deprived.";
 
         return new FeatureUseResult { Success = true, Message = message };
     }

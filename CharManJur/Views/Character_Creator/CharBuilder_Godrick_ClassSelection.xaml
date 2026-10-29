@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:converters="clr-namespace:CharManJur.Converters"
              xmlns:skin="clr-namespace:CharManJur.Controls"
+             xmlns:views="clr-namespace:CharManJur.Views"
              x:Class="CharManJur.Views.CharBuilder_Godrick_ClassSelection"
              Shell.NavBarIsVisible="False"
              Title="ClassAndFeatureSelection">
@@ -86,7 +87,7 @@
 
             <!-- RIGHT PANEL: Class Details -->
             <ScrollView Grid.Row="1" Grid.Column="1" HeightRequest="550">
-                <VerticalStackLayout Spacing="8" Padding="5">
+                <VerticalStackLayout Spacing="8" Padding="5" MaximumWidthRequest="1000">
 
                     <!-- Class Header -->
                     <Grid ColumnDefinitions="0.45*,0.35*,0.20*">
@@ -235,10 +236,8 @@
                                         </CollectionView.ItemTemplate>
                                     </CollectionView>
                                 </ScrollView>
-
                             </Grid>
                         </Border>
-
                     </Grid>
 
                     <!-- Features List (Sub-selection) -->
@@ -376,12 +375,68 @@
                              Color="{DynamicResource ThemeDetailBorderColor1}" 
                              IsVisible="{Binding HasAnyUnlockableTypes}" />
 
+                    <views:WarriorWeaponPanel IsVisible="{Binding IsWarriorSelected}" MaximumWidthRequest="700" />
+
+                    <!-- ===== STARTING DAMAGE TYPE PROFICIENCY ===== -->
+                    <skin:SkinPanel MaximumWidthRequest="700"
+                                    StrokeColor="{DynamicResource ThemeDetailBorderColor2}"
+                                    StrokeThickness="1" CornerRadius="8" ContentPadding="10"
+                                    IsVisible="{Binding HasSelectedClass}">
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Starting Damage Type Proficiency"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   TextColor="{DynamicResource ThemeDetailBorderColor1}" />
+                            <Label Text="Pick the damage type you start proficient in, or choose to decide later. Other types unlock after 5 kills."
+                                   FontSize="12"
+                                   TextColor="Gray"
+                                   LineBreakMode="WordWrap" />
+
+                            <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding StartingOptions}">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border StrokeShape="RoundRectangle 6"
+                                                Padding="8"
+                                                Stroke="{DynamicResource ThemeSectionBorderColor}"
+                                                StrokeThickness="1">
+                                            <Border.Triggers>
+                                                <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
+                                                    <Setter Property="Stroke" Value="{DynamicResource ThemeConfirmButtonColor}" />
+                                                    <Setter Property="StrokeThickness" Value="3" />
+                                                </DataTrigger>
+                                            </Border.Triggers>
+                                            <Border.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding SelectCommand}" />
+                                            </Border.GestureRecognizers>
+                                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                                                <Label Grid.Column="0"
+                                                       Text="✔"
+                                                       FontSize="16"
+                                                       VerticalOptions="Center"
+                                                       TextColor="{DynamicResource ThemeConfirmButtonColor}"
+                                                       IsVisible="{Binding IsSelected}"
+                                                       WidthRequest="20" />
+                                                <VerticalStackLayout Grid.Column="1" Spacing="1">
+                                                    <Label Text="{Binding Title}" FontSize="13" FontAttributes="Bold" />
+                                                    <Label Text="{Binding Description}"
+                                                           FontSize="11"
+                                                           TextColor="Gray"
+                                                           LineBreakMode="WordWrap" />
+                                                </VerticalStackLayout>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </skin:SkinPanel>
+                    
                     <!-- ===== BUTTON ROW: Select This Class + Clear All ===== -->
-                    <Grid ColumnDefinitions="*, *" 
+                    <Grid ColumnDefinitions="*, *, *" 
                           ColumnSpacing="8"
                           IsVisible="{Binding HasSelectedClass}">
 
-                        <skin:SkinHost Grid.Column="0" SkinKey="confirm" HeightRequest="40"
+                        <skin:SkinHost Grid.Column="1" SkinKey="confirm" HeightRequest="40"
                                        FallbackColor="{DynamicResource ThemeConfirmButtonColor}">
                             <Button Text="{Binding SelectClassButtonText}"
                                     TextColor="White"
@@ -390,7 +445,7 @@
                                     Command="{Binding ConfirmClassSelectionCommand}" />
                         </skin:SkinHost>
 
-                        <skin:SkinHost Grid.Column="1" SkinKey="danger" HeightRequest="40"
+                        <skin:SkinHost Grid.Column="2" SkinKey="danger" HeightRequest="40"
                                        FallbackColor="{DynamicResource ThemeDangerButtonColor}">
                             <Button Text="🗑️ Clear Sub-Features"
                                     TextColor="White"
@@ -411,10 +466,8 @@
                                 IsEnabled="False"
                                 IsVisible="{Binding HasSelectedClass, Converter={StaticResource InvertedBoolConverter}}" />
                     </skin:SkinHost>
-
                 </VerticalStackLayout>
             </ScrollView>
-
         </Grid>
     </VerticalStackLayout>
 </ContentPage>

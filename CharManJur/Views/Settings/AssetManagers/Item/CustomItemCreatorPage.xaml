@@ -8,7 +8,7 @@
              Shell.NavBarIsVisible="False">
 
     <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="10">
+        <VerticalStackLayout Padding="20" Spacing="10" MaximumWidthRequest="1200">
 
             <!-- Header -->
             <Label Text="🛠️ Create Custom Item"
@@ -43,6 +43,12 @@
                             TitleColor="Gray"
                             BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
 
+                    <Label x:Name="lblCategoryHelp"
+                           FontSize="11"
+                           TextColor="Gray"
+                           LineBreakMode="WordWrap"
+                           IsVisible="False" />
+                    
                     <!-- Description -->
                     <Label Text="Description" FontAttributes="Bold" FontSize="14" />
                     <Editor x:Name="editorDescription"
@@ -70,7 +76,7 @@
 
                         <!-- Rarity -->
                         <VerticalStackLayout Grid.Column="1">
-                            <Label Text="Rarity (1-3)" FontAttributes="Bold" FontSize="14" />
+                            <Label Text="Rarity" FontAttributes="Bold" FontSize="14" />
                             <Picker x:Name="pickerRarity"
                                     Title="Select Rarity"
                                     TitleColor="Gray"
@@ -101,7 +107,23 @@
                     <!-- Stackable -->
                     <Label Text="Stackable?" FontAttributes="Bold" FontSize="14" />
                     <CheckBox x:Name="chkStackable" Color="{DynamicResource ThemeDetailBorderColor1}" />
+                    <!-- Usage die (ammo-style) -->
+                    <Label Text="Usage die?" FontAttributes="Bold" FontSize="14" />
+                    <CheckBox x:Name="chkUsageDie" Color="{DynamicResource ThemeDetailBorderColor1}" />
 
+                    <VerticalStackLayout x:Name="usageDieSection" Spacing="6" IsVisible="False">
+                        <Label Text="Starting die" FontAttributes="Bold" FontSize="14" />
+                        <Picker x:Name="pickerUsageDie"
+                                Title="Select Die"
+                                TitleColor="Gray"
+                                BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+                        <Label Text="This item carries a die. When the die is rolled, a 1 or 2 shrinks it one size, and a D4 that does so is used up. Usage-die items don't stack. Uses still work alongside the die."
+                               FontSize="11" TextColor="Gray" LineBreakMode="WordWrap" />
+                        <Label Text="Hybrid usage?" FontAttributes="Bold" FontSize="14" />
+                        <CheckBox x:Name="chkHybrid" Color="{DynamicResource ThemeDetailBorderColor1}" />
+                        <Label Text="Needs a Uses value as well as the die. When the die is rolled, a 1 or 2 spends one Use instead of shrinking the die. At 0 uses the item is empty."
+                               FontSize="11" TextColor="Gray" LineBreakMode="WordWrap" />
+                    </VerticalStackLayout>
                 </VerticalStackLayout>
             </skin:SkinPanel>
 
@@ -117,11 +139,28 @@
                             IsVisible="{Binding Source={x:Reference pickerCategory}, Path=SelectedItem, Converter={StaticResource IsWeaponCategoryConverter}}">
                 <VerticalStackLayout Spacing="8">
 
-                    <Label Text="Weapon Category" FontAttributes="Bold" FontSize="14" />
-                    <Picker x:Name="pickerWeaponCategory"
-                            Title="Select Weapon Category"
-                            TitleColor="Gray"
-                            BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+                    <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
+                        <VerticalStackLayout>
+                            <Label Text="Weapon Type" FontAttributes="Bold" FontSize="14" />
+                            <Picker x:Name="pickerWeaponKind"
+                                    Title="Melee, Thrown or Ranged"
+                                    TitleColor="Gray"
+                                    BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Grid.Column="1">
+                            <Label Text="Damage Type" FontAttributes="Bold" FontSize="14" />
+                            <Picker x:Name="pickerDamageType"
+                                    Title="Piercing, Bludgeoning or Slashing"
+                                    TitleColor="Gray"
+                                    BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+                        </VerticalStackLayout>
+                    </Grid>
+                    <Label x:Name="lblRangedNote"
+                           Text="Ranged weapons are always Piercing."
+                           FontSize="11"
+                           TextColor="Gray"
+                           IsVisible="False" />
 
                     <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
                         <!-- Damage Die -->
@@ -182,7 +221,6 @@
                         <VerticalStackLayout>
                             <Label Text="Armor Type" FontAttributes="Bold" FontSize="14" />
                             <Picker x:Name="pickerArmorType"
-                                    Title="Select Armor Type"
                                     TitleColor="Gray"
                                     BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
                         </VerticalStackLayout>

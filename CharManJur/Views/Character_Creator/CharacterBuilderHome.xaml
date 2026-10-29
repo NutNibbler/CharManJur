@@ -5,6 +5,7 @@
              x:Class="CharManJur.Views.CharacterBuilderHome"
              Shell.NavBarIsVisible="False"
              Title="CharacterBuilderHome">
+    <ScrollView>
     <VerticalStackLayout>
         <!--=====Builder Page Header=====-->
         <Label Text="Character Build - Stat Rolling"
@@ -141,11 +142,42 @@
                 </skin:SkinPanel>
             </Grid>
 
+            <!-- =====Roll For Me===== -->
+            <skin:SkinPanel Grid.Row="2" Grid.Column="0"
+                            StrokeColor="{DynamicResource ThemeSectionBorderColor}"
+                            StrokeThickness="3" CornerRadius="8" ContentPadding="10">
+                <ScrollView>
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Roll For Me" FontSize="20" HorizontalOptions="Center" />
+                        <Label Text="Rolls 3d6 five times and keeps the best four. One roll per character: it can't be re-rolled."
+                               FontSize="11" TextColor="Gray" LineBreakMode="WordWrap" HorizontalTextAlignment="Center" />
+
+                        <Grid ColumnDefinitions="*, Auto" ColumnSpacing="6">
+                            <skin:SkinHost Grid.Column="0" SkinKey="create"
+                                FallbackColor="{DynamicResource ThemeCreateButtonColor}">
+                                <Button x:Name="RollButton" Text="🎲 Roll For Me" HeightRequest="40"
+                                    Clicked="OnRollForMeClicked" />
+                            </skin:SkinHost>
+
+                            <skin:SkinHost Grid.Column="1" SkinKey="neutral"
+                                FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                                <Button x:Name="ResetPoolButton" Text="↺ Reset Values" HeightRequest="40"
+                                    IsVisible="False" Clicked="OnResetPoolClicked" />
+                            </skin:SkinHost>
+                        </Grid>
+
+                        <Label x:Name="RollResultLabel" FontSize="12" LineBreakMode="WordWrap" />
+                        <Label x:Name="PoolHintLabel" FontSize="11" TextColor="Gray" LineBreakMode="WordWrap" />
+                        <FlexLayout x:Name="PoolHost" Wrap="Wrap" Direction="Row" />
+                    </VerticalStackLayout>
+                </ScrollView>
+            </skin:SkinPanel>
+
             <!-- =====ASM MODIFIER TABLE===== -->
             <Grid Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3">
                 <skin:SkinPanel StrokeColor="{DynamicResource ThemeSectionBorderColor}"
                                 StrokeThickness="3" CornerRadius="8" ContentPadding="10">
-                    <Grid RowDefinitions="*,*,*" ColumnDefinitions="100,*,*,*,*,*,*,*,*,*,*,*">
+                    <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="100,*,*,*,*,*,*,*,*,*,*,*">
                         <Border Grid.ColumnSpan="12">
                             <Label Text="Ability Score Modifier Table" FontSize="20" HorizontalTextAlignment="Center"/>
                         </Border>
@@ -234,32 +266,33 @@
                             FontSize="16"
                             CornerRadius="10"
                             Clicked="OnKinClicked"/>
-                </skin:SkinHost>
-                <skin:SkinHost Grid.Column="1" SkinKey="neutral" HeightRequest="50"
-                               FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
-                    <Button Text="← Back"
-                            TextColor="White"
-                            FontSize="16"
-                            CornerRadius="10"
-                            Clicked="OnBackClicked"/>
-                </skin:SkinHost>
-                <skin:SkinHost Grid.Column="2" SkinKey="danger" HeightRequest="50"
-                               FallbackColor="{DynamicResource ThemeDangerButtonColor}">
-                    <Button Text="Cancel"
-                            TextColor="White"
-                            FontSize="16"
-                            CornerRadius="10"
-                            Clicked="OnCancelClicked"/>
-                </skin:SkinHost>
-                <skin:SkinHost Grid.Column="3" SkinKey="warning" HeightRequest="50"
-                               FallbackColor="{DynamicResource ThemeWarningButtonColor}">
-                    <Button Text="💾 Save For Later"
-                            TextColor="White"
-                            FontSize="16"
-                            CornerRadius="10"
-                            Clicked="OnSaveForLaterClicked"/>
-                </skin:SkinHost>
+                    </skin:SkinHost>
+                    <skin:SkinHost Grid.Column="1" SkinKey="neutral" HeightRequest="50"
+                                   FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                        <Button Text="← Back"
+                                TextColor="White"
+                                FontSize="16"
+                                CornerRadius="10"
+                                Clicked="OnBackClicked"/>
+                    </skin:SkinHost>
+                    <skin:SkinHost Grid.Column="2" SkinKey="danger" HeightRequest="50"
+                                   FallbackColor="{DynamicResource ThemeDangerButtonColor}">
+                        <Button Text="Cancel"
+                                TextColor="White"
+                                FontSize="16"
+                                CornerRadius="10"
+                                Clicked="OnCancelClicked"/>
+                    </skin:SkinHost>
+                    <skin:SkinHost Grid.Column="3" SkinKey="warning" HeightRequest="50"
+                                   FallbackColor="{DynamicResource ThemeWarningButtonColor}">
+                        <Button Text="💾 Save For Later"
+                                TextColor="White"
+                                FontSize="16"
+                                CornerRadius="10"
+                                Clicked="OnSaveForLaterClicked"/>
+                    </skin:SkinHost>
+                </Grid>
             </Grid>
-        </Grid>
-    </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>

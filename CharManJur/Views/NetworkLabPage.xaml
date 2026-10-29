@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.NetworkLabPage"
+             Title="Network Lab"
+             Shell.NavBarIsVisible="False">
+
+    <Grid RowDefinitions="Auto, *" Padding="12" RowSpacing="8">
+
+        <!-- ===== HEADER ===== -->
+        <Grid Grid.Row="0" ColumnDefinitions="*, Auto" ColumnSpacing="8">
+            <VerticalStackLayout Grid.Column="0" Spacing="2">
+                <Label Text="🧪 Network Lab"
+                       FontSize="20"
+                       FontAttributes="Bold"
+                       TextColor="{DynamicResource ThemeWarningButtonColor}" />
+                <Label Text="Developer tools: try the network on this one device."
+                       FontSize="11"
+                       TextColor="Gray" />
+            </VerticalStackLayout>
+
+            <skin:SkinHost Grid.Column="1"
+                           SkinKey="neutral"
+                           FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
+                           VerticalOptions="Center">
+                <Button Text="Close"
+                        TextColor="White"
+                        CornerRadius="8"
+                        HeightRequest="36"
+                        Padding="14,0"
+                        FontSize="12"
+                        Command="{Binding CloseCommand}" />
+            </skin:SkinHost>
+        </Grid>
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Spacing="12">
+
+                <!-- ===== SESSION ===== -->
+                <skin:SkinPanel StrokeColor="{DynamicResource ThemeSectionBorderColor}"
+                                StrokeThickness="1"
+                                CornerRadius="8"
+                                ContentPadding="10">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="🚪 Session"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="{DynamicResource ThemeWarningButtonColor}" />
+                        <Label Text="{Binding StatusText}"
+                               FontSize="13"
+                               FontAttributes="Bold"
+                               LineBreakMode="WordWrap" />
+                        <Label Text="Lab players live inside this app and join the session over an in-memory network, exactly the way a remote player will. Use them to try joining, kicking, dropped links and reconnects without a second device."
+                               FontSize="11"
+                               TextColor="Gray"
+                               LineBreakMode="WordWrap" />
+
+                        <FlexLayout Wrap="Wrap" Direction="Row">
+                            <skin:SkinHost SkinKey="confirm"
+                                           FallbackColor="{DynamicResource ThemeConfirmButtonColor}"
+                                           Margin="0,0,6,6"
+                                           IsVisible="{Binding NoSession}">
+                                <Button Text="▶ Start Lab Session"
+                                        TextColor="White"
+                                        CornerRadius="6"
+                                        HeightRequest="34"
+                                        Padding="12,0"
+                                        FontSize="12"
+                                        IsVisible="{Binding NoSession}"
+                                        Command="{Binding StartLabSessionCommand}" />
+                            </skin:SkinHost>
+
+                            <skin:SkinHost SkinKey="primary"
+                                           FallbackColor="{DynamicResource ThemePrimaryButtonColor}"
+                                           Margin="0,0,6,6"
+                                           IsVisible="{Binding IsRunning}">
+                                <Button Text="➕ Add Lab Player"
+                                        TextColor="White"
+                                        CornerRadius="6"
+                                        HeightRequest="34"
+                                        Padding="12,0"
+                                        FontSize="12"
+                                        IsVisible="{Binding IsRunning}"
+                                        Command="{Binding AddLabPlayerCommand}" />
+                            </skin:SkinHost>
+
+                            <skin:SkinHost SkinKey="warning"
+                                           FallbackColor="{DynamicResource ThemeWarningButtonColor}"
+                                           Margin="0,0,6,6"
+                                           IsVisible="{Binding IsRunning}">
+                                <Button Text="📡 Drop All Links"
+                                        TextColor="White"
+                                        CornerRadius="6"
+                                        HeightRequest="34"
+                                        Padding="12,0"
+                                        FontSize="12"
+                                        IsVisible="{Binding IsRunning}"
+                                        Command="{Binding DropLinksCommand}" />
+                            </skin:SkinHost>
+
+                            <skin:SkinHost SkinKey="danger"
+                                           FallbackColor="{DynamicResource ThemeDangerButtonColor}"
+                                           Margin="0,0,6,6"
+                                           IsVisible="{Binding IsLabSession}">
+                                <Button Text="⏹ Stop Lab Session"
+                                        TextColor="White"
+                                        CornerRadius="6"
+                                        HeightRequest="34"
+                                        Padding="12,0"
+                                        FontSize="12"
+                                        IsVisible="{Binding IsLabSession}"
+                                        Command="{Binding StopLabSessionCommand}" />
+                            </skin:SkinHost>
+                        </FlexLayout>
+                    </VerticalStackLayout>
+                </skin:SkinPanel>
+
+                <!-- ===== NETWORK TROUBLE ===== -->
+                <skin:SkinPanel StrokeColor="{DynamicResource ThemeSectionBorderColor}"
+                                StrokeThickness="1"
+                                CornerRadius="8"
+                                ContentPadding="10">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="🌩️ Network trouble"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="{DynamicResource ThemeWarningButtonColor}" />
+                        <Label Text="Takes effect at once, on every link, in both directions. A real network never loses a message silently, so Lost simply imitates a reply that never arrived."
+                               FontSize="11"
+                               TextColor="Gray"
+                               LineBreakMode="WordWrap" />
+
+                        <Label Text="{Binding LatencyText}" FontSize="12" />
+                        <Slider Minimum="0" Maximum="2000" Value="{Binding LatencyMs, Mode=TwoWay}" />
+
+                        <Label Text="{Binding JitterText}" FontSize="12" />
+                        <Slider Minimum="0" Maximum="1000" Value="{Binding JitterMs, Mode=TwoWay}" />
+
+                        <Label Text="{Binding DropText}" FontSize="12" />
+                        <Slider Minimum="0" Maximum="100" Value="{Binding DropPercent, Mode=TwoWay}" />
+
+                        <Label Text="{Binding DuplicateText}" FontSize="12" />
+                        <Slider Minimum="0" Maximum="100" Value="{Binding DuplicatePercent, Mode=TwoWay}" />
+
+                        <skin:SkinHost SkinKey="neutral"
+                                       FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
+                                       HorizontalOptions="Start">
+                            <Button Text="Reset to a perfect network"
+                                    TextColor="White"
+                                    CornerRadius="6"
+                                    HeightRequest="34"
+                                    Padding="12,0"
+                                    FontSize="12"
+                                    Command="{Binding ResetChaosCommand}" />
+                        </skin:SkinHost>
+                    </VerticalStackLayout>
+                </skin:SkinPanel>
+
+                <!-- ===== PLAYERS ===== -->
+                <skin:SkinPanel StrokeColor="{DynamicResource ThemeSectionBorderColor}"
+                                StrokeThickness="1"
+                                CornerRadius="8"
+                                ContentPadding="10">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="👥 Players in the session"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="{DynamicResource ThemeWarningButtonColor}" />
+
+                        <Label Text="Nobody has joined yet."
+                               FontSize="12"
+                               TextColor="Gray"
+                               IsVisible="{Binding HasNoPlayers}" />
+
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Players}" Spacing="6">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                            StrokeThickness="0.5"
+                                            StrokeShape="RoundRectangle 6"
+                                            BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}"
+                                            Padding="10">
+                                        <VerticalStackLayout Spacing="6">
+                                            <Label Text="{Binding Title}" FontSize="13" FontAttributes="Bold" />
+                                            <Label Text="{Binding Summary}" FontSize="11" TextColor="Gray" LineBreakMode="WordWrap" />
+
+                                            <FlexLayout Wrap="Wrap" Direction="Row">
+                                                <skin:SkinHost SkinKey="danger"
+                                                               FallbackColor="{DynamicResource ThemeDangerButtonColor}"
+                                                               Margin="0,0,6,0">
+                                                    <Button Text="🥾 Kick" TextColor="White" CornerRadius="6" HeightRequest="30"
+                                                            Padding="10,0" FontSize="11" Clicked="OnKickClicked" />
+                                                </skin:SkinHost>
+
+                                                <skin:SkinHost SkinKey="neutral"
+                                                               FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
+                                                               Margin="0,0,6,0">
+                                                    <Button Text="🚪 Player Leaves" TextColor="White" CornerRadius="6" HeightRequest="30"
+                                                            Padding="10,0" FontSize="11" Clicked="OnLeaveClicked" />
+                                                </skin:SkinHost>
+                                            </FlexLayout>
+                                        </VerticalStackLayout>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </skin:SkinPanel>
+
+                <!-- ===== TRACE ===== -->
+                <skin:SkinPanel StrokeColor="{DynamicResource ThemeSectionBorderColor}"
+                                StrokeThickness="1"
+                                CornerRadius="8"
+                                ContentPadding="10">
+                    <VerticalStackLayout Spacing="6">
+                        <Grid ColumnDefinitions="*, Auto, Auto" ColumnSpacing="6">
+                            <Label Grid.Column="0"
+                                   Text="📜 Trace"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="{DynamicResource ThemeWarningButtonColor}"
+                                   VerticalOptions="Center" />
+
+                            <skin:SkinHost Grid.Column="1"
+                                           SkinKey="primary"
+                                           FallbackColor="{DynamicResource ThemePrimaryButtonColor}"
+                                           VerticalOptions="Center">
+                                <Button Text="Copy"
+                                        TextColor="White"
+                                        CornerRadius="6"
+                                        HeightRequest="28"
+                                        Padding="10,0"
+                                        FontSize="11"
+                                        Command="{Binding CopyTraceCommand}" />
+                            </skin:SkinHost>
+
+                            <skin:SkinHost Grid.Column="2"
+                                           SkinKey="neutral"
+                                           FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
+                                           VerticalOptions="Center">
+                                <Button Text="Clear"
+                                        TextColor="White"
+                                        CornerRadius="6"
+                                        HeightRequest="28"
+                                        Padding="10,0"
+                                        FontSize="11"
+                                        Command="{Binding ClearTraceCommand}" />
+                            </skin:SkinHost>
+                        </Grid>
+
+                        <Label Text="What the network is doing, newest at the bottom. Never contains passwords or character data."
+                               FontSize="10"
+                               TextColor="Gray"
+                               LineBreakMode="WordWrap" />
+
+                        <CollectionView ItemsSource="{Binding Trace}"
+                                        HeightRequest="280"
+                                        SelectionMode="None"
+                                        ItemsUpdatingScrollMode="KeepLastItemInView">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="x:String">
+                                    <Label Text="{Binding .}"
+                                           FontSize="11"
+                                           LineBreakMode="WordWrap"
+                                           Margin="0,1" />
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </skin:SkinPanel>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

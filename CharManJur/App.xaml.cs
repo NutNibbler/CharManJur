@@ -26,7 +26,25 @@ namespace CharManJur
 
         protected override Window CreateWindow(IActivationState? activationState)
         {
-            return new Window(new AppShell());
+            var window = new Window(new AppShell());
+            bool asked = false;
+
+            window.HandlerChanged += (_, _) => UiScale.Apply(window);
+            UiScale.Changed += () => MainThread.BeginInvokeOnMainThread(() => UiScale.Apply(window));
+            window.Activated += async (_, _) =>
+            {
+                UiScale.Apply(window);
+                if (asked) return;
+                asked = true;
+
+                // A scale that was applied but never confirmed (e.g. the UI was unusable): ask again
+                if (UiScale.IsPending)
+                {
+                    await Task.Delay(600);
+                    await UiScale.AskKeepAsync(Shell.Current);
+                }
+            };
+            return window;
         }
     }
 }

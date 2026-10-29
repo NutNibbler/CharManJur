@@ -119,6 +119,10 @@ public class SkinSettingsViewModel : INotifyPropertyChanged
         (SkinKeys.Generic,         "Generic",          150, 48, "default look"),
         (SkinKeys.GenericSmall,    "Small",             48, 48, "default look"),
         (SkinKeys.Panel,           "Panel",            150, 80, "card look"),
+        (SkinKeys.ItemRarity0,     "Base",              64, 64, "plain theme border"),
+        (SkinKeys.ItemRarity1,     "Common",            64, 64, "green border"),
+        (SkinKeys.ItemRarity2,     "Uncommon",          64, 64, "purple border"),
+        (SkinKeys.ItemRarity3,     "Rare",              64, 64, "gold border"),
         (SkinKeys.PageBackground,  "Page background",  300, 120, "page color"),
     };
 

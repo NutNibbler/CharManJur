@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.CampaignCreatorPage"
+             Shell.NavBarIsVisible="False"
+             Title="Campaign">
+
+    <Grid RowDefinitions="*, Auto" Padding="20" RowSpacing="10">
+
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout Spacing="15" MaximumWidthRequest="900">
+
+                <Label Text="{Binding PageTitle}"
+                       FontSize="28"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center" />
+
+                <!-- ===== CAMPAIGN ===== -->
+                <skin:SkinPanel StrokeColor="{DynamicResource ThemeSectionBorderColor}"
+                                StrokeThickness="1"
+                                CornerRadius="8"
+                                ContentPadding="12">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="Campaign"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="{DynamicResource ThemeDetailBorderColor1}" />
+                        <Entry Text="{Binding Name, Mode=TwoWay}"
+                               Placeholder="Campaign name"
+                               PlaceholderColor="Gray"
+                               BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+                        <Editor Text="{Binding Description, Mode=TwoWay}"
+                                Placeholder="Description (optional)"
+                                PlaceholderColor="Gray"
+                                HeightRequest="80"
+                                AutoSize="Disabled"
+                                BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+                    </VerticalStackLayout>
+                </skin:SkinPanel>
+
+                <!-- ===== PLAYERS AND ASSETS ===== -->
+                <skin:SkinPanel StrokeColor="{DynamicResource ThemeSectionBorderColor}"
+                                StrokeThickness="1"
+                                CornerRadius="8"
+                                ContentPadding="12">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="Players and Assets"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="{DynamicResource ThemeDetailBorderColor1}" />
+                        <Label Text="What happens to the custom assets (items, kin, spells and so on) a player brings when they join. You can change this at any time, here or from the Players panel during play. It only affects players as they join."
+                               FontSize="12"
+                               TextColor="Gray"
+                               LineBreakMode="WordWrap" />
+
+                        <Picker ItemsSource="{Binding PolicyLabels}"
+                                SelectedIndex="{Binding AssetPolicyIndex, Mode=TwoWay}"
+                                BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+                        <Label Text="{Binding AssetPolicyDescription}"
+                               FontSize="12"
+                               LineBreakMode="WordWrap" />
+
+                        <Entry Text="{Binding AssetPackName, Mode=TwoWay}"
+                               Placeholder="Asset pack for this campaign (optional name)"
+                               PlaceholderColor="Gray"
+                               BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+                    </VerticalStackLayout>
+                </skin:SkinPanel>
+
+                <!-- ===== CALENDAR ===== -->
+                <skin:SkinPanel StrokeColor="{DynamicResource ThemeSectionBorderColor}"
+                                StrokeThickness="1"
+                                CornerRadius="8"
+                                ContentPadding="12">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Calendar"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="{DynamicResource ThemeDetailBorderColor1}" />
+                        <Label Text="Defaults come from the Tiverian Calendar in the rulebook. The rulebook gives no hours per day, so 24 is used."
+                               FontSize="12"
+                               TextColor="Gray" />
+
+                        <Grid ColumnDefinitions="180, 50, Auto"
+                              RowDefinitions="Auto, Auto, Auto, Auto"
+                              ColumnSpacing="10"
+                              RowSpacing="6">
+
+                            <Label Grid.Row="0" Grid.Column="0" Text="Months per year" VerticalOptions="Center" />
+                            <Label Grid.Row="0" Grid.Column="1" Text="{Binding MonthCountText}" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Stepper Grid.Row="0" Grid.Column="2" Minimum="1" Maximum="24" Increment="1"
+                                     Value="{Binding MonthCountValue, Mode=TwoWay}" />
+
+                            <Label Grid.Row="1" Grid.Column="0" Text="Days per week" VerticalOptions="Center" />
+                            <Label Grid.Row="1" Grid.Column="1" Text="{Binding DaysPerWeekText}" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Stepper Grid.Row="1" Grid.Column="2" Minimum="1" Maximum="14" Increment="1"
+                                     Value="{Binding DaysPerWeekValue, Mode=TwoWay}" />
+
+                            <Label Grid.Row="2" Grid.Column="0" Text="Weeks per month" VerticalOptions="Center" />
+                            <Label Grid.Row="2" Grid.Column="1" Text="{Binding WeeksPerMonthText}" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Stepper Grid.Row="2" Grid.Column="2" Minimum="1" Maximum="8" Increment="1"
+                                     Value="{Binding WeeksPerMonthValue, Mode=TwoWay}" />
+
+                            <Label Grid.Row="3" Grid.Column="0" Text="Hours per day" VerticalOptions="Center" />
+                            <Label Grid.Row="3" Grid.Column="1" Text="{Binding HoursPerDayText}" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Stepper Grid.Row="3" Grid.Column="2" Minimum="1" Maximum="48" Increment="1"
+                                     Value="{Binding HoursPerDayValue, Mode=TwoWay}" />
+                        </Grid>
+
+                        <HorizontalStackLayout Spacing="10">
+                            <Switch IsToggled="{Binding ShowYear, Mode=TwoWay}" VerticalOptions="Center" />
+                            <Label Text="Count years, starting at" VerticalOptions="Center" />
+                            <Entry Text="{Binding StartYearText, Mode=TwoWay}"
+                                   Keyboard="Numeric"
+                                   WidthRequest="100"
+                                   BackgroundColor="{DynamicResource ThemePanelBackgroundColor}"
+                                   IsVisible="{Binding ShowYear}" />
+                        </HorizontalStackLayout>
+
+                        <Label Text="Month names" FontAttributes="Bold" />
+                        <FlexLayout BindableLayout.ItemsSource="{Binding MonthRows}" Wrap="Wrap" Direction="Row">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate>
+                                    <Entry Text="{Binding Name, Mode=TwoWay}"
+                                           WidthRequest="140"
+                                           Margin="0,0,6,6"
+                                           BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </FlexLayout>
+
+                        <Label Text="Day names" FontAttributes="Bold" />
+                        <FlexLayout BindableLayout.ItemsSource="{Binding DayRows}" Wrap="Wrap" Direction="Row">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate>
+                                    <Entry Text="{Binding Name, Mode=TwoWay}"
+                                           WidthRequest="140"
+                                           Margin="0,0,6,6"
+                                           BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </FlexLayout>
+
+                        <HorizontalStackLayout Spacing="10">
+                            <Label Text="Day 1 falls on" VerticalOptions="Center" />
+                            <Picker ItemsSource="{Binding StartDayItems}"
+                                    SelectedIndex="{Binding StartDayIndex, Mode=TwoWay}"
+                                    WidthRequest="180"
+                                    BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+                        </HorizontalStackLayout>
+
+                        <Label Text="{Binding CalendarSummary}" FontSize="12" TextColor="Gray" />
+
+                        <skin:SkinHost SkinKey="neutral"
+                                       FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
+                                       HorizontalOptions="Start">
+                            <Button Text="Reset to rulebook defaults"
+                                    TextColor="White"
+                                    CornerRadius="6"
+                                    HeightRequest="35"
+                                    Padding="14,0"
+                                    FontSize="12"
+                                    Command="{Binding ResetCalendarCommand}" />
+                        </skin:SkinHost>
+                    </VerticalStackLayout>
+                </skin:SkinPanel>
+
+                <!-- ===== NPC FIELDS (fixed list; only Kin, Profession and Accent can be renamed) ===== -->
+                <skin:SkinPanel StrokeColor="{DynamicResource ThemeSectionBorderColor}"
+                                StrokeThickness="1"
+                                CornerRadius="8"
+                                ContentPadding="12">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="NPC Profile Fields"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="{DynamicResource ThemeDetailBorderColor1}" />
+                        <Label Text="Every NPC profile has these fields. Kin, Profession and Accent can be renamed; the rest keep their names."
+                               FontSize="12"
+                               TextColor="Gray" />
+
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding FieldRows}" Spacing="6">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="200, *" ColumnSpacing="10">
+                                        <Entry Grid.Column="0"
+                                               Text="{Binding Label, Mode=TwoWay}"
+                                               BackgroundColor="{DynamicResource ThemePanelBackgroundColor}"
+                                               IsVisible="{Binding CanRename}" />
+                                        <Label Grid.Column="0"
+                                               Text="{Binding Label}"
+                                               FontAttributes="Bold"
+                                               VerticalOptions="Center"
+                                               IsVisible="{Binding IsFixed}" />
+                                        <Label Grid.Column="1"
+                                               Text="{Binding Hint}"
+                                               FontSize="12"
+                                               TextColor="Gray"
+                                               VerticalOptions="Center"
+                                               LineBreakMode="WordWrap" />
+                                    </Grid>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+
+                        <skin:SkinHost SkinKey="neutral"
+                                       FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
+                                       HorizontalOptions="Start">
+                            <Button Text="Reset field names"
+                                    TextColor="White"
+                                    CornerRadius="6"
+                                    HeightRequest="35"
+                                    Padding="14,0"
+                                    FontSize="12"
+                                    Command="{Binding ResetFieldNamesCommand}" />
+                        </skin:SkinHost>
+                    </VerticalStackLayout>
+                </skin:SkinPanel>
+
+                <!-- ===== FACTIONS ===== -->
+                <skin:SkinPanel StrokeColor="{DynamicResource ThemeSectionBorderColor}"
+                                StrokeThickness="1"
+                                CornerRadius="8"
+                                ContentPadding="12">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Factions"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="{DynamicResource ThemeDetailBorderColor1}" />
+                        <Label Text="The groups NPCs can belong to. Each needs a name and a description. They can be edited from the GM dashboard later."
+                               FontSize="12"
+                               TextColor="Gray" />
+
+                        <Label Text="No factions yet."
+                               FontSize="12"
+                               TextColor="Gray"
+                               IsVisible="{Binding HasNoFactions}" />
+
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding FactionRows}" Spacing="8">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                            StrokeThickness="0.5"
+                                            StrokeShape="RoundRectangle 6"
+                                            Padding="8">
+                                        <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto" ColumnSpacing="8" RowSpacing="6">
+                                            <Entry Grid.Row="0" Grid.Column="0"
+                                                   Text="{Binding Name, Mode=TwoWay}"
+                                                   Placeholder="Faction name"
+                                                   PlaceholderColor="Gray"
+                                                   BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+
+                                            <skin:SkinHost Grid.Row="0" Grid.Column="1"
+                                                           SkinKey="generic_small"
+                                                           FallbackColor="{DynamicResource ThemeDangerButtonColor}"
+                                                           VerticalOptions="Center">
+                                                <Button Text="✕"
+                                                        TextColor="White"
+                                                        CornerRadius="4"
+                                                        WidthRequest="34"
+                                                        HeightRequest="34"
+                                                        Padding="0"
+                                                        FontSize="13"
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.RemoveFactionCommand}"
+                                                        CommandParameter="{Binding .}" />
+                                            </skin:SkinHost>
+
+                                            <Editor Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                                    Text="{Binding Description, Mode=TwoWay}"
+                                                    Placeholder="Description"
+                                                    PlaceholderColor="Gray"
+                                                    HeightRequest="70"
+                                                    AutoSize="Disabled"
+                                                    BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+
+                        <skin:SkinHost SkinKey="create"
+                                       FallbackColor="{DynamicResource ThemeCreateButtonColor}"
+                                       HorizontalOptions="Start">
+                            <Button Text="+ Add faction"
+                                    TextColor="White"
+                                    CornerRadius="6"
+                                    HeightRequest="35"
+                                    Padding="14,0"
+                                    FontSize="12"
+                                    Command="{Binding AddFactionCommand}" />
+                        </skin:SkinHost>
+                    </VerticalStackLayout>
+                </skin:SkinPanel>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- ===== FOOTER ===== -->
+        <VerticalStackLayout Grid.Row="1" Spacing="8" MaximumWidthRequest="900">
+            <Label Text="{Binding ErrorText}"
+                   TextColor="{DynamicResource ThemeDangerButtonColor}"
+                   IsVisible="{Binding HasError}" />
+
+            <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
+                <skin:SkinHost Grid.Column="0"
+                               SkinKey="neutral"
+                               FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                    <Button Text="Cancel"
+                            TextColor="White"
+                            CornerRadius="8"
+                            HeightRequest="50"
+                            Padding="14,0"
+                            Command="{Binding CancelCommand}" />
+                </skin:SkinHost>
+
+                <skin:SkinHost Grid.Column="1"
+                               SkinKey="confirm"
+                               FallbackColor="{DynamicResource ThemeConfirmButtonColor}">
+                    <Button Text="Save Campaign"
+                            TextColor="White"
+                            CornerRadius="8"
+                            HeightRequest="50"
+                            Padding="14,0"
+                            Command="{Binding SaveCommand}" />
+                </skin:SkinHost>
+            </Grid>
+        </VerticalStackLayout>
+
+    </Grid>
+</ContentPage>

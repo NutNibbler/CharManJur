@@ -20,6 +20,7 @@ public partial class CharacterHomePage : ContentPage
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;
         InitializeDragAndDrop();
         InitializePanels();
+        InitializeViewerMode();
     }
 
     private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -54,6 +55,7 @@ public partial class CharacterHomePage : ContentPage
         _viewModel.UpdateLimbSetDisplays();
         GenerateLimbSetDisplay();
         GenerateBeltSlotDisplay();
+        await SlideViewerInAsync();
     }
 
     private static Color GetThemeColor(string key, Color fallback)
@@ -485,7 +487,11 @@ public partial class CharacterHomePage : ContentPage
             _viewModel.CharDataService,
             async () =>
             {
+                int? selectedId = _viewModel.SelectedInventoryItem?.Id;
                 await _viewModel.LoadCharacterDataAsync();
+                _viewModel.SelectedInventoryItem = selectedId == null
+                    ? null
+                    : _viewModel.InventoryItems.FirstOrDefault(i => i.Id == selectedId);
                 _viewModel.UpdateLimbSetDisplays();
                 GenerateLimbSetDisplay();
             },
@@ -522,6 +528,31 @@ public partial class CharacterHomePage : ContentPage
                 _viewModel.UpdateLimbSetDisplays();
                 GenerateLimbSetDisplay();
             }
+        }
+    }
+
+    // Drop button in the item details panel. Same flow as drop mode, for the selected item.
+    private async void OnDropSelectedClicked(object sender, EventArgs e)
+    {
+        var selected = _viewModel.SelectedInventoryItem;
+        if (selected == null) return;
+
+        var characterItem = _viewModel.CharDataService.Inventory.FirstOrDefault(i => i.Id == selected.Id);
+        if (characterItem == null) return;
+
+        if (_viewModel.IsPackDropped && !characterItem.IsEquipped)
+        {
+            await DisplayAlertAsync("Pack Dropped", "You can't drop items from your pack while it's dropped.", "OK");
+            return;
+        }
+
+        int id = characterItem.Id;
+        if (await ItemDropHelper.DropAsync(characterItem, _viewModel.CharDataService))
+        {
+            await _viewModel.LoadCharacterDataAsync();
+            _viewModel.SelectedInventoryItem = _viewModel.InventoryItems.FirstOrDefault(i => i.Id == id);   // null if the whole stack went
+            _viewModel.UpdateLimbSetDisplays();
+            GenerateLimbSetDisplay();
         }
     }
 }

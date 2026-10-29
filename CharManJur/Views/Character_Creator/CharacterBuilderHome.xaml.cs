@@ -68,6 +68,98 @@ public partial class CharacterBuilderHome : ContentPage
         LoadStatsFromService();
     }
 
+    // ===== ROLL FOR ME =====
+    private void RefreshRoller()
+    {
+        var rolls = _charDataService.StatRolls;
+        var pool = _charDataService.StatRollPool;
+        bool rolled = rolls.Count > 0;
+
+        RollButton.IsEnabled = !rolled;
+        RollButton.Text = rolled ? "🎲 Already Rolled" : "🎲 Roll For Me";
+
+        if (rolled)
+        {
+            var best = rolls.OrderByDescending(r => r).Take(4).ToList();
+            RollResultLabel.Text = $"Rolled: {string.Join(", ", rolls)}\nBest four: {string.Join(", ", best)} (lowest dropped)";
+        }
+        else
+        {
+            RollResultLabel.Text = string.Empty;
+        }
+
+        PoolHintLabel.Text = !rolled ? "Roll to get your values, or type your own into the boxes."
+            : pool.Count > 0 ? "Tap a value, then choose which ability gets it."
+            : "All values assigned. You can still adjust the boxes by hand.";
+
+        PoolHost.Children.Clear();
+        foreach (int value in pool.OrderByDescending(v => v))
+        {
+            var chip = new Button
+            {
+                Text = value.ToString(),
+                StyleId = value.ToString(),
+                TextColor = Colors.White,
+                FontAttributes = FontAttributes.Bold,
+                FontSize = 20,
+                WidthRequest = 56,
+                HeightRequest = 44,
+                CornerRadius = 8,
+                Margin = new Thickness(0, 0, 8, 8)
+            };
+            chip.SetDynamicResource(Button.BackgroundColorProperty, "ThemeSummaryButtonColor");
+            chip.Clicked += OnPoolValueClicked;
+            PoolHost.Children.Add(chip);
+        }
+
+        ResetPoolButton.IsVisible = rolled && pool.Count < 4;
+    }
+
+    private async void OnRollForMeClicked(object? sender, EventArgs e)
+    {
+        if (_charDataService.StatRolls.Count > 0) return;
+
+        bool ok = await DisplayAlertAsync("Roll For Me",
+            "This rolls three D6 five times and keeps the best four. You can't re-roll for this character. Roll now?",
+            "Roll", "Cancel");
+        if (!ok) return;
+
+        var rolls = new List<int>();
+        for (int i = 0; i < 5; i++)
+            rolls.Add(Random.Shared.Next(1, 7) + Random.Shared.Next(1, 7) + Random.Shared.Next(1, 7));
+
+        _charDataService.StatRolls = rolls;
+        _charDataService.StatRollPool = rolls.OrderByDescending(r => r).Take(4).ToList();
+        RefreshRoller();
+    }
+
+    private async void OnPoolValueClicked(object? sender, EventArgs e)
+    {
+        if (sender is not Button b || !int.TryParse(b.StyleId, out int value)) return;
+
+        string? choice = await DisplayActionSheetAsync($"Assign {value} to...", "Cancel", null,
+            "Vigor", "Agility", "Mind", "Spirit");
+        if (choice == null || choice == "Cancel") return;
+
+        switch (choice)
+        {
+            case "Vigor": entryStatVigor.Text = value.ToString(); break;
+            case "Agility": entryStatAgility.Text = value.ToString(); break;
+            case "Mind": entryStatMind.Text = value.ToString(); break;
+            case "Spirit": entryStatSpirit.Text = value.ToString(); break;
+        }
+
+        _charDataService.StatRollPool.Remove(value);   // one use per rolled value
+        RefreshRoller();
+    }
+
+    // Gives all four kept values back to the pool. It never rolls again.
+    private void OnResetPoolClicked(object? sender, EventArgs e)
+    {
+        _charDataService.StatRollPool = _charDataService.StatRolls.OrderByDescending(r => r).Take(4).ToList();
+        RefreshRoller();
+    }
+
     protected override void OnAppearing()
     {
         base.OnAppearing();
@@ -83,6 +175,7 @@ public partial class CharacterBuilderHome : ContentPage
         }
 
         lblGuidelinesBody.Text = "  -  To obtain your ability scores, roll three D6 and combine them, five times. Then, choose the four BEST rolls to be the ability scores of your choosing.\n       -  Example: You rolled 15, 12, 8, 10, 5. You may assign 4 of these numbers to any Ability score you desire.\n       -  Vigor: Relates to physical prowess and fortitude\n       -  Agility: Relates to physical speed and reaction time\n       -  Mind: Relates to knowledge and intellect\n       -  Spirit: Relates to willpower and sociability\n       -  Hover over each attribute to view a quick description.  -  Your ASM is your Ability Score Modifier, this will take part in adjusting rolls in-game.\n  -  Your Hitpoints are calculated based on your Vigor ASM, and other choices such as Class.\n  -  Remember: All stats can be adjusted after creating your character, but they will be treated as adjustments from the original setup.";
+        RefreshRoller();
     }
 
     private async void OnVigorChanged(object sender, EventArgs e)

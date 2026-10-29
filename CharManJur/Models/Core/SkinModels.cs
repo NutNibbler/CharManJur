@@ -16,6 +16,10 @@ public static class SkinKeys
     public const string ConfirmDisabled = "confirm_disabled";
     public const string Panel = "panel";
     public const string PageBackground = "page_background";
+    public const string ItemRarity0 = "item_rarity0";
+    public const string ItemRarity1 = "item_rarity1";
+    public const string ItemRarity2 = "item_rarity2";
+    public const string ItemRarity3 = "item_rarity3";
 }
 
 // Nine-slice corner sizes in pixels of the source image.

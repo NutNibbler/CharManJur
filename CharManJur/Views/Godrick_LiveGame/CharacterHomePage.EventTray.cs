@@ -18,7 +18,7 @@ public partial class CharacterHomePage
     private void InitializeEventTray()
     {
         var charData = _viewModel.CharDataService;
-        var log = IPlatformApplication.Current!.Services.GetRequiredService<IPlayerActionLogService>();
+        var log = _viewModel.ActionLog;   // the shared log, or the viewer's read-only one
 
         // Only events about this character; the GM dashboard will pass a different filter.
         _eventTrayVm = new EventTrayViewModel(log, e => e.CharacterGuid == charData.CharacterGuid);

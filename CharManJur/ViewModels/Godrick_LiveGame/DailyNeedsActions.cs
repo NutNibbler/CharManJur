@@ -7,7 +7,7 @@ namespace CharManJur.ViewModels.Godrick_LiveGame;
 public static class DailyNeedsActions
 {
     // Multiplayer seam: when a GM hosts a session, only the GM passes the day and ALWAYS gets the reminder.
-    public static bool GmHosted => false;
+    public static bool GmHosted => SessionMode.GmHosted;
 
     // The Daily Needs button. Returns true if anything changed.
     public static async Task<bool> AffirmNeedsAsync(ICharAttribDataService svc)
@@ -76,7 +76,7 @@ public static class DailyNeedsActions
         }
 
         var result = await passDay();
-        await page.DisplayAlertAsync("A Day Passes", result.Message, "OK");
+        GameNotices.Post(new GameNotice("☀️ A day passes", result.Message, NoticeSource.Player, 5));
         return true;
     }
 

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.Godrick_LiveGame.EndOfCombatPopup"
+             Title="End of Combat"
+             Shell.NavBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="12" MaximumWidthRequest="800">
+
+            <Label Text="⚔️ End of Combat"
+                   FontSize="24"
+                   FontAttributes="Bold"
+                   TextColor="{DynamicResource ThemeDetailBorderColor1}"
+                   HorizontalOptions="Center" />
+            <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}" />
+
+            <Label Text="Tick each item you used this fight. Each one rolls its own die: a 1 or 2 shrinks it one size, and a D4 that does so is used up."
+                   FontSize="12" TextColor="Gray" LineBreakMode="WordWrap" HorizontalTextAlignment="Center" />
+
+            <HorizontalStackLayout Spacing="20" HorizontalOptions="Center" IsVisible="{Binding HasRows}">
+                <RadioButton x:Name="RollForMeRadio" GroupName="UsageRollMode" Content="Roll for Me" IsChecked="True" CheckedChanged="OnModeChanged" />
+                <RadioButton x:Name="ManualRadio" GroupName="UsageRollMode" Content="Manual Entry" CheckedChanged="OnModeChanged" />
+            </HorizontalStackLayout>
+
+            <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding Rows}">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate>
+                        <skin:SkinPanel StrokeColor="{DynamicResource ThemeDetailBorderColor2}"
+                                        StrokeThickness="1" CornerRadius="8" ContentPadding="8">
+                            <Grid ColumnDefinitions="Auto, *, Auto" ColumnSpacing="8">
+                                <CheckBox Grid.Column="0"
+                                          IsChecked="{Binding IsUsed}"
+                                          Color="{DynamicResource ThemeDetailBorderColor1}"
+                                          VerticalOptions="Center" />
+                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="0">
+                                    <Label Text="{Binding Name}" FontSize="14" FontAttributes="Bold" />
+                                    <Label Text="{Binding DieLabel}" FontSize="12"
+                                           TextColor="{DynamicResource ThemeWarningButtonColor}" />
+                                </VerticalStackLayout>
+                                <Border Grid.Column="2"
+                                        Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                        StrokeThickness="1"
+                                        StrokeShape="RoundRectangle 6"
+                                        BackgroundColor="{DynamicResource ThemePanelBackgroundColor}"
+                                        WidthRequest="110"
+                                        HeightRequest="36"
+                                        VerticalOptions="Center"
+                                        IsVisible="{Binding ShowManual}">
+                                    <Entry Text="{Binding ManualText}"
+                                           Placeholder="{Binding Hint}"
+                                           PlaceholderColor="Gray"
+                                           Keyboard="Numeric"
+                                           BackgroundColor="Transparent"
+                                           HorizontalTextAlignment="Center"
+                                           VerticalOptions="Center" />
+                                </Border>
+                            </Grid>
+                        </skin:SkinPanel>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+
+            <Label Text="You have no items with a usage die."
+                   FontSize="13" TextColor="Gray"
+                   HorizontalOptions="Center"
+                   IsVisible="{Binding HasNoRows}" />
+
+            <BoxView HeightRequest="2" Color="{DynamicResource ThemeDetailBorderColor1}" />
+
+            <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
+                <skin:SkinHost Grid.Column="0" SkinKey="neutral"
+                               FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                    <Button Text="Close"
+                            TextColor="White"
+                            CornerRadius="8"
+                            HeightRequest="45"
+                            Clicked="OnCloseClicked" />
+                </skin:SkinHost>
+
+                <skin:SkinHost Grid.Column="1" SkinKey="confirm"
+                               FallbackColor="{DynamicResource ThemeConfirmButtonColor}"
+                               IsVisible="{Binding HasRows}">
+                    <Button Text="🎲 Resolve Dice"
+                            TextColor="White"
+                            CornerRadius="8"
+                            HeightRequest="45"
+                            FontAttributes="Bold"
+                            IsVisible="{Binding HasRows}"
+                            Clicked="OnResolveClicked" />
+                </skin:SkinHost>
+            </Grid>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

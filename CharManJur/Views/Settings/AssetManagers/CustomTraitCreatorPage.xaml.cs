@@ -25,7 +25,9 @@ public partial class CustomTraitCreatorPage : ContentPage
     private readonly ITraitDataService _traitDataService;
     private readonly Action<CustomTrait> _onSaved;
     private readonly CustomTrait? _editing;
-    private readonly WeaponCategoryType[] _typeValues = Enum.GetValues<WeaponCategoryType>();
+    // Thrown makes no sense on a body part. Ranged is a piercing ranged attack; the other three are melee of that damage type.
+    private readonly WeaponCategoryType[] _typeValues =
+        Enum.GetValues<WeaponCategoryType>().Where(t => t != WeaponCategoryType.Thrown).ToArray();
 
     public bool IsEditMode => _editing != null;
 

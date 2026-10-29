@@ -77,10 +77,10 @@ public partial class RecoverItemPage : ContentPage, INotifyPropertyChanged
 
         if (success)
         {
+            string name = SelectedItem.DisplayName;
             _onItemRecovered?.Invoke();
-            await DisplayAlertAsync("Recovered!",
-                $"'{SelectedItem.DisplayName}' has been returned to your inventory.", "OK");
             await Navigation.PopModalAsync();
+            GameNotices.Post(new GameNotice("Item Recovered", $"{name} is back in your inventory.", NoticeSource.Player, 3));
         }
         else
         {

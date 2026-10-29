@@ -17,7 +17,7 @@
     <Grid x:Name="PageHost">
         <Grid x:Name="PageRoot"
           RowDefinitions="Auto, *, Auto"
-          Padding="15"
+          Padding="5"
           RowSpacing="10">
 
             <!-- ===== DASHBOARD - Row 0 ===== -->
@@ -28,8 +28,8 @@
                         ContentPadding="12">
             <VerticalStackLayout Spacing="10">
 
-                <!-- Name header + Race info + Bio/Rest buttons -->
-                <Grid ColumnDefinitions="Auto, *, 140, 110, 110, 120, 120" ColumnSpacing="8">
+                <!-- Name header + Race info + Bio buttons -->
+                <Grid ColumnDefinitions="Auto, *, 140, 110, 110" ColumnSpacing="8">
                     <VerticalStackLayout Grid.Column="0" Spacing="0" VerticalOptions="Start">
                         <Label Text="{Binding CharacterName}"
                                FontSize="20"
@@ -37,6 +37,11 @@
                         <Label Text="{Binding PlayerName}"
                                FontSize="16"
                                TextColor="Gray" />
+                        <Label Text="👁️ GM view: changes here are not saved"
+                            FontSize="11"
+                            FontAttributes="Bold"
+                            TextColor="{DynamicResource ThemeWarningButtonColor}"
+                            IsVisible="{Binding IsViewer}" />
                     </VerticalStackLayout>
 
                     <!-- Race, race feature (scrolls if long), languages -->
@@ -77,7 +82,7 @@
                         </VerticalStackLayout>
                     </Border>
 
-                    <!-- Bio & Rest: Summary category -->
+                    <!-- Bio & Upkeep -->
                     <!-- Event Tray -->
                     <skin:SkinHost Grid.Column="2"
                                    SkinKey="generic"
@@ -92,12 +97,13 @@
                                 FontSize="12"
                                 Clicked="OnEventTrayClicked" />
                     </skin:SkinHost>
-                    
-                    <skin:SkinHost Grid.Column="3"
-                                   SkinKey="summary"
-                                   FallbackColor="{DynamicResource ThemeSummaryButtonColor}"
-                                   VerticalOptions="Start">
-                        <Button Text="📖 Bio"
+
+                    <skin:SkinHost x:Name="BioButtonHost"
+                                    Grid.Column="3"
+                                    SkinKey="summary"
+                                    FallbackColor="{DynamicResource ThemeSummaryButtonColor}"
+                                    VerticalOptions="Start">
+                            <Button Text="📖 Bio"
                                 TextColor="White"
                                 CornerRadius="6"
                                 HeightRequest="35"
@@ -107,68 +113,53 @@
                     </skin:SkinHost>
 
                     <skin:SkinHost Grid.Column="4"
-                                   SkinKey="generic"
-                                   FallbackColor="#2ecc71"
-                                   VerticalOptions="Start">
-                        <Button Text="🏕️ Rest"
-                                TextColor="White"
-                                CornerRadius="6"
-                                HeightRequest="35"
-                                Padding="14,0"
-                                FontSize="12"
-                                Command="{Binding OpenRestCommand}" />
+                                SkinKey="generic"
+                                FallbackColor="#2ecc71"
+                                VerticalOptions="Start">
+                        <Button Text="🏕️ Upkeep"
+                            TextColor="White"
+                            CornerRadius="6"
+                            HeightRequest="35"
+                            Padding="14,0"
+                            FontSize="12"
+                            Command="{Binding OpenUpkeepCommand}" />
                     </skin:SkinHost>
-
-                        <skin:SkinHost Grid.Column="5"
-                                   SkinKey="confirm"
-                                   FallbackColor="{DynamicResource ThemeConfirmButtonColor}"
-                                   VerticalOptions="Start">
-                            <Button Text="🍖 Daily Needs"
-                                TextColor="White"
-                                CornerRadius="6"
-                                HeightRequest="35"
-                                Padding="14,0"
-                                FontSize="12"
-                                Command="{Binding DailyNeedsCommand}" />
-                        </skin:SkinHost>
-
-                        <skin:SkinHost Grid.Column="6"
-                                   SkinKey="neutral"
-                                   FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
-                                   VerticalOptions="Start">
-                            <Button Text="☀️ Pass a Day"
-                                TextColor="White"
-                                CornerRadius="6"
-                                HeightRequest="35"
-                                Padding="14,0"
-                                FontSize="12"
-                                Command="{Binding PassDayCommand}" />
-                        </skin:SkinHost>
-                    </Grid>
+                </Grid>
 
                 <BoxView HeightRequest="1" Color="{DynamicResource ThemeDetailBorderColor1}" />
 
                 <!-- HP bar + Armor + Apply Damage / Apply Effect / Roll Die-->
-                <Grid ColumnDefinitions="Auto, Auto, Auto, Auto, Auto" ColumnSpacing="10">
-                    <controls:StatBarView Grid.Column="0"
+                    <Grid ColumnDefinitions="Auto, Auto, Auto, Auto, Auto, Auto" ColumnSpacing="10">
+                        <controls:StatBarView Grid.Column="0"
                                           StatLabel="Hit Protection"
                                           CurrentValue="{Binding CurrentHP}"
                                           MaxValue="{Binding MaxHP}"
                                           MaxValueColor="{Binding MaxHPColor}"
                                           BarColor="{StaticResource HitpointsColor}"
-                                          BarWidth="150" />
+                                          BarWidth="150"
+                                          IsVisible="{Binding ShowHitProtection}" />
 
-                    <VerticalStackLayout Grid.Column="1" Spacing="0" VerticalOptions="Center" HorizontalOptions="Center">
+                        <controls:StatBarView Grid.Column="0"
+                                          StatLabel="🐺 Stability"
+                                          CurrentValue="{Binding CurrentStability}"
+                                          MaxValue="{Binding MaxStability}"
+                                          MaxValueColor="{Binding StabilityMaxColor}"
+                                          BarColor="{DynamicResource ThemeSummaryButtonColor}"
+                                          BarWidth="150"
+                                          IsVisible="{Binding ShowStability}" />
+
+                        <VerticalStackLayout Grid.Column="1" Spacing="0" VerticalOptions="Center" HorizontalOptions="Center">
                         <Label Text="Armor" FontSize="10" TextColor="Gray" HorizontalOptions="Center" />
                         <Label Text="{Binding ArmorRating}" FontSize="16" FontAttributes="Bold" HorizontalOptions="Center" />
                     </VerticalStackLayout>
 
-                    <skin:SkinHost Grid.Column="2"
+                        <skin:SkinHost x:Name="ApplyDamageHost"
+                                   Grid.Column="2"
                                    SkinKey="danger"
                                    FallbackColor="#e74c3c"
                                    VerticalOptions="Center"
                                    HorizontalOptions="Center">
-                        <Button Text="⚔️ Apply Damage"
+                            <Button Text="{Binding ApplyDamageButtonText}"
                                 TextColor="White"
                                 CornerRadius="6"
                                 HeightRequest="35"
@@ -176,14 +167,15 @@
                                 Padding="14,0"
                                 FontSize="11"
                                 Command="{Binding OpenApplyDamageCommand}" />
-                    </skin:SkinHost>
+                        </skin:SkinHost>
 
-                    <skin:SkinHost Grid.Column="3"
+                        <skin:SkinHost x:Name="ApplyEffectHost"
+                                   Grid.Column="3"
                                    SkinKey="summary"
                                    FallbackColor="#8e44ad"
                                    VerticalOptions="Center"
                                    HorizontalOptions="Center">
-                        <Button Text="✨ Apply Effect"
+                            <Button Text="{Binding ApplyEffectButtonText}"
                                 TextColor="White"
                                 CornerRadius="6"
                                 HeightRequest="35"
@@ -191,9 +183,9 @@
                                 Padding="14,0"
                                 FontSize="11"
                                 Command="{Binding OpenApplyEffectCommand}" />
-                    </skin:SkinHost>
+                        </skin:SkinHost>
 
-                    <skin:SkinHost Grid.Column="4"
+                        <skin:SkinHost Grid.Column="4"
                                    SkinKey="create"
                                    FallbackColor="#16a085"
                                    VerticalOptions="Center"
@@ -207,7 +199,22 @@
                                 FontSize="11"
                                 Command="{Binding OpenRollDieCommand}" />
                     </skin:SkinHost>
-                </Grid>
+
+                    <skin:SkinHost Grid.Column="5"
+                                SkinKey="warning"
+                                FallbackColor="{DynamicResource ThemeWarningButtonColor}"
+                                VerticalOptions="Center"
+                                HorizontalOptions="Center">
+                        <Button Text="⚔️ End Combat"
+                            TextColor="White"
+                            CornerRadius="6"
+                            HeightRequest="35"
+                            WidthRequest="140"
+                            Padding="14,0"
+                            FontSize="11"
+                            Command="{Binding OpenEndOfCombatCommand}" />
+                    </skin:SkinHost>
+                    </Grid>
 
                 <!-- Ability score bars: single row -->
                 <Grid ColumnDefinitions="Auto, Auto, Auto, Auto" RowDefinitions="Auto" ColumnSpacing="15" RowSpacing="8">
@@ -272,7 +279,7 @@
                             Padding="8,3"
                             Margin="0,0,0,5"
                             IsVisible="{Binding NeedsMet}">
-                            <Label Text="NEEDS MET"
+                                <Label Text="NEEDS MET"
                                 FontSize="10"
                                 FontAttributes="Bold"
                                 TextColor="{DynamicResource ThemeConfirmButtonColor}" />
@@ -436,7 +443,7 @@
         </skin:SkinPanel>
 
         <!-- ===== EQUIPMENT & INVENTORY SECTION - Row 1 ===== -->
-        <Grid x:Name="EquipInvGrid" Grid.Row="1" ColumnDefinitions="0.35*, 0.65*" ColumnSpacing="10">
+        <Grid x:Name="EquipInvGrid" Grid.Row="1" ColumnDefinitions="0.33*, 0.63*" ColumnSpacing="10">
 
             <!-- LEFT: Equipment Summary - Column 0 -->
             <skin:SkinPanel Grid.Row="0" Grid.Column="0"
@@ -448,15 +455,17 @@
                     <VerticalStackLayout Spacing="8">
 
                         <!-- ===== WIELDED WEAPONS (mini equipment dashboard) ===== -->
-                        <Label Text="🗡️ Wielded Weapons"
-                               FontAttributes="Bold"
-                               FontSize="13"
-                               TextColor="{DynamicResource ThemeWarningButtonColor}" />
+                            
 
-                        <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
-                                StrokeThickness="0.5"
-                                StrokeShape="RoundRectangle 6"
-                                Padding="8,5">
+                            <Label Text="🗡️ Wielded Weapons"
+                                FontAttributes="Bold"
+                                FontSize="16"
+                                TextColor="{DynamicResource ThemeWarningButtonColor}" />
+
+                            <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                            StrokeThickness="0.5"
+                            StrokeShape="RoundRectangle 6"
+                            Padding="8,5">
                             <VerticalStackLayout Spacing="4">
                                 <Label Text="No weapons equipped"
                                        FontSize="10"
@@ -466,31 +475,78 @@
                                 <VerticalStackLayout BindableLayout.ItemsSource="{Binding EquippedWeapons}"
                                                      Spacing="5"
                                                      IsVisible="{Binding HasEquippedWeapons}">
-                                    <BindableLayout.ItemTemplate>
-                                        <DataTemplate>
-                                            <VerticalStackLayout Spacing="0">
-                                                <Grid ColumnDefinitions="*, Auto" ColumnSpacing="6">
-                                                    <Label Grid.Column="0"
-                                                        Text="{Binding Name}"
-                                                        FontSize="12"
-                                                        FontAttributes="Bold"
-                                                        LineBreakMode="TailTruncation" />
-                                                    <Label Grid.Column="1"
-                                                        Text="{Binding Location}"
-                                                        FontSize="9"
-                                                        TextColor="Gray"
-                                                        VerticalOptions="Center" />
+                                        <BindableLayout.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto" ColumnSpacing="6">
+
+                                                    <HorizontalStackLayout Grid.Column="0" Grid.Row="0" Spacing="6">
+                                                        <Label Text="{Binding Name}"
+                                                           FontSize="12"
+                                                           FontAttributes="Bold" />
+                                                        <Label Text="{Binding Location}"
+                                                           FontSize="10"
+                                                           TextColor="Gray"
+                                                           VerticalOptions="Center" />
+                                                    </HorizontalStackLayout>
+
+                                                    <skin:SkinHost Grid.Column="1" Grid.Row="0" Grid.RowSpan="2"
+                                                               SkinKey="generic_small"
+                                                               FallbackColor="{DynamicResource ThemeDangerButtonColor}"
+                                                               VerticalOptions="Start"
+                                                               MinimumHeightRequest="30"
+                                                               MaximumHeightRequest="30"
+                                                               IsVisible="{Binding CanRecordKill}">
+                                                        <Button Text="☠️ +Kill"
+                                                            MinimumHeightRequest="30"
+                                                            MaximumHeightRequest="30"
+                                                            TextColor="White"
+                                                            CornerRadius="4"
+                                                            FontSize="10"
+                                                            IsVisible="{Binding CanRecordKill}"
+                                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.RecordKillCommand}"
+                                                            CommandParameter="{Binding ItemId}" />
+                                                    </skin:SkinHost>
+
+                                                    <!-- Damage information on the left, effects and skills on the right -->
+                                                    <Grid Grid.Column="0" Grid.Row="1" ColumnDefinitions="Auto, *" ColumnSpacing="12">
+
+                                                        <!-- Damage information first, then effects and skills; each line is one row -->
+                                                        <VerticalStackLayout Grid.Column="0" Grid.Row="1"
+                                                                     Spacing="1"
+                                                                     BindableLayout.ItemsSource="{Binding ChipLines}">
+                                                            <BindableLayout.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <HorizontalStackLayout Spacing="10"
+                                                                                   BindableLayout.ItemsSource="{Binding Chips}">
+                                                                        <BindableLayout.ItemTemplate>
+                                                                            <DataTemplate>
+                                                                                <Label Text="{Binding Text}"
+                                                                               FontSize="10"
+                                                                               LineBreakMode="NoWrap"
+                                                                               TextColor="{DynamicResource ThemeDetailBorderColor1}">
+                                                                                    <Label.Triggers>
+                                                                                        <DataTrigger TargetType="Label" Binding="{Binding IsEffect}" Value="True">
+                                                                                            <Setter Property="TextColor" Value="{DynamicResource ThemeWarningButtonColor}" />
+                                                                                        </DataTrigger>
+                                                                                        <DataTrigger TargetType="Label" Binding="{Binding IsTappable}" Value="True">
+                                                                                            <Setter Property="TextDecorations" Value="Underline" />
+                                                                                        </DataTrigger>
+                                                                                    </Label.Triggers>
+                                                                                    <Label.GestureRecognizers>
+                                                                                        <TapGestureRecognizer Command="{Binding TapCommand}" />
+                                                                                    </Label.GestureRecognizers>
+                                                                                </Label>
+                                                                            </DataTemplate>
+                                                                        </BindableLayout.ItemTemplate>
+                                                                    </HorizontalStackLayout>
+                                                                </DataTemplate>
+                                                            </BindableLayout.ItemTemplate>
+                                                        </VerticalStackLayout>
+                                                    </Grid>
                                                 </Grid>
-                                                <Label Text="{Binding Summary}" FontSize="10" TextColor="{DynamicResource ThemeDetailBorderColor1}" />
-                                                <Label Text="{Binding EffectsText}"
-                                                    FontSize="10"
-                                                    TextColor="{DynamicResource ThemeWarningButtonColor}"
-                                                    LineBreakMode="WordWrap"
-                                                    IsVisible="{Binding HasEffects}" />
-                                            </VerticalStackLayout>
-                                        </DataTemplate>
-                                    </BindableLayout.ItemTemplate>
-                                </VerticalStackLayout>
+                                            </DataTemplate>
+                                        </BindableLayout.ItemTemplate>
+                                    </VerticalStackLayout>
                             </VerticalStackLayout>
                         </Border>
 
@@ -685,6 +741,7 @@
                     </DataTrigger>
                 </skin:SkinPanel.Triggers>
                 <Grid RowDefinitions="Auto, *, Auto, Auto"
+                      Padding="4"
                       RowSpacing="5">
 
                     <!-- Inventory Header - Row 0 -->
@@ -740,16 +797,16 @@
                                         Stroke="{Binding IsDropMode, Converter={StaticResource DropModeItemBorderConverter}}"
                                         StrokeThickness="{Binding IsDropMode, Converter={StaticResource DropModeItemBorderThicknessConverter}}"
                                         StrokeShape="RoundRectangle 4"
-                                        Padding="2"
-                                        Margin="2"
+                                        Padding="1"
+                                        Margin="1"
                                         HeightRequest="64"
                                         BackgroundColor="{Binding IsEmpty, Converter={StaticResource EmptyItemColorConverter}}">
-                                    <Border Stroke="{Binding RarityBrush}"
+                                        <skin:SkinPanel SkinKey="{Binding RaritySkinKey}"
+                                            StrokeColor="{Binding RarityColor}"
                                             StrokeThickness="{Binding RarityThickness}"
-                                            StrokeShape="RoundRectangle 3"
-                                            Padding="4"
-                                            BackgroundColor="Transparent">
-                                        <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto, Auto" ColumnSpacing="6" RowSpacing="1">
+                                            CornerRadius="3"
+                                            ContentPadding="4">
+                                            <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto, Auto" ColumnSpacing="6" RowSpacing="1" Padding="4">
 
                                             <!-- Name + Equipped/Belted label to its right -->
                                             <Grid Grid.Row="0" Grid.Column="0" ColumnDefinitions="*, Auto" ColumnSpacing="4">
@@ -788,6 +845,11 @@
                                                    FontSize="9"
                                                    TextColor="{DynamicResource ThemeDangerButtonColor}"
                                                    IsVisible="{Binding IsEmpty}" />
+                                                <Label Text="{Binding UsageDieText}"
+                                                   FontSize="10"
+                                                   FontAttributes="Bold"
+                                                   TextColor="{DynamicResource ThemeWarningButtonColor}"
+                                                   IsVisible="{Binding HasUsageDie}" />
                                                 <Border BackgroundColor="#ff000033"
                                                     Padding="3,1"
                                                     StrokeThickness="0"
@@ -829,7 +891,7 @@
                                                 </Border>
                                             </Grid>
                                         </Grid>
-                                    </Border>
+                                    </skin:SkinPanel>
                                     <Border.GestureRecognizers>
                                         <TapGestureRecognizer Tapped="OnInventoryTileTapped"
                                                               NumberOfTapsRequired="1" />
@@ -863,7 +925,13 @@
                                            TextColor="Gray"
                                            LineBreakMode="WordWrap" />
 
-                                    <!-- Item variables -->
+                                    <Label Text="{Binding SelectedItemPlayerNote}"
+                                        FontSize="10"
+                                        TextColor="{DynamicResource ThemeWarningButtonColor}"
+                                        Margin="0,4,0,0"
+                                        IsVisible="{Binding HasPlayerNote}" />
+
+                                        <!-- Item variables -->
                                     <VerticalStackLayout BindableLayout.ItemsSource="{Binding SelectedItemDetailRows}"
                                                          Spacing="0"
                                                          Margin="0,3,0,0">
@@ -892,11 +960,6 @@
                                         </BindableLayout.ItemTemplate>
                                     </VerticalStackLayout>
 
-                                    <Label Text="{Binding SelectedItemPlayerNote}"
-                                           FontSize="10"
-                                           TextColor="{DynamicResource ThemeWarningButtonColor}"
-                                           Margin="0,4,0,0"
-                                           IsVisible="{Binding HasPlayerNote}" />
                                     <Label Text="🔒 Equipped"
                                            FontSize="10"
                                            TextColor="{DynamicResource ThemeDetailBorderColor1}"
@@ -924,7 +987,7 @@
 
                                 <!-- Make a Note Button -->
                                 <skin:SkinHost SkinKey="generic" FallbackColor="#9b59b6">
-                                    <Button Text="📝 Edit Item"
+                                        <Button Text="📝 Edit Item"
                                         TextColor="White"
                                         CornerRadius="6"
                                         WidthRequest="120"
@@ -933,79 +996,18 @@
                                         Command="{Binding EditNoteCommand}" />
                                 </skin:SkinHost>
 
-                                <!-- Hand slot: Move to Hands, or Unequip when it's in a hand -->
-                                <skin:SkinHost SkinKey="generic" FallbackColor="#3498db"
-                                               IsVisible="{Binding CanEquipSelectedToHand}">
-                                    <Button Text="🖐️ Move to Hands"
+                                <!-- Drop (recoverable this session) -->
+                                <skin:SkinHost SkinKey="danger" FallbackColor="{DynamicResource ThemeDangerButtonColor}">
+                                        <Button Text="🗑️ Drop"
                                         TextColor="White"
                                         CornerRadius="6"
                                         WidthRequest="120"
                                         MinimumHeightRequest="25"
                                         FontSize="10"
-                                        IsVisible="{Binding CanEquipSelectedToHand}"
-                                        Command="{Binding EquipSelectedToHandCommand}" />
-                                </skin:SkinHost>
-                                <skin:SkinHost SkinKey="generic" FallbackColor="#c0392b"
-                                               IsVisible="{Binding IsSelectedEquippedInHand}">
-                                    <Button Text="⏏️ Unequip"
-                                        TextColor="White"
-                                        CornerRadius="6"
-                                        WidthRequest="120"
-                                        MinimumHeightRequest="25"
-                                        FontSize="10"
-                                        IsVisible="{Binding IsSelectedEquippedInHand}"
-                                        Command="{Binding UnequipSelectedCommand}" />
+                                        Clicked="OnDropSelectedClicked" />
                                 </skin:SkinHost>
 
-                                <!-- Belt slot: Move to Belt, or Unequip when it's on the belt -->
-                                <skin:SkinHost SkinKey="generic" FallbackColor="#f39c12"
-                                               IsVisible="{Binding CanEquipSelectedToBelt}">
-                                    <Button Text="🪢 Move to Belt"
-                                        TextColor="White"
-                                        CornerRadius="6"
-                                        WidthRequest="120"
-                                        MinimumHeightRequest="25"
-                                        FontSize="10"
-                                        IsVisible="{Binding CanEquipSelectedToBelt}"
-                                        Command="{Binding EquipSelectedToBeltCommand}" />
-                                </skin:SkinHost>
-                                <skin:SkinHost SkinKey="generic" FallbackColor="#c0392b"
-                                               IsVisible="{Binding IsSelectedEquippedOnBelt}">
-                                    <Button Text="⏏️ Unequip"
-                                        TextColor="White"
-                                        CornerRadius="6"
-                                        WidthRequest="120"
-                                        MinimumHeightRequest="25"
-                                        FontSize="10"
-                                        IsVisible="{Binding IsSelectedEquippedOnBelt}"
-                                        Command="{Binding UnequipSelectedCommand}" />
-                                </skin:SkinHost>
-
-                                <!-- Armor slot: Equip as Armor, or Unequip when it's worn -->
-                                <skin:SkinHost SkinKey="generic" FallbackColor="#27ae60"
-                                               IsVisible="{Binding CanEquipSelectedAsArmor}">
-                                    <Button Text="🛡️ Equip as Armor"
-                                        TextColor="White"
-                                        CornerRadius="6"
-                                        WidthRequest="120"
-                                        MinimumHeightRequest="25"
-                                        FontSize="10"
-                                        IsVisible="{Binding CanEquipSelectedAsArmor}"
-                                        Command="{Binding EquipSelectedAsArmorCommand}" />
-                                </skin:SkinHost>
-                                <skin:SkinHost SkinKey="generic" FallbackColor="#c0392b"
-                                               IsVisible="{Binding IsSelectedEquippedAsArmor}">
-                                    <Button Text="⏏️ Unequip"
-                                        TextColor="White"
-                                        CornerRadius="6"
-                                        WidthRequest="120"
-                                        MinimumHeightRequest="25"
-                                        FontSize="10"
-                                        IsVisible="{Binding IsSelectedEquippedAsArmor}"
-                                        Command="{Binding UnequipSelectedCommand}" />
-                                </skin:SkinHost>
-
-                                <!-- Hand to Familiar -->
+                                    <!-- Hand to Familiar -->
                                 <skin:SkinHost SkinKey="generic" FallbackColor="#d35400"
                                                IsVisible="{Binding CanHandSelectedToFamiliar}">
                                     <Button Text="🐾 Hand to Familiar"
@@ -1017,7 +1019,18 @@
                                         IsVisible="{Binding CanHandSelectedToFamiliar}"
                                         Command="{Binding HandToFamiliarCommand}" />
                                 </skin:SkinHost>
-                            </VerticalStackLayout>
+
+                                <!-- Expend: destroyed for good (not recoverable) -->
+                                <skin:SkinHost SkinKey="generic" FallbackColor="#8e3b2f">
+                                    <Button Text="🔥 Expend"
+                                    TextColor="White"
+                                    CornerRadius="6"
+                                    WidthRequest="120"
+                                    MinimumHeightRequest="25"
+                                    FontSize="10"
+                                    Command="{Binding ExpendSelectedCommand}" />
+                                </skin:SkinHost>
+                                </VerticalStackLayout>
 
                             <!-- Uses ticker: vertical, + / value / -, all the same size -->
                             <VerticalStackLayout Grid.Column="2"
@@ -1132,61 +1145,61 @@
 
         <!-- ===== ACTION BUTTONS - Row 2 ===== -->
         <Grid Grid.Row="2"
-              ColumnDefinitions="*, *, *, *, 1.7*, *, *"
+              ColumnDefinitions="*, *, *, *, 1.3*, *, *, *"
               ColumnSpacing="5"
               Margin="0,5,0,0">
 
-            <skin:SkinHost Grid.Row="0" Grid.Column="0"
-                           SkinKey="generic"
-                           FallbackColor="#8e44ad">
-                <Button Text="📜 Spells"
-                        TextColor="White"
-                        CornerRadius="6"
-                        HeightRequest="35"
-                        Padding="14,0"
-                        FontSize="12"
-                        Clicked="OnSpellsClicked" />
-            </skin:SkinHost>
+                <skin:SkinHost Grid.Row="0" Grid.Column="0"
+                               SkinKey="generic"
+                               FallbackColor="#8e44ad">
+                    <Button Text="📜 Spells"
+                            TextColor="White"
+                            CornerRadius="6"
+                            HeightRequest="35"
+                            Padding="14,0"
+                            FontSize="12"
+                            Clicked="OnSpellsClicked" />
+                </skin:SkinHost>
 
-            <skin:SkinHost Grid.Row="0" Grid.Column="1"
-                           SkinKey="generic"
-                           FallbackColor="#9b59b6">
-                <Button Text="⚡ Quips"
-                        TextColor="White"
-                        CornerRadius="6"
-                        HeightRequest="35"
-                        Padding="14,0"
-                        FontSize="12"
-                        Clicked="OnQuipsClicked" />
-            </skin:SkinHost>
+                <skin:SkinHost Grid.Row="0" Grid.Column="1"
+                               SkinKey="generic"
+                               FallbackColor="#9b59b6">
+                    <Button Text="⚡ Quips"
+                            TextColor="White"
+                            CornerRadius="6"
+                            HeightRequest="35"
+                            Padding="14,0"
+                            FontSize="12"
+                            Clicked="OnQuipsClicked" />
+                </skin:SkinHost>
 
-            <skin:SkinHost Grid.Row="0" Grid.Column="2"
-                           SkinKey="generic"
-                           FallbackColor="#2980b9">
-                <Button Text="🔨 Crafting"
-                        TextColor="White"
-                        CornerRadius="6"
-                        HeightRequest="35"
-                        Padding="14,0"
-                        FontSize="12"
-                        Clicked="OnBlueprintsClicked" />
-            </skin:SkinHost>
+                <skin:SkinHost Grid.Row="0" Grid.Column="2"
+                               SkinKey="generic"
+                               FallbackColor="#2980b9">
+                    <Button Text="🔨 Crafting"
+                            TextColor="White"
+                            CornerRadius="6"
+                            HeightRequest="35"
+                            Padding="14,0"
+                            FontSize="12"
+                            Clicked="OnBlueprintsClicked" />
+                </skin:SkinHost>
 
-            <skin:SkinHost Grid.Row="0" Grid.Column="3"
-                           SkinKey="generic"
-                           FallbackColor="#27ae60">
-                <Button Text="⚙️ Features"
-                        TextColor="White"
-                        CornerRadius="6"
-                        HeightRequest="35"
-                        Padding="14,0"
-                        FontSize="12"
-                        Clicked="OnFeaturesClicked" />
-            </skin:SkinHost>
+                <skin:SkinHost Grid.Row="0" Grid.Column="3"
+                               SkinKey="generic"
+                               FallbackColor="#27ae60">
+                    <Button Text="⚙️ Features"
+                            TextColor="White"
+                            CornerRadius="6"
+                            HeightRequest="35"
+                            Padding="14,0"
+                            FontSize="12"
+                            Clicked="OnFeaturesClicked" />
+                </skin:SkinHost>
 
                 <skin:SkinHost Grid.Row="0" Grid.Column="4"
-                           SkinKey="generic"
-                           FallbackColor="#d35400">
+                            SkinKey="generic"
+                            FallbackColor="#d35400">
                     <Button Text="🐾⚙️ Familiars &amp; Constructs"
                         TextColor="White"
                         CornerRadius="6"
@@ -1198,30 +1211,43 @@
                 </skin:SkinHost>
 
                 <skin:SkinHost Grid.Row="0" Grid.Column="5"
-                           SkinKey="generic"
-                           FallbackColor="#f39c12">
-                <Button Text="🏪 Shop"
+                            SkinKey="generic"
+                            FallbackColor="#f39c12">
+                    <Button Text="🏪 Shop"
                         TextColor="White"
                         CornerRadius="6"
                         HeightRequest="35"
                         Padding="14,0"
                         FontSize="12"
                         Clicked="OnShopClicked" />
-            </skin:SkinHost>
+                </skin:SkinHost>
 
-            <skin:SkinHost Grid.Row="0" Grid.Column="6"
-                           SkinKey="neutral"
-                           FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
-                <Button Text="⚙️ Options"
+                <skin:SkinHost Grid.Row="0" Grid.Column="6"
+                        SkinKey="generic"
+                        FallbackColor="#16a085">
+                    <Button Text="📝 Pad"
                         TextColor="White"
                         CornerRadius="6"
                         HeightRequest="35"
                         Padding="14,0"
-                        FontSize="11"
-                        Command="{Binding OpenOptionsCommand}" />
-            </skin:SkinHost>
+                        FontSize="12"
+                        IsEnabled="{Binding IsLiveCharacter}"
+                        Clicked="OnScratchPadClicked" />
+                </skin:SkinHost>
 
-        </Grid>
+                <skin:SkinHost Grid.Row="0" Grid.Column="7"
+                        SkinKey="neutral"
+                        FallbackColor="{DynamicResource ThemeNeutralButtonColor}">
+                    <Button Text="{Binding OptionsButtonText}"
+                    TextColor="White"
+                    CornerRadius="6"
+                    HeightRequest="35"
+                    Padding="14,0"
+                    FontSize="11"
+                    Command="{Binding OpenOptionsCommand}" />
+                </skin:SkinHost>
+
+            </Grid>
 
         <!-- ===== SLIDE-UP PANEL OVERLAY (covers Row 1 only; declared last so it draws on top) ===== -->
         <skin:SkinPanel x:Name="PanelOverlay"
@@ -1256,6 +1282,7 @@
                 <controls:ShopPanelView x:Name="ShopPanel" Grid.Row="1" IsVisible="False" />
                 <controls:SubFeaturePanelView x:Name="SubFeaturePanel" Grid.Row="1" IsVisible="False" />
                 <controls:FeaturePanelView x:Name="FeaturePanel" Grid.Row="1" IsVisible="False" />
+                <controls:ScratchPadPanelView x:Name="ScratchPanel" Grid.Row="1" IsVisible="False" />
                 </Grid>
         </skin:SkinPanel>
         </Grid>
@@ -1309,6 +1336,8 @@
                 <controls:EventTrayView x:Name="EventTray" Grid.Row="1" />
             </Grid>
         </skin:SkinPanel>
+        <!-- ===== TOAST (notices from the GM, day changes, awards, bestowed items...) ===== -->
+        <controls:ToastView />
     </Grid>
     <!-- end of PageHost -->
 </ContentPage>

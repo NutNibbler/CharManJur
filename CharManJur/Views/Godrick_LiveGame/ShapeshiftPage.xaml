@@ -158,7 +158,7 @@
                                 <Border WidthRequest="56"
                                         HeightRequest="56"
                                         StrokeShape="RoundRectangle 8"
-                                        Margin="0,0,8,8"
+                                        Margin="0,0,8,0"
                                         Stroke="{DynamicResource ThemeDetailBorderColor2}"
                                         StrokeThickness="1"
                                         BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">

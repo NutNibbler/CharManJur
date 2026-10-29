@@ -162,6 +162,13 @@
                         </skin:SkinHost>
                     </HorizontalStackLayout>
 
+                    <!-- How the techniques' dice will be decided -->
+                    <Label Text="{Binding RollHint}"
+                           FontSize="11"
+                           TextColor="{DynamicResource ThemeWarningButtonColor}"
+                           LineBreakMode="WordWrap"
+                           IsVisible="{Binding HasRollHint}" />
+
                     <skin:SkinHost SkinKey="create"
                                    FallbackColor="{DynamicResource ThemeCreateButtonColor}"
                                    HorizontalOptions="Start"
@@ -236,7 +243,7 @@
                                                FontSize="22"
                                                FontAttributes="Bold"
                                                HorizontalOptions="Center" />
-                                        <Label Text="🌀"
+                                        <Label Text="{Binding Badge}"
                                                FontSize="10"
                                                HorizontalOptions="Center"
                                                IsVisible="{Binding IsTechnique}" />
@@ -251,7 +258,7 @@
                         </BindableLayout.ItemTemplate>
                     </FlexLayout>
 
-                    <Label Text="Orange border: shows 4-6 (Fatigue).   Thick border with 🌀: powers a technique."
+                    <Label Text="Orange border: shows 4-6 (Fatigue).   Thick border with a 🌀 number: powers that technique."
                            FontSize="10"
                            TextColor="Gray" />
                     <Label Text="{Binding MarkingText}"
@@ -259,6 +266,48 @@
                            TextColor="{DynamicResource ThemeWarningButtonColor}"
                            LineBreakMode="WordWrap"
                            IsVisible="{Binding HasMarkingText}" />
+
+                    <!-- Which die powers which technique (tap a technique, then a die, when you rolled the dice yourself) -->
+                    <VerticalStackLayout Spacing="4"
+                                         BindableLayout.ItemsSource="{Binding AssignmentRows}"
+                                         IsVisible="{Binding HasAssignments}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate>
+                                <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                        StrokeThickness="0.5"
+                                        StrokeShape="RoundRectangle 4"
+                                        Padding="8">
+                                    <Border.Triggers>
+                                        <DataTrigger TargetType="Border" Binding="{Binding IsActive}" Value="True">
+                                            <Setter Property="Stroke" Value="{DynamicResource ThemeConfirmButtonColor}" />
+                                            <Setter Property="StrokeThickness" Value="2" />
+                                        </DataTrigger>
+                                    </Border.Triggers>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.SelectAssignmentCommand}"
+                                            CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+                                    <Grid ColumnDefinitions="*, Auto" ColumnSpacing="10">
+                                        <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                            <Label Text="{Binding Name}" FontSize="14" FontAttributes="Bold" />
+                                            <Label Text="{Binding Description}"
+                                                   FontSize="11"
+                                                   TextColor="Gray"
+                                                   LineBreakMode="WordWrap"
+                                                   IsVisible="{Binding HasDescription}" />
+                                        </VerticalStackLayout>
+                                        <Label Grid.Column="1"
+                                               Text="{Binding DieText}"
+                                               FontSize="14"
+                                               FontAttributes="Bold"
+                                               TextColor="{DynamicResource ThemeDetailBorderColor1}"
+                                               VerticalOptions="Center" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
 
                     <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
                             StrokeThickness="1"

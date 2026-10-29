@@ -37,7 +37,7 @@
 
         <Label Text="Installed Custom Items" FontSize="20" FontAttributes="Bold" Margin="10,15,10,0"/>
 
-        <ScrollView HeightRequest="300">
+        <ScrollView MaximumHeightRequest="400">
             <VerticalStackLayout Padding="10" Spacing="8" BindableLayout.ItemsSource="{Binding CustomItems}">
                 <BindableLayout.ItemTemplate>
                     <DataTemplate>

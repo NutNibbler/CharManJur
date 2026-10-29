@@ -77,7 +77,9 @@ public class PlayerActionLogService : IPlayerActionLogService
 
     private async Task AppendEntryAsync(PlayerActionLogEntry entry)
     {
-        entry.SessionId ??= CurrentSessionId;
+        // A GM acting on a character (the Bestow panel) stamps its own source and session on whatever that logs.
+        if (ActionLogScope.Source is { } scopedSource) entry.Source = scopedSource;
+        entry.SessionId = ActionLogScope.SessionId ?? entry.SessionId ?? CurrentSessionId;
         bool written = false;
 
         await _fileLock.WaitAsync();

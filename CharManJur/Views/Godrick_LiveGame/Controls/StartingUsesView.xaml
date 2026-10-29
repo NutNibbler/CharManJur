@@ -33,7 +33,7 @@
                 WidthRequest="70"
                 HeightRequest="34"
                 VerticalOptions="Center"
-                Margin="0,0,6,4">
+                Margin="0,0,6,0">
             <Entry x:Name="UsesEntry"
                    Keyboard="Numeric"
                    BackgroundColor="Transparent"

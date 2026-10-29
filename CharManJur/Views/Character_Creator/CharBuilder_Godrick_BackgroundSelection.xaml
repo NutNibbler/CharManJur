@@ -157,7 +157,7 @@
                                                 FontSize="12"
                                                 FontAttributes="Bold"
                                                 WidthRequest="30" HeightRequest="30" Padding="0"
-                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:BackgroundSelectionViewModel}}, Path=RemoveStartingItemCommand}"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.RemoveStartingItemCommand}"
                                                 CommandParameter="{Binding .}"
                                                 IsVisible="{Binding ItemDetails.IsPlayerCreated}" />
                                         </skin:SkinHost>
@@ -199,7 +199,7 @@
                                             FallbackColor="{DynamicResource ThemeCreateButtonColor}">
                                             <Button Text="+ Create Custom Item" TextColor="White" CornerRadius="8" FontSize="12"
                                                 HeightRequest="35" Padding="14,0"
-                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:BackgroundSelectionViewModel}}, Path=CreateCustomItemCommand}"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.CreateCustomItemCommand}"
                                                 CommandParameter="{Binding Choice}" />
                                         </skin:SkinHost>
                                     </VerticalStackLayout>
@@ -245,7 +245,7 @@
                                         </Grid>
                                     </Border>
                                     <Grid.GestureRecognizers>
-                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:BackgroundSelectionViewModel}}, Path=ToggleLanguageCommand}"
+                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.ToggleLanguageCommand}"
                                                               CommandParameter="{Binding .}" />
                                     </Grid.GestureRecognizers>
                                 </Grid>
@@ -312,7 +312,7 @@
                                                 CornerRadius="8"
                                                 FontSize="12"
                                                 HeightRequest="35" Padding="14,0"
-                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:BackgroundSelectionViewModel}}, Path=CreateCustomFamiliarCommand}"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.CreateCustomFamiliarCommand}"
                                                 CommandParameter="{Binding Choice}" />
                                         </skin:SkinHost>
                                     </VerticalStackLayout>

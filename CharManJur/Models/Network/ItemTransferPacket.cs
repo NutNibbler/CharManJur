@@ -27,6 +27,7 @@ public class ItemTransferPacket
     public Guid ItemInstanceId { get; set; }
     public int Quantity { get; set; } = 1;
     public int RemainingUses { get; set; }
+    public int UsageDieSides { get; set; }
     public string? CustomName { get; set; }
     public string? PlayerNote { get; set; }
     public int? WrittenValueInChips { get; set; }

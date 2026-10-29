@@ -29,6 +29,19 @@ public static class MagicDice
     public static List<int> Roll(int count)
         => Enumerable.Range(0, Math.Clamp(count, 1, MaxDice)).Select(_ => Random.Shared.Next(1, 7)).ToList();
 
+    // Picks `count` different positions out of `total` dice, at random: which die powers which technique when the app rolls.
+    // The result is in random order, so the first position goes to the first technique, and so on.
+    public static List<int> PickRandomIndices(int total, int count)
+    {
+        var all = Enumerable.Range(0, Math.Max(0, total)).ToList();
+        for (int i = all.Count - 1; i > 0; i--)
+        {
+            int j = Random.Shared.Next(i + 1);
+            (all[i], all[j]) = (all[j], all[i]);
+        }
+        return all.Take(Math.Clamp(count, 0, all.Count)).ToList();
+    }
+
     // "4 3 2" (any separators) -> [4, 3, 2]. False with a message when it isn't exactly expectedCount dice of 1-6.
     public static bool TryParse(string? text, int expectedCount, out List<int> dice, out string error)
     {

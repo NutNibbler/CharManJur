@@ -24,6 +24,12 @@
         Route="LoadCharacter"/>
 
     <ShellContent 
+        Title="Join Session" 
+        ContentTemplate="{DataTemplate views:JoinSessionPage}" 
+        Route="JoinSession"
+        FlyoutItemIsVisible="False"/>
+
+    <ShellContent 
         Title="Character Builder Home" 
         ContentTemplate="{DataTemplate views:CharacterBuilderHome}" 
         Route="CharacterBuilderHome"
@@ -130,5 +136,22 @@
     <ShellContent 
         Route="TraitAssetManagerPage" 
         ContentTemplate="{DataTemplate views:TraitAssetManagerPage}" />
+
+    <!-- Game Master Routes -->
+    <ShellContent
+        Title="Campaign Creator"
+        ContentTemplate="{DataTemplate views:CampaignCreatorPage}"
+        Route="CampaignCreatorPage"
+        FlyoutItemIsVisible="False"/>
+    <ShellContent
+        Title="Resume Campaign"
+        ContentTemplate="{DataTemplate views:CampaignListPage}"
+        Route="CampaignListPage"
+        FlyoutItemIsVisible="False"/>
+    <ShellContent
+        Title="GM Dashboard"
+        ContentTemplate="{DataTemplate views:GmDashboardPage}"
+        Route="GmDashboardPage"
+        FlyoutItemIsVisible="False"/>
 
 </Shell>

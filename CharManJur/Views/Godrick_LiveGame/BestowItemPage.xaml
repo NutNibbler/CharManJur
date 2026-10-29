@@ -14,12 +14,12 @@
 
         <!-- Header -->
         <VerticalStackLayout Grid.Row="0" Spacing="5">
-            <Label Text="📦 Bestow Item"
+            <Label Text="📦 Bestow Items"
                    FontSize="28"
                    FontAttributes="Bold"
                    TextColor="{DynamicResource ThemeDetailBorderColor1}"
                    HorizontalOptions="Center" />
-            <Label Text="Select an item to grant to this character"
+            <Label Text="Pick items, add them to the basket, then bestow everything at once"
                    FontSize="14"
                    TextColor="Gray"
                    HorizontalOptions="Center" />
@@ -39,82 +39,166 @@
             <BoxView HeightRequest="2" Color="{DynamicResource ThemeSectionBorderColor}" />
         </VerticalStackLayout>
 
-        <!-- Search / Filter -->
-        <Grid Grid.Row="1" RowDefinitions="Auto, *" RowSpacing="10">
+        <!-- Items on the left, the basket on the right -->
+        <Grid Grid.Row="1" ColumnDefinitions="0.62*, 0.38*" ColumnSpacing="14">
 
-            <!-- Filter Bar -->
-            <Grid Grid.Row="0" ColumnDefinitions="*, Auto" ColumnSpacing="10">
-                <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
-                        StrokeThickness="1"
-                        StrokeShape="RoundRectangle 8"
-                        BackgroundColor="{DynamicResource ThemePanelBackgroundColor}">
-                    <Entry x:Name="SearchEntry"
-                           Placeholder="Search items..."
-                           BackgroundColor="Transparent"
-                           PlaceholderColor="Gray"
-                           TextChanged="OnSearchTextChanged" />
-                </Border>
+            <!-- ===== Search + item list ===== -->
+            <Grid Grid.Column="0" RowDefinitions="Auto, *" RowSpacing="10">
 
-                <skin:SkinHost Grid.Column="1"
-                               SkinKey="primary"
-                               FallbackColor="{DynamicResource ThemePrimaryButtonColor}"
-                               VerticalOptions="Center">
-                    <Button Text="🔍"
-                            TextColor="White"
-                            CornerRadius="8"
-                            WidthRequest="50"
-                            HeightRequest="50"
-                            Padding="0"
-                            FontSize="18"
-                            Clicked="OnSearchClicked" />
-                </skin:SkinHost>
+                <Grid Grid.Row="0" ColumnDefinitions="*, Auto" ColumnSpacing="10">
+                    <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 8"
+                            BackgroundColor="{DynamicResource ThemePanelBackgroundColor}">
+                        <Entry x:Name="SearchEntry"
+                               Placeholder="Search items..."
+                               BackgroundColor="Transparent"
+                               PlaceholderColor="Gray"
+                               TextChanged="OnSearchTextChanged" />
+                    </Border>
+
+                    <skin:SkinHost Grid.Column="1"
+                                   SkinKey="primary"
+                                   FallbackColor="{DynamicResource ThemePrimaryButtonColor}"
+                                   VerticalOptions="Center">
+                        <Button Text="🔍"
+                                TextColor="White"
+                                CornerRadius="8"
+                                WidthRequest="50"
+                                HeightRequest="50"
+                                Padding="0"
+                                FontSize="18"
+                                Clicked="OnSearchClicked" />
+                    </skin:SkinHost>
+                </Grid>
+
+                <CollectionView Grid.Row="1"
+                                x:Name="ItemsCollectionView"
+                                ItemsSource="{Binding FilteredItems}"
+                                SelectionMode="Single"
+                                SelectedItem="{Binding SelectedItem}"
+                                SelectionChanged="OnItemSelectionChanged">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                    StrokeThickness="0.5"
+                                    StrokeShape="RoundRectangle 4"
+                                    Padding="10"
+                                    Margin="3">
+                                <VerticalStackLayout Spacing="3">
+                                    <Label Text="{Binding Name}"
+                                           FontSize="14"
+                                           FontAttributes="Bold" />
+                                    <Label Text="{Binding BaseDescription}"
+                                           FontSize="12"
+                                           TextColor="Gray"
+                                           LineBreakMode="TailTruncation" />
+                                    <HorizontalStackLayout Spacing="10">
+                                        <Label Text="{Binding Category}"
+                                               FontSize="11"
+                                               TextColor="Gray" />
+                                        <Label Text="{Binding ValueInChips, StringFormat='🪙 {0}'}"
+                                               FontSize="11"
+                                               TextColor="{DynamicResource ThemeWarningButtonColor}"
+                                               IsVisible="{Binding ValueInChips, Converter={StaticResource IsNotNullConverter}}" />
+                                        <Label Text="📦 Stackable"
+                                               FontSize="11"
+                                               TextColor="{DynamicResource ThemeConfirmButtonColor}"
+                                               IsVisible="{Binding IsStackableItem}" />
+                                    </HorizontalStackLayout>
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
             </Grid>
 
-            <!-- Item List -->
-            <CollectionView Grid.Row="1"
-                            x:Name="ItemsCollectionView"
-                            ItemsSource="{Binding FilteredItems}"
-                            SelectionMode="Single"
-                            SelectedItem="{Binding SelectedItem}"
-                            SelectionChanged="OnItemSelectionChanged"
-                            HeightRequest="400">
-                <CollectionView.ItemTemplate>
-                    <DataTemplate>
-                        <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
-                                StrokeThickness="0.5"
-                                StrokeShape="RoundRectangle 4"
-                                Padding="10"
-                                Margin="3">
-                            <VerticalStackLayout Spacing="3">
-                                <Label Text="{Binding Name}"
-                                       FontSize="14"
-                                       FontAttributes="Bold" />
-                                <Label Text="{Binding BaseDescription}"
-                                       FontSize="12"
-                                       TextColor="Gray"
-                                       LineBreakMode="TailTruncation" />
-                                <HorizontalStackLayout Spacing="10">
-                                    <Label Text="{Binding Category}"
-                                           FontSize="11"
-                                           TextColor="Gray" />
-                                    <Label Text="{Binding ValueInChips, StringFormat='🪙 {0}'}"
-                                           FontSize="11"
-                                           TextColor="{DynamicResource ThemeWarningButtonColor}"
-                                           IsVisible="{Binding ValueInChips, Converter={StaticResource IsNotNullConverter}}" />
-                                    <Label Text="📦 Stackable"
-                                           FontSize="11"
-                                           TextColor="{DynamicResource ThemeConfirmButtonColor}"
-                                           IsVisible="{Binding IsStackableItem}" />
-                                </HorizontalStackLayout>
-                            </VerticalStackLayout>
-                        </Border>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+            <!-- ===== Basket ===== -->
+            <skin:SkinPanel Grid.Column="1"
+                            StrokeColor="{DynamicResource ThemeSectionBorderColor}"
+                            StrokeThickness="1"
+                            CornerRadius="8"
+                            ContentPadding="10">
+                <Grid RowDefinitions="Auto, *, Auto" RowSpacing="8">
+
+                    <VerticalStackLayout Grid.Row="0" Spacing="2">
+                        <Label Text="🧺 Basket" FontSize="16" FontAttributes="Bold" />
+                        <Label Text="{Binding BasketSummary}" FontSize="12" TextColor="Gray" />
+                    </VerticalStackLayout>
+
+                    <CollectionView Grid.Row="1"
+                                    ItemsSource="{Binding Basket}"
+                                    SelectionMode="None">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                        StrokeThickness="0.5"
+                                        StrokeShape="RoundRectangle 4"
+                                        Padding="8"
+                                        Margin="0,2">
+                                    <Grid ColumnDefinitions="*, Auto" ColumnSpacing="6">
+                                        <VerticalStackLayout Grid.Column="0" Spacing="1">
+                                            <Label FontSize="13" FontAttributes="Bold">
+                                                <Label.FormattedText>
+                                                    <FormattedString>
+                                                        <Span Text="{Binding Quantity, StringFormat='{0}× '}" />
+                                                        <Span Text="{Binding Name}" />
+                                                    </FormattedString>
+                                                </Label.FormattedText>
+                                            </Label>
+                                            <Label Text="{Binding Details}" FontSize="10" TextColor="Gray"
+                                                   IsVisible="{Binding HasDetails}" />
+                                            <Label Text="{Binding RecipientName, StringFormat='→ {0}'}" FontSize="10"
+                                                   TextColor="{DynamicResource ThemeDetailBorderColor1}"
+                                                   IsVisible="{Binding HasRecipient}" />
+                                        </VerticalStackLayout>
+
+                                        <skin:SkinHost Grid.Column="1"
+                                                       SkinKey="generic_small"
+                                                       FallbackColor="{DynamicResource ThemeDangerButtonColor}"
+                                                       VerticalOptions="Center">
+                                            <Button Text="✕"
+                                                    TextColor="White"
+                                                    CornerRadius="4"
+                                                    WidthRequest="30"
+                                                    HeightRequest="28"
+                                                    Padding="0"
+                                                    FontSize="12"
+                                                    Clicked="OnRemoveBasketLine" />
+                                        </skin:SkinHost>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                        <CollectionView.EmptyView>
+                            <Label Text="Select an item, set its options, and press Add to Basket."
+                                   FontSize="12"
+                                   TextColor="Gray"
+                                   LineBreakMode="WordWrap"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center" />
+                        </CollectionView.EmptyView>
+                    </CollectionView>
+
+                    <skin:SkinHost Grid.Row="2"
+                                   SkinKey="neutral"
+                                   FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
+                                   IsVisible="{Binding HasBasket}">
+                        <Button Text="Clear Basket"
+                                TextColor="White"
+                                CornerRadius="6"
+                                HeightRequest="34"
+                                Padding="12,0"
+                                FontSize="12"
+                                IsVisible="{Binding HasBasket}"
+                                Clicked="OnClearBasketClicked" />
+                    </skin:SkinHost>
+                </Grid>
+            </skin:SkinPanel>
         </Grid>
 
         <!-- Footer -->
-        <Grid Grid.Row="2" RowDefinitions="Auto, Auto, Auto, Auto" RowSpacing="10">
+        <Grid Grid.Row="2" RowDefinitions="Auto, Auto, Auto, Auto, Auto" RowSpacing="10">
 
             <!-- Quantity Controls: grouped together -->
             <HorizontalStackLayout Grid.Row="0"
@@ -166,6 +250,20 @@
                             FontSize="18"
                             Clicked="OnQuantityIncrement" />
                 </skin:SkinHost>
+
+                <skin:SkinHost SkinKey="primary"
+                               FallbackColor="{DynamicResource ThemePrimaryButtonColor}"
+                               VerticalOptions="Center"
+                               Margin="14,0,0,0">
+                    <Button Text="➕ Add to Basket"
+                            TextColor="White"
+                            CornerRadius="6"
+                            HeightRequest="35"
+                            Padding="14,0"
+                            FontSize="13"
+                            IsEnabled="{Binding HasSelectedItem}"
+                            Clicked="OnAddToBasketClicked" />
+                </skin:SkinHost>
             </HorizontalStackLayout>
 
             <!-- Written value (only shown for Notes) -->
@@ -197,8 +295,22 @@
                                        Grid.Row="2"
                                        IsVisible="False" />
 
+            <!-- Usage die (only for items that carry one; starts at the item's own die) -->
+            <HorizontalStackLayout x:Name="UsageDieRow"
+                                   Grid.Row="3"
+                                   Spacing="8"
+                                   HorizontalOptions="Center"
+                                   IsVisible="False">
+                <Label Text="Usage die:" FontSize="13" VerticalOptions="Center" />
+                <Picker x:Name="UsageDiePicker"
+                        WidthRequest="120"
+                        Title="Die"
+                        TitleColor="Gray"
+                        BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+            </HorizontalStackLayout>
+
             <!-- Action Buttons -->
-            <Grid Grid.Row="3" ColumnDefinitions="*, *, *" ColumnSpacing="10" MaximumWidthRequest="1200">
+            <Grid Grid.Row="4" ColumnDefinitions="*, *, *, *" ColumnSpacing="10" MaximumWidthRequest="1200">
                 <skin:SkinHost Grid.Column="0"
                                SkinKey="create"
                                FallbackColor="{DynamicResource ThemeCreateButtonColor}">
@@ -212,20 +324,31 @@
                 </skin:SkinHost>
 
                 <skin:SkinHost Grid.Column="1"
+                               SkinKey="create"
+                               FallbackColor="{DynamicResource ThemeCreateButtonColor}">
+                    <Button Text="🧬 Custom Copy"
+                            TextColor="White"
+                            CornerRadius="8"
+                            HeightRequest="45"
+                            Padding="14,0"
+                            FontSize="12"
+                            Clicked="OnCustomCopyClicked" />
+                </skin:SkinHost>
+
+                <skin:SkinHost Grid.Column="2"
                                SkinKey="confirm"
                                FallbackColor="{DynamicResource ThemeConfirmButtonColor}">
-                    <Button Text="✅ Bestow"
+                    <Button Text="{Binding BestowButtonText}"
                             TextColor="White"
                             CornerRadius="8"
                             HeightRequest="45"
                             Padding="14,0"
                             FontSize="14"
                             FontAttributes="Bold"
-                            IsEnabled="{Binding HasSelectedItem}"
                             Clicked="OnBestowClicked" />
                 </skin:SkinHost>
 
-                <skin:SkinHost Grid.Column="2"
+                <skin:SkinHost Grid.Column="3"
                                SkinKey="danger"
                                FallbackColor="{DynamicResource ThemeDangerButtonColor}">
                     <Button Text="✖ Cancel"

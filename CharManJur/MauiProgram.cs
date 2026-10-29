@@ -11,6 +11,7 @@ namespace CharManJur
     {
         public static MauiApp CreateMauiApp()
         {
+            CrashLog.Hook();
             CharManJur.Helpers.ThemeContrast.Register();
             var builder = MauiApp.CreateBuilder();
             builder
@@ -64,7 +65,6 @@ namespace CharManJur
             builder.Services.AddTransient<QuipAssetManagerPage>();
             builder.Services.AddTransient<TechniqueAssetManagerViewModel>();
             builder.Services.AddTransient<TechniqueAssetManagerPage>();
-            builder.Services.AddSingleton<IAssetPackService, AssetPackService>();
 
             //CUSTOM HINDERANCE REGISTERS
             builder.Services.AddSingleton<ICustomHinderanceStorageService, CustomHinderanceStorageService>();
@@ -91,6 +91,28 @@ namespace CharManJur
             builder.Services.AddTransient<EquippedItemContextMenu>();
             builder.Services.AddSingleton<IItemRecoveryService, ItemRecoveryService>();
             builder.Services.AddSingleton<IPlayerActionLogService, PlayerActionLogService>();
+            //MULTIPLAYER AND CAMPAIGN MANAGER REGISTERS
+            builder.Services.AddSingleton<ICampaignStore, CampaignStore>();
+            builder.Services.AddTransient<CampaignCreatorViewModel>();
+            builder.Services.AddTransient<CampaignCreatorPage>();
+            builder.Services.AddTransient<CampaignListViewModel>();
+            builder.Services.AddTransient<CampaignListPage>();
+            builder.Services.AddTransient<GmDashboardViewModel>();
+            builder.Services.AddTransient<GmDashboardPage>();
+            builder.Services.AddSingleton<IGmEventLog, GmEventLog>();
+            builder.Services.AddSingleton<IGmSessionHub, GmSessionHub>();
+            builder.Services.AddTransient<GmEventLogViewModel>();
+            builder.Services.AddSingleton<IGmBestowService, GmBestowService>();
+            builder.Services.AddTransient<GmBestowViewModel>();
+            builder.Services.AddSingleton<IGmCharacterService, GmCharacterService>();
+            builder.Services.AddSingleton<IRemoteBestowService, RemoteBestowService>();
+            builder.Services.AddTransient<GmPlayersViewModel>();
+            builder.Services.AddTransient<GmViewerViewModel>();
+            builder.Services.AddTransient<GmMapViewModel>();
+            //PLAYER SIDE OF A GM SESSION
+            builder.Services.AddSingleton<IPlayerSession, PlayerSession>();
+            builder.Services.AddTransient<JoinSessionViewModel>();
+            builder.Services.AddTransient<JoinSessionPage>();
 
             //CUSTOM RACE BUILDER REGISTER
             builder.Services.AddTransient<Godrick_CustomRaceCreator>();

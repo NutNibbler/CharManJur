@@ -252,12 +252,24 @@ public class CharacterPersistenceService : ICharacterPersistenceService
         {
             string fullPath = Path.Combine(_saveDirectory, fileName);
 
-            if (File.Exists(fullPath))
+            if (!File.Exists(fullPath)) return false;
+
+            // Read the character's ID first: the scratch pad folder is named after it.
+            Guid characterGuid = (await LoadCharacterAsync(fileName))?.CharacterGuid ?? Guid.Empty;
+
+            File.Delete(fullPath);
+
+            // Only remove the scratch pad when no other save file still uses the same character ID.
+            if (characterGuid != Guid.Empty)
             {
-                File.Delete(fullPath);
-                return true;
+                var remaining = await GetAllSavedCharactersAsync();
+                if (!remaining.Any(c => c.CharacterGuid == characterGuid))
+                {
+                    ScratchPadStore.DeleteAllFor(characterGuid);
+                }
             }
-            return false;
+
+            return true;
         }
         catch (Exception ex)
         {

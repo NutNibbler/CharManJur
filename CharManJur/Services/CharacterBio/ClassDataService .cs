@@ -15,6 +15,7 @@ public class ClassDataService : IClassDataService
             CompatibleCampaigns = {"Godrick", "Sandbox"},
             LevelingSkillBonus = "1 Vigor, 1 Any",
             HitProtectionBonus = 3,
+            RecurringChoice = ClassChoice.Weapon,
             Features = new List<ClassFeature>
             {
                 new ClassFeature
@@ -83,10 +84,11 @@ public class ClassDataService : IClassDataService
         {
             Id = 2,
             ClassName = "Rogue",
-            RecurringBenefit = "When you attack from SURPRISE or from STEALTH, raise your weapon damage die.\r\nAquire 2 TRAINING POINTS.\r\n",
+            RecurringBenefit = "Aquire 2 TRAINING POINTS.\r\n",
             CompatibleCampaigns = {"Godrick", "Sandbox"},
             LevelingSkillBonus = "1 Agility, 1 Any",
             HitProtectionBonus = 2,
+            TrainingPointsPerSelection = 2,
             Features = new List<ClassFeature>
             {
                 new ClassFeature
@@ -155,6 +157,7 @@ public class ClassDataService : IClassDataService
             LevelingSkillBonus = "1 Mind, 1 Any",
             HitProtectionBonus = 1,
             FatigueBarBonus = 1,
+            RecurringChoice = ClassChoice.Quip,
             GrantsDicePool = DicePool.Magic,
             ClassUnlockableTypes = new List<SubFeatureType>
             {
@@ -244,6 +247,7 @@ public class ClassDataService : IClassDataService
             CompatibleCampaigns = {"Godrick", "Sandbox"},
             LevelingSkillBonus = "2 Mind",
             HitProtectionBonus = 1,
+            RecurringChoice = ClassChoice.Construct,
             ClassUnlockableTypes = new List<SubFeatureType>
             {
                 SubFeatureType.Blueprint  // Artificer always has access to Blueprints

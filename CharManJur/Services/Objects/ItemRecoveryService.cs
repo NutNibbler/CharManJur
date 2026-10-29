@@ -107,6 +107,7 @@ public class ItemRecoveryService : IItemRecoveryService
             CharacterId = source.CharacterId,
             Quantity = source.Quantity,
             RemainingUses = source.RemainingUses,
+            UsageDieSides = source.UsageDieSides,
             IsEquipped = false,
             IsIdentified = source.IsIdentified,
             CustomName = source.CustomName,

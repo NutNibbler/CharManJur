@@ -11,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CharManJur.ViewModels.Godrick_LiveGame;
 
-public class CharacterHomeViewModel : INotifyPropertyChanged
+public partial class CharacterHomeViewModel : INotifyPropertyChanged
 {
     private readonly ICharAttribDataService _charDataService;
     private readonly ICharacterPersistenceService _persistenceService;
@@ -55,6 +55,7 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
 
         // ===== INVENTORY INTERACTION COMMANDS =====
         InteractCommand = new Command(OnInteract);
+        ExpendSelectedCommand = new Command(OnExpendSelected);
         IncrementUsesCommand = new Command(OnIncrementUses);
         DecrementUsesCommand = new Command(OnDecrementUses);
         BestowCommand = new Command(OnBestow);
@@ -67,15 +68,14 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
         UnequipSelectedCommand = new Command(OnUnequipSelected);
         EquipSelectedAsArmorCommand = new Command(OnEquipSelectedAsArmor);
         OpenBioCommand = new Command(async () => await OnOpenBio());
-        OpenRestCommand = new Command(async () => await OnOpenRest());
+        OpenUpkeepCommand = new Command(async () => await OnOpenUpkeep());
         OpenRollDieCommand = new Command(async () => await OnOpenRollDie());
+        OpenEndOfCombatCommand = new Command(async () => await OnOpenEndOfCombat());
         OpenApplyDamageCommand = new Command(async () => await OnOpenApplyDamage());
         OpenApplyEffectCommand = new Command(async () => await OnOpenApplyEffect());
         RemoveEffectCommand = new Command<CharacterEffect>(OnRemoveEffect);
         TogglePackCommand = new Command(async () => await OnTogglePack());
         ExplainEncumbranceCommand = new Command(async () => await OnExplainEncumbrance());
-        PassDayCommand = new Command(async () => await OnPassDay());
-        DailyNeedsCommand = new Command(async () => await OnDailyNeeds());
         ExplainDeprivationCommand = new Command(async () => await DailyNeedsActions.ExplainDeprivationAsync(_charDataService));
     }
 
@@ -106,6 +106,13 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
     public bool HasLanguages => _charDataService.SelectedLanguages.Count > 0;
     public int CurrentHP => _charDataService.CurrentHitpoints;
     public int MaxHP => _charDataService.Hitpoints;
+    // While transformed, Hit Protection means nothing: damage hits Stability, and the form drops before HP is touched.
+    // The dashboard shows a Stability bar in its place.
+    public bool ShowStability => IsTransformedNow;
+    public bool ShowHitProtection => !IsTransformedNow;
+    public int CurrentStability => _charDataService.Transform is { IsTransformed: true } t ? (int)t.StabilityCurrent : 0;
+    public int MaxStability => _charDataService.Transform is { IsTransformed: true } t ? (int)t.StabilityMax : 0;
+    public Color StabilityMaxColor => Colors.White;
 
     // ===== CURRENCY =====
     // Total in chips, then each denomination owned (highest first). Icons are colored to match each coin's description.
@@ -238,11 +245,18 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
 
     public class WeaponDisplay
     {
+        public int ItemId { get; set; }                  // 0 for a transformed form's natural weapon
+        public bool CanRecordKill { get; set; }          // held in a hand (belted weapons can't make the killing blow)
         public string Name { get; set; } = string.Empty;
-        public string Summary { get; set; } = string.Empty;
-        public string EffectsText { get; set; } = string.Empty;
         public string Location { get; set; } = string.Empty;
-        public bool HasEffects => !string.IsNullOrEmpty(EffectsText);
+        public List<InfoChip> SummaryChips { get; set; } = new();   // weapon type, damage type, die, speed
+        public List<InfoChip> EffectChips { get; set; } = new();    // the weapon's effects and skills
+        public bool HasEffects => EffectChips.Count > 0;
+        // Damage information first, then the effects and skills, all on one row.
+        public IEnumerable<InfoChip> AllChips => SummaryChips.Concat(EffectChips);
+        public List<ChipLine> ChipLines => ChipLayout.Split(AllChips);
+        public string Summary => string.Join(" ", SummaryChips.Select(c => c.Text));
+        public string EffectsText => string.Join(", ", EffectChips.Select(c => c.Text));
     }
 
     private void UpdateEquippedWeapons()
@@ -259,19 +273,55 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
         foreach (var item in carried)
         {
             var t = item.Template!;
-            var parts = new List<string>();
-            if (t.WeaponCategory.HasValue) parts.Add(EnumDisplayHelper.GetName(t.WeaponCategory.Value));
-            if (t.WeaponDamage.HasValue) parts.Add(EnumDisplayHelper.GetName(t.WeaponDamage.Value));
-            if (t.WeaponSpeed.HasValue) parts.Add(EnumDisplayHelper.GetName(t.WeaponSpeed.Value));
+
+            var summary = new List<InfoChip>();
+            if (t.WeaponKind is WeaponType.Ranged or WeaponType.Thrown)
+                summary.Add(InfoChip.Plain(EnumDisplayHelper.GetName(t.WeaponKind.Value)));
+            if (t.DamageType.HasValue) summary.Add(DamageTypeChip(t.DamageType.Value));
+            if (t.WeaponDamage.HasValue) summary.Add(InfoChip.Plain(EnumDisplayHelper.GetName(t.WeaponDamage.Value)));
+            if (t.WeaponSpeed.HasValue) summary.Add(InfoChip.Plain(EnumDisplayHelper.GetName(t.WeaponSpeed.Value)));
+
+            var effects = (t.WeaponEffects ?? new List<WeaponEffectType>()).Select(e => EffectChip(t, e)).ToList();
+            foreach (var chip in effects) chip.IsEffect = true;
 
             EquippedWeapons.Add(new WeaponDisplay
             {
                 Name = item.DisplayName,
+                ItemId = item.Id,
+                CanRecordKill = item.EquipmentSlot == EquipmentSlotType.Hand && t.DamageType.HasValue,
                 Location = item.EquipmentSlot == EquipmentSlotType.Hand ? $"Hand {item.SlotIndex}" : $"Belt {item.SlotIndex}",
-                Summary = string.Join(" · ", parts),
-                EffectsText = t.WeaponEffects is { Count: > 0 }
-                    ? string.Join(", ", t.WeaponEffects.Select(e => EnumDisplayHelper.GetName(e)))
-                    : string.Empty
+                SummaryChips = summary,
+                EffectChips = effects
+            });
+        }
+
+        // Brawler: with a free hand, your fists are a weapon. One row, however many hands are free.
+        if (_charDataService.HasFeature(BrawlerFeatureId) && HasFreeHand())
+        {
+            const string shockRule = "Your fists are legally categorized as fast weapons with a damage die of 1D4 bludgeoning and shock 4. " +
+                                     "If the damage die becomes raised, shock increases to within the highest 2 digits of the die.";
+
+            EquippedWeapons.Add(new WeaponDisplay
+            {
+                Name = "Fists",
+                Location = "Brawler",
+                SummaryChips = new List<InfoChip>
+                {
+                    InfoChip.Tappable("Bludgeoning", "Bludgeoning damage", shockRule),
+                    InfoChip.Plain("D4"),
+                    InfoChip.Plain("Fast")
+                },
+                EffectChips = new List<InfoChip>
+                {
+                    new InfoChip
+                    {
+                        Text = "Shock 4",
+                        IsTappable = true,
+                        IsEffect = true,
+                        TapCommand = new Command(async () =>
+                            await Application.Current!.MainPage!.DisplayAlertAsync("Shock 4 (Brawler)", shockRule, "OK"))
+                    }
+                }
             });
         }
 
@@ -281,18 +331,70 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
             string where = string.IsNullOrWhiteSpace(form.Name) ? "Natural" : form.Name;
             foreach (var weapon in form.Weapons)
             {
+                string effectsText = LiveShifter.WeaponEffectsText(weapon);
                 EquippedWeapons.Add(new WeaponDisplay
                 {
                     Name = weapon.Name,
                     Location = where,
-                    Summary = LiveShifter.WeaponSummary(weapon),
-                    EffectsText = LiveShifter.WeaponEffectsText(weapon)
+                    SummaryChips = new List<InfoChip> { InfoChip.Plain(LiveShifter.WeaponSummary(weapon)) },
+                    EffectChips = string.IsNullOrEmpty(effectsText)
+                        ? new List<InfoChip>()
+                        : new List<InfoChip> { new InfoChip { Text = effectsText, IsEffect = true } }
                 });
             }
         }
 
         OnPropertyChanged(nameof(HasEquippedWeapons));
         OnPropertyChanged(nameof(HasNoEquippedWeapons));
+    }
+
+    private const int BrawlerFeatureId = 8;
+
+    // A hand is free when it holds nothing. A two-handed weapon fills its whole set.
+    private bool HasFreeHand()
+    {
+        foreach (var set in _charDataService.LimbSets)
+        {
+            if (set.IsOccupiedByTwoHandedItem) continue;
+            foreach (int index in set.SlotIndices)
+                if (_charDataService.GetEquippedHandSlot(index + 1) == null) return true;
+        }
+        return false;
+    }
+
+    // The damage type chip: tap for what it does and how far along the unlock is.
+    private InfoChip DamageTypeChip(WeaponDamageType type)
+    {
+        int required = WeaponProficiencyTracker.KillsRequired;
+        string name = EnumDisplayHelper.GetName(type);
+        string rule = EnumDisplayHelper.GetDescription(type) ?? string.Empty;
+        bool proficient = Proficiency.IsTypeProficient(type);
+
+        string status = proficient
+            ? "✅ You're proficient, so this effect applies to your attacks."
+            : $"🔒 Locked. You have {Proficiency.TypeKills(type)} / {required} kills with {name} weapons. " +
+                "It unlocks at 5 kills with that damage type, or with your starting choice.";
+
+        return InfoChip.Tappable((proficient ? "" : "🔒 ") + name, $"{name} damage", $"{rule}\n\n{status}");
+    }
+
+    // An effect chip: tap for what it does, and for a weapon skill, whether you can use it yet.
+    private InfoChip EffectChip(Item weapon, WeaponEffectType effect)
+    {
+        int required = WeaponProficiencyTracker.KillsRequired;
+        string name = EnumDisplayHelper.GetName(effect);
+        string description = EnumDisplayHelper.GetEffectDescription(effect);
+        bool isSkill = WeaponProficiencyTracker.NeedsWeaponSkill(effect);
+        bool usable = Proficiency.IsEffectUsable(weapon, effect);
+
+        string status = !isSkill
+            ? "This effect doesn't need weapon proficiency."
+            : usable
+                ? "✅ Unlocked. You have this weapon's skill proficiency."
+                : $"🔒 Locked. You have {Proficiency.WeaponKills(weapon)} / {required} kills with this weapon. " +
+                  "It unlocks at 5 kills with this specific weapon, or with a Warrior weapon pick.";
+
+        return InfoChip.Tappable((usable ? "" : "🔒 ") + name, name, $"{description}\n\n{status}");
     }
 
     // ===== FAMILIAR STRIP (equipment column) =====
@@ -413,7 +515,7 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
         set { _equippedBelt = value; OnPropertyChanged(); }
     }
 
-    public int FatigueBarUsed => _charDataService.FatigueCount;
+    public int FatigueBarUsed => _charDataService.FatigueTotal;
     public int FatigueBarMax => _charDataService.FatigueBarMax;
     public int FatigueInInventory => _charDataService.FatigueInInventory;
     public bool HasFatigueOverflow => FatigueInInventory > 0;
@@ -446,7 +548,6 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
 
     public int InventorySlotsTotal => _charDataService.InventorySlotsAvailable;
 
-    public string PackSlotsDisplay => $"{InventorySlotsUsed} / {InventorySlotsTotal}";
 
     // ===== DROP MODE =====
     public bool IsDropModeActive
@@ -594,37 +695,6 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
         }
     }
 
-    public ICommand EditValueCommand { get; }
-
-    private async void OnEditValue()
-    {
-        var item = GetSelectedCharacterItem();
-        if (item?.Template?.IsValueEditable != true) return;
-
-        var page = Application.Current!.MainPage!;
-        int currentMarks = CurrencyHelper.ValueEach(item) / CurrencyHelper.ChipsPerMark;
-
-        string? answer = await page.DisplayPromptAsync(
-            "Written Value",
-            $"Value written on this {item.DisplayName}, in Marks ({CurrencyHelper.MinNoteMarks} minimum):",
-            "Save", "Cancel", initialValue: currentMarks.ToString(), keyboard: Keyboard.Numeric);
-        if (answer == null) return;
-
-        if (!CurrencyHelper.TryParseNoteMarks(answer, out int chips))
-        {
-            await page.DisplayAlertAsync("Invalid Value",
-                $"Enter a whole number of Marks from {CurrencyHelper.MinNoteMarks} to {CurrencyHelper.MaxNoteMarks:N0}.", "OK");
-            return;
-        }
-
-        item.WrittenValueInChips = chips;
-        item.LastModified = DateTime.Now;
-        await _charDataService.SaveNowAsync();
-
-        RebuildSelectedItemDetails();
-        UpdateCurrencyDisplay();
-    }
-
     // Reloads the pack, then reselects the same record so the buttons show its new state.
     // A dropped item is gone, so nothing ends up selected.
     private async Task RefreshAfterSelectedItemChangeAsync(int itemId)
@@ -705,12 +775,10 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
             AddDetail("Value", t.IsValueEditable
                 ? $"{CurrencyHelper.ValueEach(item):N0} chips (written)"
                 : (t.ValueInChips.HasValue ? $"{t.ValueInChips} chips" : null));
-            AddDetail("Rarity", t.Rarity?.ToString());
             AddDetail("Stackable", t.IsStackableItem ? "Yes" : "No");
-            AddDetail("Stack limit", t.QtyLimit?.ToString());
-            AddDetail("Quantity", item.Quantity.ToString());
+            if (t.IsStackableItem) AddDetail("Stack limit", t.QtyLimit?.ToString());
             if (t.HasUses) AddDetail("Uses", $"{item.RemainingUses} / {t.Uses}");
-
+            if (item.HasUsageDie) AddDetail("Usage die", item.UsageDieLabel);
             if (t.IsWeapon) AddWeaponDetails(t);
             if (t.IsArmor)
             {
@@ -730,14 +798,44 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
 
     private void AddWeaponDetails(Item t)
     {
-        AddDetail("Weapon type", t.WeaponCategory.HasValue ? EnumDisplayHelper.GetName(t.WeaponCategory.Value) : null);
+        AddDetail("Weapon type", t.WeaponKind.HasValue ? EnumDisplayHelper.GetName(t.WeaponKind.Value) : null);
+        AddDetail("Damage type", t.DamageType.HasValue ? EnumDisplayHelper.GetName(t.DamageType.Value) : null);
         AddDetail("Damage", t.WeaponDamage.HasValue ? EnumDisplayHelper.GetName(t.WeaponDamage.Value) : null);
         AddDetail("Speed", t.WeaponSpeed.HasValue ? EnumDisplayHelper.GetName(t.WeaponSpeed.Value) : null);
 
+        int required = WeaponProficiencyTracker.KillsRequired;
+        var prof = Proficiency;
+
+        // The damage type's rule, locked until the type is proficient.
+        if (t.DamageType.HasValue)
+        {
+            var type = t.DamageType.Value;
+            string typeName = EnumDisplayHelper.GetName(type);
+            string rule = EnumDisplayHelper.GetDescription(type) ?? string.Empty;
+            bool typeOk = prof.IsTypeProficient(type);
+
+            AddDetail("Kills (" + typeName + ")", $"{prof.TypeKills(type)} / {required}");
+            SelectedItemEffectRows.Add(new ItemEffectRow(
+                (typeOk ? "" : "🔒 ") + typeName,
+                typeOk ? rule : $"Locked until you have {required} kills with {typeName} weapons. When unlocked: {rule}"));
+        }
+
+        // Skill effects (Bleed, Shock, Sweep...) need kills with this specific weapon.
+        bool weaponOk = prof.IsWeaponProficient(t);
+        if (t.WeaponEffects is { Count: > 0 } && t.WeaponEffects.Any(WeaponProficiencyTracker.NeedsWeaponSkill))
+            AddDetail("Kills (this weapon)", weaponOk && prof.WeaponKills(t) < required
+                ? "Unlocked (Warrior)"
+                : $"{prof.WeaponKills(t)} / {required}");
+
         foreach (var effect in t.WeaponEffects ?? new List<WeaponEffectType>())
         {
+            string name = EnumDisplayHelper.GetName(effect);
+            string description = EnumDisplayHelper.GetEffectDescription(effect);
+            bool usable = prof.IsEffectUsable(t, effect);
+
             SelectedItemEffectRows.Add(new ItemEffectRow(
-                EnumDisplayHelper.GetName(effect), EnumDisplayHelper.GetEffectDescription(effect)));
+                (usable ? "" : "🔒 ") + name,
+                usable ? description : $"Locked until you have {required} kills with this weapon. When unlocked: {description}"));
         }
     }
 
@@ -825,24 +923,22 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
     }
 
     // ===== COMMANDS =====
-    public ICommand NavigateToSpellsCommand { get; }
-    public ICommand NavigateToQuipsCommand { get; }
-    public ICommand NavigateToBlueprintsCommand { get; }
     public ICommand NavigateToFeaturesCommand { get; }
-    public ICommand NavigateToShopCommand { get; }
     public ICommand OpenOptionsCommand { get; }
     public ICommand InteractCommand { get; }
+    public ICommand ExpendSelectedCommand { get; }
     public ICommand IncrementUsesCommand { get; }
     public ICommand DecrementUsesCommand { get; }
     public ICommand BestowCommand { get; }
     public ICommand ToggleDropModeCommand { get; }
     public ICommand EditNoteCommand { get; }
     public ICommand OpenBioCommand { get; }
-    public ICommand OpenRestCommand { get; }
+    public ICommand OpenUpkeepCommand { get; }
     public ICommand OpenApplyDamageCommand { get; }
     public ICommand OpenApplyEffectCommand { get; }
     public ICommand RecoverItemCommand { get; }
     public ICommand OpenRollDieCommand { get; }
+    public ICommand OpenEndOfCombatCommand { get; }
 
     // ===== INTERACT COMMAND =====
     private async void OnInteract()
@@ -881,6 +977,50 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
             }, null);
             await Shell.Current.Navigation.PushModalAsync(flyout);
         }
+    }
+
+    // ===== EXPEND (destroyed for good: not recoverable, logged) =====
+    private async void OnExpendSelected()
+    {
+        var item = GetSelectedCharacterItem();
+        if (item == null) return;
+        var page = Application.Current!.MainPage!;
+
+        if (_charDataService.IsPackDropped && !item.IsEquipped)
+        {
+            await page.DisplayAlertAsync("Pack Dropped", "You can't expend items in your pack while it's dropped.", "OK");
+            return;
+        }
+        if (item.IsEquipped)
+        {
+            await page.DisplayAlertAsync("Equipped", "Unequip this item before expending it.", "OK");
+            return;
+        }
+
+        int quantity = 1;
+        if (item.Quantity > 1)
+        {
+            string? text = await page.DisplayPromptAsync("Expend",
+                $"How many {item.DisplayName} to expend? (1 to {item.Quantity})\nThis can't be undone.",
+                "Expend", "Cancel", initialValue: "1", keyboard: Keyboard.Numeric);
+            if (text == null) return;
+            if (!int.TryParse(text, out quantity) || quantity < 1 || quantity > item.Quantity)
+            {
+                await page.DisplayAlertAsync("Invalid Amount", $"Enter a number from 1 to {item.Quantity}.", "OK");
+                return;
+            }
+        }
+        else if (!await page.DisplayAlertAsync("Expend Item",
+                     $"Expend {item.DisplayName}? It will be gone for good and can't be recovered.", "Expend", "Cancel"))
+        {
+            return;
+        }
+
+        int id = item.Id;
+        _charDataService.ExpendInventoryItem(id, quantity);
+
+        await LoadCharacterDataAsync();
+        SelectedInventoryItem = InventoryItems.FirstOrDefault(i => i.Id == id);   // null when the whole record is gone
     }
 
     // ===== EDIT ITEM (personal note, plus the written value on a Note) =====
@@ -985,9 +1125,11 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
     // ===== BESTOW COMMAND =====
     private async void OnBestow()
     {
+        var before = InventoryTotals();   // what the pack held, so the toast can say what arrived
         var bestowPage = new BestowItemPage(_itemDataService, _charDataService, _actionLogService, async () =>
         {
             await LoadCharacterDataAsync();
+            AnnounceBestowed(before);
         });
         await Shell.Current.Navigation.PushModalAsync(bestowPage);
     }
@@ -1038,6 +1180,7 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
                 PlayerNote = characterItem.PlayerNote,
                 MaxUses = template?.Uses ?? 0,
                 RemainingUses = characterItem.RemainingUses,
+                UsageDieSides = characterItem.HasUsageDie ? characterItem.UsageDieSides : 0,
                 Rarity = template?.Rarity,
                 IsDropMode = IsDropModeActive,
                 IsStackable = template?.IsStackableItem ?? false,
@@ -1062,7 +1205,6 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
         UpdateCurrencyDisplay();
         OnPropertyChanged(nameof(InventorySlotsUsed));
         OnPropertyChanged(nameof(InventorySlotsTotal));
-        OnPropertyChanged(nameof(PackSlotsDisplay));
         OnPropertyChanged(nameof(IsEncumbered));
         OnPropertyChanged(nameof(IsPackDropped));
         OnPropertyChanged(nameof(CanAdjustSelectedUses));
@@ -1084,6 +1226,10 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(StatSpirit));
         OnPropertyChanged(nameof(CurrentHP));
         OnPropertyChanged(nameof(MaxHP));
+        OnPropertyChanged(nameof(ShowStability));
+        OnPropertyChanged(nameof(ShowHitProtection));
+        OnPropertyChanged(nameof(CurrentStability));
+        OnPropertyChanged(nameof(MaxStability));
         OnPropertyChanged(nameof(CurrentVigor));
         OnPropertyChanged(nameof(CurrentAgility));
         OnPropertyChanged(nameof(CurrentMind));
@@ -1097,6 +1243,11 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(NeedsMet));
         OnPropertyChanged(nameof(IsRested));
         OnPropertyChanged(nameof(IsDeprived));
+        OnPropertyChanged(nameof(HasBioAlert));
+        OnPropertyChanged(nameof(HasIncomingDamage));
+        OnPropertyChanged(nameof(HasIncomingEffect));
+        OnPropertyChanged(nameof(ApplyDamageButtonText));
+        OnPropertyChanged(nameof(ApplyEffectButtonText));
         OnPropertyChanged(nameof(ArmorRating));
         OnPropertyChanged(nameof(ArmorChevronsDisplay));
         OnPropertyChanged(nameof(MaxHPColor));
@@ -1118,6 +1269,7 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(IsSelectedEquippedInHand));
         OnPropertyChanged(nameof(IsSelectedEquippedOnBelt));
         OnPropertyChanged(nameof(IsSelectedEquippedAsArmor));
+        if (!IsViewer) _ = PromptStartingProficiencyAsync();   // the player's choice, never the GM's
 
         System.Diagnostics.Debug.WriteLine($"[PERF] LoadCharacterDataAsync: {perfWatch.ElapsedMilliseconds} ms");
         if (SelectedInventoryItem != null)
@@ -1155,6 +1307,9 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
 
         if (item.Template?.Uses != null && item.Template.Uses.Value > 0)
             details.Add($"Uses: {item.RemainingUses}/{item.Template.Uses}");
+
+        if (item.HasUsageDie)
+            details.Add($"Usage Die: {item.UsageDieLabel}");
 
         return details.Count > 0 ? string.Join(" | ", details) : "No additional details";
     }
@@ -1197,8 +1352,13 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
     // ===== OPTIONS (Preferences / Quit) =====
     private async Task OnOpenOptions()
     {
+        if (CloseViewerAction != null)   // in the GM's viewer this button is Close Viewer
+        {
+            CloseViewerAction();
+            return;
+        }
         const string preferences = "⚙️ Preferences";
-        const string quit = "🚪 Quit";
+        string quit = SessionMode.GmHosted ? "🚪 Leave Session" : "🚪 Quit";
 
         string? choice = await Application.Current!.MainPage!.DisplayActionSheetAsync(
             "Options", "Cancel", null, preferences, quit);
@@ -1218,9 +1378,13 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
     // ===== QUIT COMMAND =====
     private async Task OnQuit()
     {
+        bool inSession = SessionMode.GmHosted;
+
         bool confirm = await Application.Current.MainPage.DisplayAlertAsync(
             "Leave Session?",
-            "Your character will be saved and you'll return to the main menu. Any items you've dropped will NOT be recoverable after you leave.",
+            inSession
+                ? "Your character will be saved and you'll leave the GM's session. You can rejoin while it is open. Any items you've dropped will NOT be recoverable after you leave."
+                : "Your character will be saved and you'll return to the main menu. Any items you've dropped will NOT be recoverable after you leave.",
             "Yes, Leave",
             "Cancel");
 
@@ -1241,25 +1405,83 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
 
         await _usesLog.FlushAllAsync();   // write any pending uses entries before the session ends
         await FavourTracker.FlushAsync();
+
+        // In a GM's session: the GM gets a copy of the character as it was just saved, then we leave properly.
+        if (inSession)
+        {
+            var session = IPlatformApplication.Current!.Services.GetRequiredService<IPlayerSession>();
+
+            if (!await session.SendFinalCopyAsync())
+            {
+                bool leaveAnyway = await Application.Current.MainPage.DisplayAlertAsync(
+                    "GM Copy Not Confirmed",
+                    "Your character is saved on this device, but the GM couldn't confirm receiving a copy. " +
+                    "If you leave now, the GM keeps the copy from the last time one was received. Leave anyway?",
+                    "Leave Anyway",
+                    "Stay");
+                if (!leaveAnyway) return;
+            }
+
+            await session.LeaveAsync();
+        }
+
         await _charDataService.EndSessionAsync();   // ends the session: dropped items are gone for good
 
         await Shell.Current.GoToAsync("///MainPage");
     }
 
-    private async Task OnOpenRest()
+    private async Task OnOpenUpkeep()
     {
-        var popup = new RestPopup(_charDataService, async () =>
-        {
-            await LoadCharacterDataAsync();
-        });
-        await Application.Current!.MainPage!.Navigation.PushModalAsync(popup);
+        ModalOpening?.Invoke();   // keep an open panel in place
+        var page = new UpkeepPage(_charDataService, PassDayHandler, async () => await LoadCharacterDataAsync());
+        await Application.Current!.MainPage!.Navigation.PushModalAsync(page);
     }
 
     private async Task OnOpenBio()
     {
-        var popup = new BioPage(_charDataService);
+        ModalOpening?.Invoke();   // keep an open panel in place
+        var popup = new BioPage(_charDataService, Proficiency, _itemDataService, _actionLogService, async () => await LoadCharacterDataAsync());
         await Application.Current!.MainPage!.Navigation.PushModalAsync(popup);
     }
+
+    // The Bio button flashes for unspent training points, and (GM-hosted only) for a level the GM granted.
+    public bool HasBioAlert => _charDataService.UnspentTrainingPoints > 0
+                               || (SessionMode.GmHosted && _charDataService.PendingLevels > 0);
+
+    // ===== SENT BY THE GM =====
+    // Damage and effects the GM sent wait on the character until the player takes them on.
+    // The Apply Damage / Apply Effect buttons flash while anything is waiting.
+    public bool HasIncomingDamage => _charDataService.PendingDamage.Count > 0;
+    public bool HasIncomingEffect => _charDataService.PendingEffects.Count > 0;
+
+    public string ApplyDamageButtonText => _charDataService.PendingDamage.Count > 1
+        ? $"⚔️ Apply Damage ({_charDataService.PendingDamage.Count})"
+        : "⚔️ Apply Damage";
+
+    public string ApplyEffectButtonText => _charDataService.PendingEffects.Count > 1
+        ? $"✨ Apply Effect ({_charDataService.PendingEffects.Count})"
+        : "✨ Apply Effect";
+
+    // The GM's damage or effect just arrived over the network: make the Apply buttons notice it and start flashing.
+    public void RefreshIncoming() => MainThread.BeginInvokeOnMainThread(() =>
+    {
+        OnPropertyChanged(nameof(HasIncomingDamage));
+        OnPropertyChanged(nameof(HasIncomingEffect));
+        OnPropertyChanged(nameof(ApplyDamageButtonText));
+        OnPropertyChanged(nameof(ApplyEffectButtonText));
+    });
+
+    // ===== GM VIEWER =====
+    // Set when the GM opens this page to look at a player's character. The page then works on a read-only
+    // copy, and the Options button becomes Close Viewer.
+    public Action? CloseViewerAction { get; set; }
+    public bool IsViewer => CloseViewerAction != null;
+    public bool IsLiveCharacter => CloseViewerAction == null;
+    public string OptionsButtonText => IsViewer ? "✖ Close Viewer" : "⚙️ Options";
+    public IPlayerActionLogService ActionLog => _actionLogService;
+
+    // The page is going away: stop listening to anything that outlives it.
+    public void Detach() => CurrencyDisplaySettings.Changed -= UpdateCurrencyDisplay;
 
     // Raised just before a dashboard page opens, so the home page can keep an open panel (Crafting, Shop...) in place.
     public event Action? ModalOpening;
@@ -1271,15 +1493,28 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
         await Application.Current!.MainPage!.Navigation.PushModalAsync(popup);
     }
 
+    private async Task OnOpenEndOfCombat()
+    {
+        ModalOpening?.Invoke();
+        var popup = new EndOfCombatPopup(_charDataService, () => _ = LoadCharacterDataAsync());
+        await Application.Current!.MainPage!.Navigation.PushModalAsync(popup);
+    }
+
     private async Task OnOpenApplyDamage()
     {
-        var popup = new ApplyDamagePopup(_charDataService, async () => await LoadCharacterDataAsync());
+        // Damage the GM sent comes first: its details are locked and the player chooses how to respond.
+        var incoming = _charDataService.PendingDamage.FirstOrDefault();
+        var popup = new ApplyDamagePopup(_charDataService, async () => await LoadCharacterDataAsync(), incoming);
         await Application.Current!.MainPage!.Navigation.PushModalAsync(popup);
     }
 
     private async Task OnOpenApplyEffect()
     {
-        var popup = new ApplyEffectPopup(_charDataService, async () => await LoadCharacterDataAsync());
+        // An effect the GM sent comes first, locked: the player takes it on or ignores it.
+        var incoming = _charDataService.PendingEffects.FirstOrDefault();
+        var popup = incoming != null
+            ? new ApplyEffectPopup(_charDataService, async () => await LoadCharacterDataAsync(), incoming)
+            : new ApplyEffectPopup(_charDataService, async () => await LoadCharacterDataAsync());
         await Application.Current!.MainPage!.Navigation.PushModalAsync(popup);
     }
 
@@ -1366,7 +1601,9 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
         int available = _charDataService.InventorySlotsAvailable;
         int used = _charDataService.InventorySlotsUsed;
 
-        string capacity = $"Your pack holds 6 slots plus your Vigor modifier ({(vigor >= 0 ? "+" : "")}{vigor}) = {total}";
+        int packMule = total - 6 - vigor;
+        string capacity = $"Your pack holds 6 slots plus your Vigor modifier ({(vigor >= 0 ? "+" : "")}{vigor})" +
+                          (packMule > 0 ? $" plus {packMule} from Pack Mule" : "") + $" = {total}";
         if (fatigue > 0) capacity += $", minus {fatigue} taken up by fatigue overflow = {available}";
         capacity += ".";
 
@@ -1385,24 +1622,10 @@ public class CharacterHomeViewModel : INotifyPropertyChanged
     public bool IsRested => _charDataService.Rested;
     public bool IsDeprived => _charDataService.IsDeprived;
 
-    public ICommand PassDayCommand { get; }
-    public ICommand DailyNeedsCommand { get; }
     public ICommand ExplainDeprivationCommand { get; }
 
     // Set by the home page: runs LiveFeatures.PassDayAsync and refreshes the Features panel.
     public Func<Task<FeatureUseResult>>? PassDayHandler { get; set; }
-
-    private async Task OnPassDay()
-    {
-        if (await DailyNeedsActions.PassDayAsync(_charDataService, PassDayHandler))
-            await LoadCharacterDataAsync();
-    }
-
-    private async Task OnDailyNeeds()
-    {
-        if (await DailyNeedsActions.AffirmNeedsAsync(_charDataService))
-            await LoadCharacterDataAsync();
-    }
 
     // ===== INotifyPropertyChanged =====
     public event PropertyChangedEventHandler? PropertyChanged;

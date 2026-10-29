@@ -28,6 +28,7 @@ public class EventTrayRow
 // The filter decides whose events appear, so the future GM dashboard can reuse this with a different one.
 public class EventTrayViewModel : INotifyPropertyChanged
 {
+    
     private const int PageSize = 150;
 
     private readonly IPlayerActionLogService _log;
@@ -61,6 +62,9 @@ public class EventTrayViewModel : INotifyPropertyChanged
 
         _log.EntryLogged += OnEntryLogged;
     }
+
+    // For a page that is going away: stop listening to the shared log.
+    public void Detach() => _log.EntryLogged -= OnEntryLogged;
 
     // ===== LOADING =====
     public async Task OpenAsync()

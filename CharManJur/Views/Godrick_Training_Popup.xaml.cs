@@ -287,6 +287,7 @@ public partial class Godrick_Training_Popup : ContentPage
         await _viewModel.SaveCharacterAsync();
 
         _charDataService.MarkCharacterComplete();
+        _charDataService.MigrateCreationTrainingPoints();   // unspent points carry over into the live game
         _charDataService.CurrentPage = "CharacterComplete";
 
         string fileName = await _persistenceService.GenerateFileName(

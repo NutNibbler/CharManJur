@@ -12,7 +12,14 @@ public class CustomItemCreatorViewModel : INotifyPropertyChanged
 {
     private readonly IItemDataService _itemDataService;
     private readonly Action<Item>? _onItemCreated;
-    private readonly bool _isLiveGame;  // ← ADDED
+    private readonly bool _isLiveGame;
+
+    // In-game edits go through this gate before anything is changed: (original, proposed copy, what changed).
+    // Return true to apply the edit now, false if it was handled another way (sent to the GM for approval).
+    private readonly Func<Item, Item, IReadOnlyList<string>, Task<bool>>? _editGate;
+
+    // When set, the form opens pre-filled from this item but saves as a NEW custom item.
+    private readonly Item? _copySource;
 
     // === FORM FIELDS ===
     private string _name = string.Empty;
@@ -20,13 +27,17 @@ public class CustomItemCreatorViewModel : INotifyPropertyChanged
     private ItemCategory? _category;
     private ItemSize _size = ItemSize.Regular;
     private int? _valueInChips;
-    private int? _rarity = 1;
+    private int? _rarity = 0;
     private int? _qtyLimit;
     private bool _isStackable = true;
     private int? _uses;
+    private bool _hasUsageDie;
+    private int _usageDieSides = 8;
+    private bool _hybridUsage;
 
     // === WEAPON FIELDS ===
-    private WeaponCategoryType? _weaponCategory;
+    private WeaponType? _weaponKind;
+    private WeaponDamageType? _damageType;
     private WeaponDamageDie? _weaponDamage;
     private WeaponSpeedType? _weaponSpeed;
     private ObservableCollection<SelectableWeaponEffect> _weaponEffects = new();
@@ -91,11 +102,35 @@ public class CustomItemCreatorViewModel : INotifyPropertyChanged
         set { _uses = value; OnPropertyChanged(); }
     }
 
-    // === WEAPON PROPERTIES ===
-    public WeaponCategoryType? WeaponCategory
+    public bool HasUsageDie
     {
-        get => _weaponCategory;
-        set { _weaponCategory = value; OnPropertyChanged(); }
+        get => _hasUsageDie;
+        set { _hasUsageDie = value; OnPropertyChanged(); }
+    }
+
+    public int UsageDieSides
+    {
+        get => _usageDieSides;
+        set { _usageDieSides = value; OnPropertyChanged(); }
+    }
+
+    public bool HybridUsage
+    {
+        get => _hybridUsage;
+        set { _hybridUsage = value; OnPropertyChanged(); }
+    }
+
+    // === WEAPON PROPERTIES ===
+    public WeaponType? WeaponKind
+    {
+        get => _weaponKind;
+        set { _weaponKind = value; OnPropertyChanged(); }
+    }
+
+    public WeaponDamageType? DamageType
+    {
+        get => _damageType;
+        set { _damageType = value; OnPropertyChanged(); }
     }
 
     public WeaponDamageDie? WeaponDamage
@@ -123,6 +158,8 @@ public class CustomItemCreatorViewModel : INotifyPropertyChanged
         set { _armorType = value; OnPropertyChanged(); }
     }
 
+    public List<string> UsageDieLabels { get; } = UsageDie.Sizes.Select(UsageDie.Label).ToList();
+
     public int? ArmorValue
     {
         get => _armorValue;
@@ -132,8 +169,9 @@ public class CustomItemCreatorViewModel : INotifyPropertyChanged
     // === AVAILABLE ENUM LISTS ===
     public List<string> Categories { get; } = Enum.GetNames(typeof(ItemCategory)).ToList();
     public List<string> Sizes { get; } = Enum.GetNames(typeof(ItemSize)).ToList();
-    public List<string> RarityLevels { get; } = new List<string> { "1 - Common", "2 - Uncommon", "3 - Rare" };
-    public List<string> WeaponCategories { get; } = Enum.GetNames(typeof(WeaponCategoryType)).ToList();
+    public List<string> RarityLevels { get; } = new List<string> { "0 - None", "1 - Common", "2 - Uncommon", "3 - Rare" };
+    public List<string> WeaponKinds { get; } = Enum.GetNames(typeof(WeaponType)).ToList();
+    public List<string> DamageTypes { get; } = Enum.GetNames(typeof(WeaponDamageType)).ToList();
     public List<string> WeaponDamageDice { get; } = Enum.GetNames(typeof(WeaponDamageDie)).ToList();
     public List<string> WeaponSpeeds { get; } = Enum.GetNames(typeof(WeaponSpeedType)).ToList();
     public List<string> ArmorTypes { get; } = Enum.GetNames(typeof(ArmorType)).ToList();
@@ -142,48 +180,85 @@ public class CustomItemCreatorViewModel : INotifyPropertyChanged
     public ICommand CreateCommand { get; }
     public ICommand CancelCommand { get; }
 
-
     private Item? _itemBeingEdited;
     public bool IsEditMode => _itemBeingEdited != null;
+    public bool IsCopyMode => _copySource != null;
 
     public CustomItemCreatorViewModel(
-    IItemDataService itemDataService,
-    Action<Item>? onItemCreated = null,
-    bool isLiveGame = false,
-    Item? itemToEdit = null)
+        IItemDataService itemDataService,
+        Action<Item>? onItemCreated = null,
+        bool isLiveGame = false,
+        Item? itemToEdit = null,
+        Item? copyFrom = null,
+        Func<Item, Item, IReadOnlyList<string>, Task<bool>>? editGate = null)
     {
         _itemDataService = itemDataService;
         _onItemCreated = onItemCreated;
         _isLiveGame = isLiveGame;
         _itemBeingEdited = itemToEdit;
+        _copySource = itemToEdit == null ? copyFrom : null;
+        _editGate = editGate;
+
+        // Either editing an item or starting a new one from an existing item's information
+        var source = itemToEdit ?? _copySource;
 
         foreach (WeaponEffectType effect in Enum.GetValues(typeof(WeaponEffectType)))
         {
-            bool isSelected = itemToEdit?.WeaponEffects?.Contains(effect) ?? false;
+            bool isSelected = source?.WeaponEffects?.Contains(effect) ?? false;
             _weaponEffects.Add(new SelectableWeaponEffect { Effect = effect, IsSelected = isSelected });
         }
 
-        if (itemToEdit != null)
+        if (source != null)
         {
-            Name = itemToEdit.Name;
-            Description = itemToEdit.BaseDescription;
-            Category = itemToEdit.Category;
-            Size = itemToEdit.Size;
-            ValueInChips = itemToEdit.ValueInChips;
-            Rarity = itemToEdit.Rarity;
-            QtyLimit = itemToEdit.QtyLimit;
-            IsStackable = itemToEdit.IsStackable ?? true;
-            Uses = itemToEdit.Uses;
-            WeaponCategory = itemToEdit.WeaponCategory;
-            WeaponDamage = itemToEdit.WeaponDamage;
-            WeaponSpeed = itemToEdit.WeaponSpeed;
-            ArmorType = itemToEdit.ArmorType;
-            ArmorValue = itemToEdit.ArmorValue;
-            ContainerSlots = itemToEdit.ContainerSlots;
+            Name = source.Name;
+            Description = source.BaseDescription;
+            Category = source.Category;
+            Size = source.Size;
+            ValueInChips = source.ValueInChips;
+            Rarity = source.Rarity;
+            QtyLimit = source.QtyLimit;
+            IsStackable = source.IsStackable ?? true;
+            Uses = source.Uses;
+            WeaponKind = source.WeaponKind;
+            DamageType = source.DamageType;
+            WeaponDamage = source.WeaponDamage;
+            WeaponSpeed = source.WeaponSpeed;
+            ArmorType = source.ArmorType;
+            ArmorValue = source.ArmorValue;
+            ContainerSlots = source.ContainerSlots;
+            HasUsageDie = source.HasUsageDie;
+            UsageDieSides = source.DefaultUsageDieSides;
+            HybridUsage = source.HybridUsage;
         }
 
         CreateCommand = new Command(async () => await SaveItemAsync());
         CancelCommand = new Command(async () => await DismissAsync());
+    }
+
+    // Writes the form onto an item definition (the real item, or a copy used to preview the edit)
+    private void ApplyTo(Item target)
+    {
+        target.Name = Name;
+        target.BaseDescription = Description;
+        target.Category = Category;
+        target.Size = Size;
+        target.ValueInChips = ValueInChips;
+        target.Rarity = Rarity;
+        target.QtyLimit = QtyLimit;
+        target.IsStackable = IsStackable;
+        target.Uses = Uses;
+        target.WeaponKind = WeaponKind;
+        target.DamageType = DamageType;
+        target.WeaponDamage = WeaponDamage;
+        target.WeaponSpeed = WeaponSpeed;
+        target.WeaponEffects = WeaponEffects.Where(e => e.IsSelected).Select(e => e.Effect).ToList();
+        target.ArmorType = ArmorType;
+        target.ContainerSlots = ContainerSlots;
+        target.ArmorValue = ArmorValue;
+        target.HasUsageDie = HasUsageDie;
+        target.DefaultUsageDieSides = UsageDieSides;
+        target.HybridUsage = HybridUsage;
+        target.LastModified = DateTime.UtcNow;
     }
 
     private async Task SaveItemAsync()
@@ -200,28 +275,34 @@ public class CustomItemCreatorViewModel : INotifyPropertyChanged
 
             if (_itemBeingEdited != null)
             {
-                _itemBeingEdited.Name = Name;
-                _itemBeingEdited.BaseDescription = Description;
-                _itemBeingEdited.Category = Category;
-                _itemBeingEdited.Size = Size;
-                _itemBeingEdited.ValueInChips = ValueInChips;
-                _itemBeingEdited.Rarity = Rarity;
-                _itemBeingEdited.QtyLimit = QtyLimit;
-                _itemBeingEdited.IsStackable = IsStackable;
-                _itemBeingEdited.Uses = Uses;
-                _itemBeingEdited.WeaponCategory = WeaponCategory;
-                _itemBeingEdited.WeaponDamage = WeaponDamage;
-                _itemBeingEdited.WeaponSpeed = WeaponSpeed;
-                _itemBeingEdited.WeaponEffects = WeaponEffects.Where(e => e.IsSelected).Select(e => e.Effect).ToList();
-                _itemBeingEdited.ArmorType = ArmorType;
-                _itemBeingEdited.ContainerSlots = ContainerSlots;
-                _itemBeingEdited.ArmorValue = ArmorValue;
-                _itemBeingEdited.LastModified = DateTime.UtcNow;
+                // In-game edits are checked first: nothing is touched until the gate says go
+                if (_editGate != null)
+                {
+                    var proposed = ItemEditHelpers.Clone(_itemBeingEdited);
+                    ApplyTo(proposed);
+                    var changes = ItemEditHelpers.Describe(_itemBeingEdited, proposed);
 
+                    if (changes.Count == 0)
+                    {
+                        await DismissAsync();
+                        return;
+                    }
+
+                    bool applyNow = await _editGate(_itemBeingEdited, proposed, changes);
+                    if (!applyNow)
+                    {
+                        await DismissAsync();
+                        return;
+                    }
+                }
+
+                ApplyTo(_itemBeingEdited);
                 await _itemDataService.UpdateItemAsync(_itemBeingEdited);
                 savedItem = _itemBeingEdited;
 
-                await Application.Current.MainPage.DisplayAlertAsync("Saved!", $"'{savedItem.Name}' updated.", "OK");
+                // In-game edits confirm with a toast instead of an alert
+                if (_editGate == null)
+                    await Application.Current.MainPage.DisplayAlertAsync("Saved!", $"'{savedItem.Name}' updated.", "OK");
             }
             else
             {
@@ -236,12 +317,17 @@ public class CustomItemCreatorViewModel : INotifyPropertyChanged
                     QtyLimit = QtyLimit,
                     IsStackable = IsStackable,
                     Uses = Uses,
-                    WeaponCategory = WeaponCategory,
+                    WeaponKind = WeaponKind,
+                    DamageType = DamageType,
                     WeaponDamage = WeaponDamage,
                     WeaponSpeed = WeaponSpeed,
                     WeaponEffects = WeaponEffects.Where(e => e.IsSelected).Select(e => e.Effect).ToList(),
                     ArmorValue = ArmorValue,
                     ContainerSlots = ContainerSlots,
+                    ArmorType = ArmorType,
+                    HasUsageDie = HasUsageDie,
+                    UsageDieSides = UsageDieSides,
+                    HybridUsage = HybridUsage,
                     IsPlayerCreated = true
                 };
 

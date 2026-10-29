@@ -54,6 +54,7 @@
                 <!-- ===== PREFERENCES TAB ===== -->
                 <VerticalStackLayout x:Name="PreferencesSection" Spacing="15">
                     <views:CurrencyPreferenceView />
+                    <views:UiScaleSettingsView />
                 </VerticalStackLayout>
 
                 <!-- ===== THEME TAB (same view as Settings) ===== -->

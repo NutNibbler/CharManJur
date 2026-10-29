@@ -23,6 +23,8 @@ public class CharacterItem
     // === INSTANCE STATE ===
     public int Quantity { get; set; } = 1;
     public int RemainingUses { get; set; } = 0;
+    // Current usage die for this instance (4, 6, 8, 10, 12 or 20). 0 = the item has no usage die.
+    public int UsageDieSides { get; set; } = 0;
     public bool IsEquipped { get; set; } = false;
 
     // ===== BACKING FIELD FOR IsEmpty =====
@@ -84,8 +86,13 @@ public class CharacterItem
     public bool IsArmor => Template?.IsArmor == true;
     public bool IsWeapon => Template?.IsWeapon == true;
     public bool IsJewelry => Template?.IsJewelry == true;
+    public bool IsWorn => Template?.IsWorn == true;
     public bool IsShieldOrWeapon => IsShield || IsWeapon;
     public int SlotsRequired => Template?.SlotsRequired ?? 1;
+    [JsonIgnore]
+    public bool HasUsageDie => Template?.HasUsageDie == true && UsageDieSides > 0;
+    [JsonIgnore]
+    public string UsageDieLabel => HasUsageDie ? UsageDie.Label(UsageDieSides) : string.Empty;
 
     // ===== CHECK IF ITEM IS EMPTY =====
     public bool IsActuallyEmpty()

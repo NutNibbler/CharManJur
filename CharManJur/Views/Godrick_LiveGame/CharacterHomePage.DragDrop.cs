@@ -8,6 +8,15 @@ public partial class CharacterHomePage
 {
     private int? _draggedItemId;
 
+    private readonly HashSet<View> _highlighted = new();
+
+    // A drag can end without every DragLeave firing (nested drop targets), so highlights are cleared explicitly.
+    private void ClearAllHighlights()
+    {
+        foreach (var view in _highlighted.ToList()) view.Shadow = null;
+        _highlighted.Clear();
+    }
+
     // Called once from the constructor: wires up the targets defined in XAML.
     private void InitializeDragAndDrop()
     {
@@ -19,7 +28,8 @@ public partial class CharacterHomePage
         // Dropping an equipped item on the inventory panel returns it to the pack
         AttachDropTarget(InventoryBorder,
             item => EquipmentActionHelper.CanDropOnPack(item, _viewModel.CharDataService),
-            item => EquipmentActionHelper.DropOnPackAsync(item, _viewModel.CharDataService));
+            item => EquipmentActionHelper.DropOnPackAsync(item, _viewModel.CharDataService),
+            showInvalid: false);
     }
 
     // Used by GenerateLimbSetDisplay for each hand cell (or the merged two-handed cell).
@@ -65,7 +75,11 @@ public partial class CharacterHomePage
         BeginDrag(e, item);
     }
 
-    private void OnPackTileDropCompleted(object? sender, DropCompletedEventArgs e) => _draggedItemId = null;
+    private void OnPackTileDropCompleted(object? sender, DropCompletedEventArgs e)
+    {
+        _draggedItemId = null;
+        ClearAllHighlights();
+    }
 
     // ===== Pack tile drop target (hooked up in XAML via HandlerChanged) =====
     // Dropping a pack tile onto another tile of the same item merges the stacks, or swaps them
@@ -151,12 +165,14 @@ public partial class CharacterHomePage
     {
         // Items sitting in a dropped pack can't be picked up; jewelry has nowhere to go.
         if (item == null
-            || item.IsJewelry
+            || item.IsWorn
             || (_viewModel.IsPackDropped && !item.IsEquipped))
         {
             e.Cancel = true;
             return;
         }
+
+        ClearAllHighlights();   // a stuck highlight from an earlier drag never survives the next one
 
         _draggedItemId = item.Id;
         e.Data.Text = item.DisplayName;
@@ -172,14 +188,15 @@ public partial class CharacterHomePage
     {
         var drag = new DragGestureRecognizer { CanDrag = true };
         drag.DragStarting += (s, e) => BeginDrag(e, getItem());
-        drag.DropCompleted += (s, e) => _draggedItemId = null;
+        drag.DropCompleted += (s, e) => { _draggedItemId = null; ClearAllHighlights(); };
         border.GestureRecognizers.Add(drag);
     }
 
     private void AttachDropTarget(
         View border,
         Func<CharacterItem, bool> isValid,
-        Func<CharacterItem, Task<bool>> execute)
+        Func<CharacterItem, Task<bool>> execute,
+        bool showInvalid = true)
     {
         var drop = new DropGestureRecognizer { AllowDrop = true };
 
@@ -189,7 +206,7 @@ public partial class CharacterHomePage
             e.AcceptedOperation = DataPackageOperation.Copy;
             var item = GetDraggedItem();
             bool valid = item != null && isValid(item);
-            SetDropHighlight(border, valid ? Colors.Gold : Colors.IndianRed);
+            SetDropHighlight(border, valid ? Colors.Gold : (showInvalid ? Colors.IndianRed : null));
         };
 
         drop.DragLeave += (s, e) => SetDropHighlight(border, null);
@@ -211,17 +228,23 @@ public partial class CharacterHomePage
         border.GestureRecognizers.Add(drop);
     }
 
-    private static void SetDropHighlight(View border, Color? color)
+    private void SetDropHighlight(View border, Color? color)
     {
-        border.Shadow = color == null
-            ? null
-            : new Shadow
-            {
-                Brush = color,
-                Radius = 12,
-                Opacity = 0.9f,
-                Offset = new Point(0, 0)
-            };
+        if (color == null)
+        {
+            border.Shadow = null;
+            _highlighted.Remove(border);
+            return;
+        }
+
+        border.Shadow = new Shadow
+        {
+            Brush = color,
+            Radius = 12,
+            Opacity = 0.9f,
+            Offset = new Point(0, 0)
+        };
+        _highlighted.Add(border);
     }
 
     private async Task RefreshAfterDropAsync()

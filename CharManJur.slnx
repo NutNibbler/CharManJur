@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="CharManJur.Tests/CharManJur.Tests.csproj" Id="5e22408b-93c3-46e6-acbb-875f39df01f6" />
   <Project Path="CharManJur/CharManJur.csproj">
     <Deploy Solution="Debug|*" />
   </Project>

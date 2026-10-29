@@ -105,6 +105,7 @@ public static class ItemRecordTransfer
                 Template = source.Template,
                 Quantity = chunk,
                 RemainingUses = uses,
+                UsageDieSides = source.UsageDieSides,
                 IsEmpty = fullUses > 0 && uses <= 0,
                 IsIdentified = source.IsIdentified,
                 CustomName = source.CustomName,

@@ -1,0 +1,491 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.GmPlayersPanelView">
+
+    <Grid ColumnDefinitions="0.9*, 1.9*" ColumnSpacing="12">
+
+        <!-- ===== LEFT: the session, asset policy, password and the network ===== -->
+        <ScrollView Grid.Column="0">
+            <VerticalStackLayout Spacing="12">
+
+                <skin:SkinPanel StrokeColor="{DynamicResource ThemeSectionBorderColor}"
+                                StrokeThickness="1"
+                                CornerRadius="8"
+                                ContentPadding="10">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="🚪 Session"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="{DynamicResource ThemeWarningButtonColor}" />
+                        <Label Text="{Binding SessionStateText}"
+                               FontSize="13"
+                               FontAttributes="Bold"
+                               LineBreakMode="WordWrap" />
+
+                        <skin:SkinHost SkinKey="confirm"
+                                       FallbackColor="{DynamicResource ThemeConfirmButtonColor}">
+                            <skin:SkinHost.Triggers>
+                                <DataTrigger TargetType="skin:SkinHost" Binding="{Binding IsSessionOpen}" Value="True">
+                                    <Setter Property="SkinKey" Value="danger" />
+                                    <Setter Property="FallbackColor" Value="{DynamicResource ThemeDangerButtonColor}" />
+                                </DataTrigger>
+                            </skin:SkinHost.Triggers>
+                            <Button Text="{Binding SessionButtonText}"
+                                    TextColor="White"
+                                    CornerRadius="8"
+                                    HeightRequest="40"
+                                    Padding="12,0"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    Command="{Binding ToggleSessionCommand}" />
+                        </skin:SkinHost>
+
+                        <Label Text="{Binding SessionHint}"
+                               FontSize="11"
+                               TextColor="Gray"
+                               LineBreakMode="WordWrap" />
+
+                        <BoxView HeightRequest="1" Color="{DynamicResource ThemeDetailBorderColor2}" />
+
+                        <Label Text="Custom assets players bring"
+                               FontSize="12"
+                               FontAttributes="Bold" />
+                        <Picker ItemsSource="{Binding PolicyLabels}"
+                                SelectedIndex="{Binding PolicyIndex, Mode=TwoWay}"
+                                FontSize="12"
+                                BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+                        <Label Text="{Binding PolicyDescription}"
+                               FontSize="11"
+                               TextColor="Gray"
+                               LineBreakMode="WordWrap" />
+                        <Label Text="Changing this only affects players as they join. Players already connected can rejoin to adopt it."
+                               FontSize="10"
+                               TextColor="Gray"
+                               LineBreakMode="WordWrap" />
+                    </VerticalStackLayout>
+                </skin:SkinPanel>
+
+                <skin:SkinPanel StrokeColor="{DynamicResource ThemeSectionBorderColor}"
+                                StrokeThickness="1"
+                                CornerRadius="8"
+                                ContentPadding="10">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="🔑 Session password"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="{DynamicResource ThemeWarningButtonColor}" />
+                        <Label Text="Optional. Only a scrambled copy is kept with the campaign."
+                               FontSize="11"
+                               TextColor="Gray"
+                               LineBreakMode="WordWrap" />
+                        <Label Text="{Binding PasswordStatus}"
+                               FontSize="12"
+                               FontAttributes="Bold"
+                               LineBreakMode="WordWrap" />
+
+                        <Entry Text="{Binding NewPassword, Mode=TwoWay}"
+                               IsPassword="True"
+                               Placeholder="New password"
+                               PlaceholderColor="Gray"
+                               BackgroundColor="{DynamicResource ThemePanelBackgroundColor}" />
+
+                        <Label Text="{Binding PasswordError}"
+                               FontSize="12"
+                               TextColor="{DynamicResource ThemeDangerButtonColor}"
+                               IsVisible="{Binding HasPasswordError}" />
+
+                        <skin:SkinHost SkinKey="confirm"
+                                       FallbackColor="{DynamicResource ThemeConfirmButtonColor}">
+                            <Button Text="Set Password"
+                                    TextColor="White"
+                                    CornerRadius="6"
+                                    HeightRequest="34"
+                                    Padding="12,0"
+                                    FontSize="12"
+                                    IsEnabled="{Binding CanSetPassword}"
+                                    Command="{Binding SetPasswordCommand}" />
+                        </skin:SkinHost>
+
+                        <skin:SkinHost SkinKey="danger"
+                                       FallbackColor="{DynamicResource ThemeDangerButtonColor}"
+                                       IsVisible="{Binding HasPassword}">
+                            <Button Text="Remove Password"
+                                    TextColor="White"
+                                    CornerRadius="6"
+                                    HeightRequest="34"
+                                    Padding="12,0"
+                                    FontSize="12"
+                                    IsVisible="{Binding HasPassword}"
+                                    Command="{Binding RemovePasswordCommand}" />
+                        </skin:SkinHost>
+
+                        <Label Text="A new or changed password applies the next time the session is opened."
+                               FontSize="10"
+                               TextColor="Gray"
+                               LineBreakMode="WordWrap" />
+                    </VerticalStackLayout>
+                </skin:SkinPanel>
+
+                <skin:SkinPanel StrokeColor="{DynamicResource ThemeSectionBorderColor}"
+                                StrokeThickness="1"
+                                CornerRadius="8"
+                                ContentPadding="10">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="🌐 Network"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="{DynamicResource ThemeWarningButtonColor}" />
+
+                        <Grid ColumnDefinitions="*, Auto" ColumnSpacing="8">
+                            <Label Grid.Column="0"
+                                   Text="Let players on my network join"
+                                   FontSize="12"
+                                   FontAttributes="Bold"
+                                   LineBreakMode="WordWrap"
+                                   VerticalOptions="Center" />
+                            <Switch Grid.Column="1"
+                                    IsToggled="{Binding NetworkEnabled, Mode=TwoWay}"
+                                    VerticalOptions="Center" />
+                        </Grid>
+
+                        <Label Text="{Binding NetworkHint}"
+                               FontSize="11"
+                               TextColor="Gray"
+                               LineBreakMode="WordWrap"
+                               IsVisible="{Binding HasNetwork, Converter={StaticResource InvertedBoolConverter}}" />
+
+                        <VerticalStackLayout Spacing="6" IsVisible="{Binding HasNetwork}">
+                            <Label Text="Invite code"
+                                   FontSize="11"
+                                   TextColor="Gray" />
+                            <Label Text="{Binding InviteCode}"
+                                   FontSize="22"
+                                   FontAttributes="Bold"
+                                   LineBreakMode="WordWrap" />
+
+                            <skin:SkinHost SkinKey="neutral"
+                                           FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
+                                           HorizontalOptions="Start">
+                                <Button Text="📋 Copy Code"
+                                        TextColor="White"
+                                        CornerRadius="6"
+                                        HeightRequest="34"
+                                        Padding="12,0"
+                                        FontSize="12"
+                                        Command="{Binding CopyInviteCommand}" />
+                            </skin:SkinHost>
+
+                            <Label Text="Or type one of these addresses:"
+                                   FontSize="11"
+                                   TextColor="Gray" />
+                            <Label Text="{Binding AddressesText}"
+                                   FontSize="12"
+                                   FontAttributes="Bold"
+                                   LineBreakMode="WordWrap" />
+
+                            <Label Text="{Binding NetworkSummary}"
+                                   FontSize="11"
+                                   TextColor="Gray"
+                                   LineBreakMode="WordWrap" />
+                            <Label Text="{Binding FirewallHint}"
+                                   FontSize="10"
+                                   TextColor="Gray"
+                                   LineBreakMode="WordWrap" />
+                        </VerticalStackLayout>
+
+                        <Label Text="{Binding NetworkProblem}"
+                               FontSize="12"
+                               TextColor="{DynamicResource ThemeDangerButtonColor}"
+                               LineBreakMode="WordWrap"
+                               IsVisible="{Binding HasNetworkProblem}" />
+                    </VerticalStackLayout>
+                </skin:SkinPanel>
+
+                <skin:SkinPanel StrokeColor="{DynamicResource ThemeSectionBorderColor}"
+                                StrokeThickness="1"
+                                CornerRadius="8"
+                                ContentPadding="10">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="🧪 Network Lab"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="{DynamicResource ThemeWarningButtonColor}" />
+                        <Label Text="Developer tools: try joins, kicks, dropped links and reconnects on this one device."
+                               FontSize="11"
+                               TextColor="Gray"
+                               LineBreakMode="WordWrap" />
+                        <skin:SkinHost SkinKey="neutral"
+                                       FallbackColor="{DynamicResource ThemeNeutralButtonColor}"
+                                       HorizontalOptions="Start">
+                            <Button Text="Open Network Lab"
+                                    TextColor="White"
+                                    CornerRadius="6"
+                                    HeightRequest="34"
+                                    Padding="12,0"
+                                    FontSize="12"
+                                    Command="{Binding OpenNetworkLabCommand}" />
+                        </skin:SkinHost>
+                    </VerticalStackLayout>
+                </skin:SkinPanel>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- ===== RIGHT: connected players ===== -->
+        <Grid Grid.Column="1" RowDefinitions="Auto, *" RowSpacing="8">
+            <Label Grid.Row="0"
+                   Text="Connected players"
+                   FontSize="14"
+                   FontAttributes="Bold"
+                   TextColor="{DynamicResource ThemeWarningButtonColor}" />
+
+            <ScrollView Grid.Row="1">
+                <VerticalStackLayout Spacing="8">
+
+                    <Label Text="No players are connected. Open the session, then add test players on the dashboard (or use the Network Lab)."
+                           FontSize="12"
+                           TextColor="Gray"
+                           LineBreakMode="WordWrap"
+                           IsVisible="{Binding HasNoPlayers}" />
+
+                    <!-- Players who joined over the network -->
+                    <Label Text="🌐 On the network"
+                           FontSize="12"
+                           FontAttributes="Bold"
+                           IsVisible="{Binding HasRemotePlayers}" />
+
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding RemotePlayers}" Spacing="8">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate>
+                                <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                        StrokeThickness="0.5"
+                                        StrokeShape="RoundRectangle 6"
+                                        BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}"
+                                        Padding="10">
+                                    <VerticalStackLayout Spacing="6">
+                                        <Grid ColumnDefinitions="*, Auto" ColumnSpacing="8">
+                                            <Label Grid.Column="0" Text="{Binding Title}" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                                            <Label Grid.Column="1" Text="{Binding StatusText}" FontSize="11" FontAttributes="Bold" VerticalOptions="Center" />
+                                        </Grid>
+
+                                        <Label Text="⚠️ Connection lost. They keep their place and can rejoin. GM actions are paused until they are back."
+                                               FontSize="11"
+                                               FontAttributes="Bold"
+                                               TextColor="{DynamicResource ThemeDangerButtonColor}"
+                                               LineBreakMode="WordWrap"
+                                               IsVisible="{Binding IsDisconnected}" />
+
+                                        <Label Text="Waiting for their stats…"
+                                               FontSize="11"
+                                               TextColor="Gray"
+                                               IsVisible="{Binding HasNoChips}" />
+
+                                        <Label Text="{Binding WaitingText}"
+                                               FontSize="11"
+                                               FontAttributes="Bold"
+                                               TextColor="{DynamicResource ThemeWarningButtonColor}"
+                                               IsVisible="{Binding HasWaiting}" />
+
+                                        <FlexLayout BindableLayout.ItemsSource="{Binding Chips}" Wrap="Wrap" Direction="Row">
+                                            <FlexLayout.Triggers>
+                                                <DataTrigger TargetType="FlexLayout" Binding="{Binding IsDisconnected}" Value="True">
+                                                    <Setter Property="Opacity" Value="0.5" />
+                                                </DataTrigger>
+                                            </FlexLayout.Triggers>
+                                            <BindableLayout.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                                            StrokeThickness="1"
+                                                            StrokeShape="RoundRectangle 10"
+                                                            BackgroundColor="{DynamicResource ThemePanelBackgroundColor}"
+                                                            Padding="8,2"
+                                                            Margin="0,0,5,5">
+                                                        <Border.Triggers>
+                                                            <DataTrigger TargetType="Border" Binding="{Binding IsReduced}" Value="True">
+                                                                <Setter Property="Stroke" Value="{DynamicResource ThemeWarningButtonColor}" />
+                                                                <Setter Property="StrokeThickness" Value="2" />
+                                                            </DataTrigger>
+                                                            <DataTrigger TargetType="Border" Binding="{Binding IsCritical}" Value="True">
+                                                                <Setter Property="Stroke" Value="{DynamicResource ThemeDangerButtonColor}" />
+                                                                <Setter Property="StrokeThickness" Value="2" />
+                                                            </DataTrigger>
+                                                        </Border.Triggers>
+                                                        <HorizontalStackLayout Spacing="4">
+                                                            <Label Text="{Binding Label}" FontSize="10" TextColor="Gray" VerticalOptions="Center" />
+                                                            <Label Text="{Binding Value}" FontSize="12" FontAttributes="Bold" VerticalOptions="Center" />
+                                                        </HorizontalStackLayout>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </BindableLayout.ItemTemplate>
+                                        </FlexLayout>
+
+                                        <Label Text="Bestowing sub-features and scratch pages for network players arrives with the next networking step."
+                                               FontSize="10"
+                                               TextColor="Gray"
+                                               LineBreakMode="WordWrap" />
+
+                                        <FlexLayout Wrap="Wrap" Direction="Row">
+                                            <skin:SkinHost SkinKey="danger"
+                                                           FallbackColor="{DynamicResource ThemeDangerButtonColor}"
+                                                           Margin="0,0,6,6">
+                                                <Button Text="🥾 Kick" TextColor="White" CornerRadius="6" HeightRequest="32"
+                                                        Padding="10,0" FontSize="11" Clicked="OnKickRemoteClicked" />
+                                            </skin:SkinHost>
+
+                                            <skin:SkinHost SkinKey="danger"
+                                                           FallbackColor="{DynamicResource ThemeDangerButtonColor}"
+                                                           Margin="0,0,6,6">
+                                                <Button Text="⚔️ Send Damage" TextColor="White" CornerRadius="6" HeightRequest="32"
+                                                        Padding="10,0" FontSize="11" IsEnabled="{Binding IsConnected}"
+                                                        Clicked="OnSendDamageRemoteClicked" />
+                                            </skin:SkinHost>
+
+                                            <skin:SkinHost SkinKey="summary"
+                                                           FallbackColor="{DynamicResource ThemeSummaryButtonColor}"
+                                                           Margin="0,0,6,6">
+                                                <Button Text="✨ Send Effect" TextColor="White" CornerRadius="6" HeightRequest="32"
+                                                        Padding="10,0" FontSize="11" IsEnabled="{Binding IsConnected}"
+                                                        Clicked="OnSendEffectRemoteClicked" />
+                                            </skin:SkinHost>
+                                            <skin:SkinHost SkinKey="generic"
+                                                           FallbackColor="#2ecc71"
+                                                           Margin="0,0,6,6">
+                                                <Button Text="📦 Bestow Item" TextColor="White" CornerRadius="6" HeightRequest="32"
+                                                        Padding="10,0" FontSize="11" IsEnabled="{Binding IsConnected}"
+                                                        Clicked="OnBestowItemRemoteClicked" />
+                                            </skin:SkinHost>
+
+                                            <skin:SkinHost SkinKey="generic"
+                                                           FallbackColor="#d35400"
+                                                           Margin="0,0,6,6">
+                                                <Button Text="🐾 Bestow Familiar" TextColor="White" CornerRadius="6" HeightRequest="32"
+                                                        Padding="10,0" FontSize="11" IsEnabled="{Binding IsConnected}"
+                                                        Clicked="OnBestowFamiliarRemoteClicked" />
+                                            </skin:SkinHost>
+                                        </FlexLayout>
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+
+                    <!-- Test players inside this app -->
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Players}" Spacing="8">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate>
+                                <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                        StrokeThickness="0.5"
+                                        StrokeShape="RoundRectangle 6"
+                                        BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}"
+                                        Padding="10">
+                                    <VerticalStackLayout Spacing="6">
+                                        <VerticalStackLayout Spacing="4">
+                                            <Grid ColumnDefinitions="*, Auto" ColumnSpacing="8">
+                                                <Label Grid.Column="0" Text="{Binding Title}" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                                                <Label Grid.Column="1"
+                                                       Text="{Binding WaitingText}"
+                                                       FontSize="11"
+                                                       FontAttributes="Bold"
+                                                       TextColor="{DynamicResource ThemeWarningButtonColor}"
+                                                       VerticalOptions="Center"
+                                                       IsVisible="{Binding HasWaiting}" />
+                                            </Grid>
+
+                                            <Label Text="⚠️ Connection lost. They keep their place and can rejoin. GM actions are paused until they are back."
+                                                   FontSize="11"
+                                                   FontAttributes="Bold"
+                                                   TextColor="{DynamicResource ThemeDangerButtonColor}"
+                                                   LineBreakMode="WordWrap"
+                                                   IsVisible="{Binding IsDisconnected}" />
+
+                                            <FlexLayout BindableLayout.ItemsSource="{Binding Chips}" Wrap="Wrap" Direction="Row">
+                                                <BindableLayout.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                                                StrokeThickness="1"
+                                                                StrokeShape="RoundRectangle 10"
+                                                                BackgroundColor="{DynamicResource ThemePanelBackgroundColor}"
+                                                                Padding="8,2"
+                                                                Margin="0,0,5,5">
+                                                            <Border.Triggers>
+                                                                <DataTrigger TargetType="Border" Binding="{Binding IsReduced}" Value="True">
+                                                                    <Setter Property="Stroke" Value="{DynamicResource ThemeWarningButtonColor}" />
+                                                                    <Setter Property="StrokeThickness" Value="2" />
+                                                                </DataTrigger>
+                                                                <DataTrigger TargetType="Border" Binding="{Binding IsCritical}" Value="True">
+                                                                    <Setter Property="Stroke" Value="{DynamicResource ThemeDangerButtonColor}" />
+                                                                    <Setter Property="StrokeThickness" Value="2" />
+                                                                </DataTrigger>
+                                                            </Border.Triggers>
+                                                            <HorizontalStackLayout Spacing="4">
+                                                                <Label Text="{Binding Label}" FontSize="10" TextColor="Gray" VerticalOptions="Center" />
+                                                                <Label Text="{Binding Value}" FontSize="12" FontAttributes="Bold" VerticalOptions="Center" />
+                                                            </HorizontalStackLayout>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </BindableLayout.ItemTemplate>
+                                            </FlexLayout>
+                                        </VerticalStackLayout>
+
+                                        <FlexLayout Wrap="Wrap" Direction="Row">
+                                            <skin:SkinHost SkinKey="danger"
+                                                           FallbackColor="{DynamicResource ThemeDangerButtonColor}"
+                                                           Margin="0,0,6,6">
+                                                <Button Text="🥾 Kick" TextColor="White" CornerRadius="6" HeightRequest="32"
+                                                        Padding="10,0" FontSize="11" Clicked="OnKickClicked" />
+                                            </skin:SkinHost>
+
+                                            <skin:SkinHost SkinKey="danger"
+                                                           FallbackColor="{DynamicResource ThemeDangerButtonColor}"
+                                                           Margin="0,0,6,6">
+                                                <Button Text="⚔️ Send Damage" TextColor="White" CornerRadius="6" HeightRequest="32"
+                                                        Padding="10,0" FontSize="11" IsEnabled="{Binding IsConnected}" Clicked="OnApplyDamageClicked" />
+                                            </skin:SkinHost>
+
+                                            <skin:SkinHost SkinKey="summary"
+                                                           FallbackColor="{DynamicResource ThemeSummaryButtonColor}"
+                                                           Margin="0,0,6,6">
+                                                <Button Text="✨ Send Effect" TextColor="White" CornerRadius="6" HeightRequest="32"
+                                                        Padding="10,0" FontSize="11" IsEnabled="{Binding IsConnected}" Clicked="OnApplyEffectClicked" />
+                                            </skin:SkinHost>
+
+                                            <skin:SkinHost SkinKey="generic"
+                                                           FallbackColor="#2ecc71"
+                                                           Margin="0,0,6,6">
+                                                <Button Text="📦 Bestow Item" TextColor="White" CornerRadius="6" HeightRequest="32"
+                                                        Padding="10,0" FontSize="11" IsEnabled="{Binding IsConnected}" Clicked="OnBestowItemClicked" />
+                                            </skin:SkinHost>
+
+                                            <skin:SkinHost SkinKey="generic"
+                                                           FallbackColor="#d35400"
+                                                           Margin="0,0,6,6">
+                                                <Button Text="🐾 Bestow Familiar" TextColor="White" CornerRadius="6" HeightRequest="32"
+                                                        Padding="10,0" FontSize="11" IsEnabled="{Binding IsConnected}" Clicked="OnBestowFamiliarClicked" />
+                                            </skin:SkinHost>
+
+                                            <skin:SkinHost SkinKey="generic"
+                                                           FallbackColor="#8e44ad"
+                                                           Margin="0,0,6,6">
+                                                <Button Text="📜 Bestow Sub-Feature" TextColor="White" CornerRadius="6" HeightRequest="32"
+                                                        Padding="10,0" FontSize="11" IsEnabled="{Binding IsConnected}" Clicked="OnBestowSubFeatureClicked" />
+                                            </skin:SkinHost>
+
+                                            <skin:SkinHost SkinKey="generic"
+                                                           FallbackColor="#16a085"
+                                                           Margin="0,0,6,6">
+                                                <Button Text="📝 Bestow Scratch Page" TextColor="White" CornerRadius="6" HeightRequest="32"
+                                                        Padding="10,0" FontSize="11" IsEnabled="{Binding IsConnected}" Clicked="OnBestowScratchPageClicked" />
+                                            </skin:SkinHost>
+                                        </FlexLayout>
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </ScrollView>
+        </Grid>
+    </Grid>
+</ContentView>

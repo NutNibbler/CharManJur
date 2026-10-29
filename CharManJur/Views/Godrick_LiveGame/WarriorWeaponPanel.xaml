@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skin="clr-namespace:CharManJur.Controls"
+             x:Class="CharManJur.Views.WarriorWeaponPanel">
+
+    <!-- Sits inside the class selection screen while Warrior is selected. Binds to ClassSelectionViewModel. -->
+    <skin:SkinPanel StrokeColor="{DynamicResource ThemeWarningButtonColor}"
+                    StrokeThickness="1"
+                    CornerRadius="8"
+                    ContentPadding="16">
+        <VerticalStackLayout Spacing="6">
+
+            <Label Text="⚔️ Warrior: choose your additional weapon"
+                   FontSize="14"
+                   FontAttributes="Bold"
+                   TextColor="{DynamicResource ThemeWarningButtonColor}" />
+            <Label Text="You gain that weapon's skill proficiency. Its skills (Bleed, Shock, Sweep...) work without 5 kills. The weapon is not added to your pack, and damage type proficiency is unchanged."
+                   FontSize="11"
+                   TextColor="Gray"
+                   LineBreakMode="WordWrap" />
+
+            <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 6"
+                    BackgroundColor="{DynamicResource ThemePanelHeaderBackgroundColor}">
+                <Entry Text="{Binding PickerSearch, Mode=TwoWay}"
+                       Placeholder="Search by name, damage type or effect"
+                       PlaceholderColor="Gray"
+                       FontSize="12"
+                       BackgroundColor="Transparent" />
+            </Border>
+
+            <!-- A small box that scrolls on its own -->
+            <Grid HeightRequest="220">
+                <CollectionView ItemsSource="{Binding PickerWeapons}"
+                                SelectedItem="{Binding SelectedPickerWeapon, Mode=TwoWay}"
+                                SelectionMode="Single">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Stroke="{DynamicResource ThemeDetailBorderColor2}"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 6"
+                                    Padding="8"
+                                    Margin="0,2">
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroupList>
+                                        <VisualStateGroup x:Name="CommonStates">
+                                            <VisualState x:Name="Normal" />
+                                            <VisualState x:Name="Selected">
+                                                <VisualState.Setters>
+                                                    <Setter Property="Stroke" Value="{DynamicResource ThemeConfirmButtonColor}" />
+                                                    <Setter Property="StrokeThickness" Value="2" />
+                                                    <Setter Property="BackgroundColor" Value="{DynamicResource ThemePanelHeaderBackgroundColor}" />
+                                                </VisualState.Setters>
+                                            </VisualState>
+                                        </VisualStateGroup>
+                                    </VisualStateGroupList>
+                                </VisualStateManager.VisualStateGroups>
+
+                                <VerticalStackLayout Spacing="1">
+                                    <Label Text="{Binding Name}" FontSize="13" FontAttributes="Bold" />
+                                    <Label Text="{Binding Summary}" FontSize="11" TextColor="{DynamicResource ThemeDetailBorderColor1}" />
+                                    <Label Text="{Binding SkillsText}" FontSize="11" FontAttributes="Bold" TextColor="Gray">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding HasSkills}" Value="True">
+                                                <Setter Property="TextColor" Value="{DynamicResource ThemeWarningButtonColor}" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <Label Text="No weapons match."
+                       FontSize="12"
+                       TextColor="Gray"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"
+                       IsVisible="{Binding PickerIsEmpty}" />
+            </Grid>
+
+            <Label Text="{Binding PickerSelectionText}"
+                   FontSize="12"
+                   FontAttributes="Bold"
+                   TextColor="{DynamicResource ThemeDetailBorderColor1}" />
+        </VerticalStackLayout>
+    </skin:SkinPanel>
+</ContentView>

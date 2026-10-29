@@ -18,9 +18,14 @@ public class CreateCustomItemRequest
     public int? QtyLimit { get; set; }
     public bool IsStackable { get; set; } = true;
     public int? ContainerSlots { get; set; }
+    // Usage die (ammo-style)
+    public bool HasUsageDie { get; set; }
+    public bool HybridUsage { get; set; }
+    public int? UsageDieSides { get; set; }
 
     // === WEAPON-SPECIFIC ===
-    public WeaponCategoryType? WeaponCategory { get; set; }
+    public WeaponType? WeaponKind { get; set; }
+    public WeaponDamageType? DamageType { get; set; }
     public WeaponDamageDie? WeaponDamage { get; set; }
     public WeaponSpeedType? WeaponSpeed { get; set; }
     public List<WeaponEffectType> WeaponEffects { get; set; } = new();

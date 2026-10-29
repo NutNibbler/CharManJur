@@ -30,23 +30,28 @@ public partial class MainPage : ContentPage
         await Shell.Current.GoToAsync("///CreateNewCharacter", true);
     }
 
-    private async void OnLoadCharacterClicked(object sender, EventArgs e)
+    // Solo Session: pick a saved character and play it without a GM (the old Load Character).
+    private async void OnSoloSessionClicked(object sender, EventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine("=== Load Character Clicked ===");
+        System.Diagnostics.Debug.WriteLine("=== Solo Session Clicked ===");
         _globalMenuDataService.SetCharacterCreationMode(true);
         await Shell.Current.GoToAsync("///LoadCharacter");
     }
 
-    private async void OnResumeCharacterClicked(object sender, EventArgs e)
+    // Join a GM's session: pick a character, then an invite code or a session found on the network.
+    private async void OnJoinSessionClicked(object sender, EventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine("=== Resume Character Clicked ===");
-        _globalMenuDataService.SetCharacterCreationMode(true);
-        await Shell.Current.GoToAsync("///LoadCharacter");
+        await Shell.Current.GoToAsync("///JoinSession");
     }
 
-    private async void OnOfflineCampaignClicked(object sender, EventArgs e)
+    private async void OnCreateCampaignClicked(object sender, EventArgs e)
     {
-        await Shell.Current.GoToAsync("///OfflineCampaignHome");
+        await Shell.Current.GoToAsync("///CampaignCreatorPage?campaignId=new");
+    }
+
+    private async void OnResumeCampaignClicked(object sender, EventArgs e)
+    {
+        await Shell.Current.GoToAsync("///CampaignListPage");
     }
 
     private async void OnSettingsClicked(object sender, EventArgs e)

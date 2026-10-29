@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace CharManJur.ViewModels;
 
-public class ClassSelectionViewModel : INotifyPropertyChanged
+public partial class ClassSelectionViewModel : INotifyPropertyChanged
 {
     private readonly IClassDataService _classDataService;
     private readonly IServiceProvider _serviceProvider;
@@ -114,6 +114,7 @@ public class ClassSelectionViewModel : INotifyPropertyChanged
                 OnPropertyChanged(nameof(CanUnlockSpells));
                 OnPropertyChanged(nameof(CanUnlockTechniques));
                 OnPropertyChanged(nameof(CanUnlockBlueprints));
+                _ = RefreshWarriorPickerAsync();
             }
         }
     }
@@ -274,12 +275,18 @@ public class ClassSelectionViewModel : INotifyPropertyChanged
     }
 
     public bool CanSelectClass =>
-        !IsSubFeatureRequired || HasSelectedSubFeature;
+    (!IsSubFeatureRequired || HasSelectedSubFeature) &&
+    (!IsWarriorSelected || HasPickerSelection) &&   // a Warrior must choose their additional weapon
+    HasStartingChoice;                              // a starting proficiency (or "Pick later") must be chosen
 
     public string SelectClassButtonText =>
-        IsSubFeatureRequired && !HasSelectedSubFeature
-            ? "Select Sub-Feature First"
-            : "Confirm Class | Proceed to Background Selection";
+    IsSubFeatureRequired && !HasSelectedSubFeature
+        ? "Select Sub-Feature First"
+        : IsWarriorSelected && !HasPickerSelection
+            ? "Choose a Weapon First"
+            : !HasStartingChoice
+                ? "Choose a Starting Proficiency First"
+                : "Confirm Class | Next: Background Selection";
 
     // === SELECTED SUB-FEATURE NAMES ===
     public string SelectedBlueprintNames =>
@@ -327,6 +334,7 @@ public class ClassSelectionViewModel : INotifyPropertyChanged
 
         // Clear all sub-features command
         ClearAllSubFeaturesCommand = new Command(ClearAllSubFeatures, () => HasAnyUnlockableTypes);
+        InitStartingOptions();
 
         Task.Run(LoadClassesAsync);
     }
@@ -455,11 +463,36 @@ public class ClassSelectionViewModel : INotifyPropertyChanged
             return;
         }
 
-        // Save class and feature data to global service
-        SaveClassDataToService();
+        if (IsWarriorSelected)
+        {
+            if (SelectedPickerWeapon == null)
+            {
+                await Application.Current.MainPage.DisplayAlertAsync(
+                    "Weapon Required", "Choose your additional Warrior weapon before proceeding.", "OK");
+                return;
+            }
 
-        // Navigate to next page
-        await Shell.Current.GoToAsync("///CharBuilder_Godrick_BackgroundSelection", true);
+            _charDataService.Proficiency.SetCreationGrant(SelectedPickerWeapon.Item);
+            System.Diagnostics.Debug.WriteLine(
+                $"[WARRIOR] Picked {SelectedPickerWeapon.Name}; grants now {_charDataService.Proficiency.GrantedSkills.Count}");
+        }
+        else if (_charDataService.Proficiency.CreationGrant != null)
+        {
+            // The player picked a weapon as a Warrior, then changed class.
+            _charDataService.Proficiency.SetCreationGrant(null);
+        }
+
+        if (!HasStartingChoice)
+        {
+            await Application.Current.MainPage.DisplayAlertAsync(
+                "Starting Proficiency Required",
+                "Choose a starting damage type proficiency, or pick \"Pick later\", before proceeding.",
+                "OK");
+            return;
+        }
+
+        ApplyStartingChoice();
+        await ProceedToBackgroundAsync();
     }
 
     private void SaveClassDataToService()
@@ -536,6 +569,8 @@ public class ClassSelectionViewModel : INotifyPropertyChanged
 
         SelectedClass = null;
         SelectedFeature = null;
+        ClearWarriorPicker();
+        ClearStartingChoice();
         _availableUnlockTypes = new List<SubFeatureType>();
         HasSelectedSubFeature = false;
         IsSubFeatureRequired = false;
@@ -591,6 +626,7 @@ public class ClassSelectionViewModel : INotifyPropertyChanged
     {
         System.Diagnostics.Debug.WriteLine("=== ClassSelectionViewModel: RestoreFromSavedData() ===");
 
+        RestoreStartingChoice();
         // First try to restore by ID
         if (_charDataService.SelectedClassId.HasValue)
         {

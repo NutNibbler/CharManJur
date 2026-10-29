@@ -8,7 +8,7 @@ public static class EquipmentActionHelper
 {
     public static bool CanEquipToHand(CharacterItem item, ICharAttribDataService charDataService)
     {
-        if (item.IsJewelry) return false;
+        if (item.IsWorn) return false;
         if (item.IsArmor && !item.IsShield) return false;
         if (item.EquipmentSlot == EquipmentSlotType.Hand) return false;
         if (item.SlotsRequired > 1 && !charDataService.LimbSets.Any(l => l.PairType == LimbPairType.Paired))
@@ -18,7 +18,7 @@ public static class EquipmentActionHelper
 
     public static bool CanEquipToBelt(CharacterItem item, ICharAttribDataService charDataService)
     {
-        if (item.IsJewelry) return false;
+        if (item.IsWorn) return false;
         if (item.IsArmor && !item.IsShield) return false;
         if (item.EquipmentSlot == EquipmentSlotType.Belt) return false;
         return true;
@@ -28,7 +28,7 @@ public static class EquipmentActionHelper
     // An item that is already equipped may always be moved, even if it is out of uses.
     private static string? GetBlockedReason(CharacterItem item)
     {
-        if (item.IsJewelry) return "Jewelry is worn, not held or belted.";
+        if (item.IsWorn) return "Jewelry is worn, not held or belted.";
         if (item.IsArmor && !item.IsShield) return "Body armor can only be worn in the armor slot.";
         if (item.IsEmpty && !item.IsEquipped)
             return $"'{item.DisplayName}' is out of uses, so it can't be equipped. Restore its uses first.";

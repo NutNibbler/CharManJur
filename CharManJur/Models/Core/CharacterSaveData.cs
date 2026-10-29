@@ -94,8 +94,12 @@ public class CharacterData
     public bool Rested { get; set; }
     public bool IsDeprived { get; set; }
     public int DeprivedDays { get; set; }
+    public WeaponProficiencyState Proficiency { get; set; } = new();
     public bool IsPackDropped { get; set; } = false;
     public List<CharacterEffect> ActiveEffects { get; set; } = new();
+    // Sent by the GM, waiting for the player to take them on. Missing in older saves: nothing waiting.
+    public List<IncomingDamage> PendingDamage { get; set; } = new();
+    public List<IncomingEffect> PendingEffects { get; set; } = new();
     public string CharacterStory { get; set; } = string.Empty;
 
     // Background Bonuses (Container for ALL creation bonuses)
@@ -136,8 +140,13 @@ public class CharacterData
     // ===== FAMILIARS =====
     public List<Familiar> AcquiredFamiliars { get; set; } = new();
 
-    // ===== TRAINING POINTS =====
+    // ===== TRAINING POINTS & LEVELING =====
     public Dictionary<string, int> SkillTrainingLevels { get; set; } = new();
+    public int UnspentTrainingPoints { get; set; }
+    public bool CreationTrainingMigrated { get; set; }   // creation's leftover training points have been moved to the live pool
+    public int PendingLevels { get; set; }   // level-ups the GM granted that the player hasn't taken yet
+    public List<int> StatRolls { get; set; } = new();      // the five 3d6 totals from "Roll for me" (empty = not rolled)
+    public List<int> StatRollPool { get; set; } = new();   // the best four that haven't been assigned yet
 
     // ===== SKILL TOTALS =====
     public Dictionary<string, int> SkillTotals { get; set; } = new();
